@@ -23,7 +23,7 @@ export default function Header({ user, setUser }: HeaderProps) {
 
   return (
     <div className="header">
-      <h1>dapple</h1>
+      <h1>cadence</h1>
       {user ? (
         <div id="user-menu">
           <button id="user-btn" onClick={showUserMenu}>

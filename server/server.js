@@ -22,10 +22,6 @@ const generateRandomString = (length) => {
 
 app.use(cors(corsOptions)).use(cookieParser());
 
-app.get("/api", (req, res) => {
-  res.send({ fruits: ["apple", "banana"] });
-});
-
 // Redirects client to Spotify authorization with appropriate query parameters
 app.get("/login", function (req, res) {
   var state = generateRandomString(16);
@@ -95,8 +91,11 @@ app.get("/callback", async function (req, res) {
         },
       });
 
+      const now = new Date();
+      const currentTime = now.toLocaleString();
+
       console.log(
-        `${userResponse.data.display_name} successfully retrieved tokens from Spotify API.`
+        `${currentTime}: - ${userResponse.data.display_name} successfully retrieved tokens from Spotify API.`
       );
 
       // Redirect the user back to client app with tokens
@@ -109,7 +108,7 @@ app.get("/callback", async function (req, res) {
           })
       );
 
-      console.log("Redirected user to client with tokens.");
+      console.log(`${currentTime}: Redirected user to client with tokens.`);
     } catch (error) {
       console.error(error);
       res.redirect(
@@ -124,10 +123,13 @@ app.get("/callback", async function (req, res) {
 
 // Refreshes access token
 app.get("/refresh_token", async function (req, res) {
+  const now = new Date();
+  const currentTime = now.toLocaleString();
+
   var client_refresh_token = req.query.refresh_token;
 
-  console.log("Received refresh token from client");
-  console.log("Requesting new access token from Spotify");
+  console.log(`${currentTime}: Received refresh token from client`);
+  console.log(`${currentTime}: Requesting new access token from Spotify`);
 
   try {
     const authResponse = await axios.post(
@@ -168,13 +170,13 @@ app.get("/refresh_token", async function (req, res) {
       });
 
       console.log(
-        `Sent ${
+        `${currentTime}: Sent ${
           updated_refresh_token ? "new" : "old"
         } refresh_token, new access_token, and expiry time to client`
       );
     } else {
       console.log(
-        "Response status from Spotify API to request for new access token was not 200."
+        `${currentTime}: Response status from Spotify API to request for new access token was not 200.`
       );
     }
   } catch (error) {

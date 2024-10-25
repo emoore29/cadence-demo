@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Server for handling Spotify API calls from frontend of Dapple.",
+  "description": "Server for handling Spotify API calls from frontend of Cadence.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

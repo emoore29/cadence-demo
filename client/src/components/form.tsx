@@ -8,10 +8,12 @@ import {
 } from "@/components/ui/number-input";
 import { useState } from "react";
 import axios from "axios";
+import Playlist from "./playlist";
 
 export default function Form() {
   const [bpm, setBPM] = useState<[string, string]>(["95", "165"]);
   const [filterFrom, setFilterFrom] = useState("1");
+  const [playlist, setPlaylist] = useState<Object>();
 
   // Options:
   // Filter from stored library of user's saved songs
@@ -19,41 +21,59 @@ export default function Form() {
   // Filter from stored library of user's top songs (4 weeks, 6m, 12m)
   // Filter from most popular on Spotify
   // Get new recommended songs based on user's top songs (but don't include their songs in the results)
-  async function fetchSongs() {
+  async function fetchFromTopSongs() {
     const token = localStorage.getItem("access_token");
-    let songs: (Object | null)[] = [];
-    let nextUrl = "https://api.spotify.com/v1/me/tracks?limit=50";
+    // Library for storing fetched songs that will be filtered
+    let library: (Object | null)[] = [];
+    let nextUrl = "https://api.spotify.com/v1/me/top/tracks?limit=50";
 
     try {
-      while (nextUrl && songs.length < 100) {
-        const tracksResult = await axios.get(nextUrl, {
+      while (nextUrl && library.length < 100) {
+        const result = await axios.get(nextUrl, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        songs = [...songs, ...tracksResult.data.items];
-        nextUrl = tracksResult.data.next;
+        console.log(result);
+        library = [...library, ...result.data.items];
+        nextUrl = result.data.next;
       }
 
-      console.log("Total songs fetched: ", songs.length);
-      const songIds = songs.map((song) => song!.track.id);
+      console.log("song 1: ", library[0]);
 
-      const featuresResult = await axios.get(
+      // Get the ids of songs in the library
+      const songIds = library.map((song) => song!.id);
+
+      // Get the features of the songs from the library
+      const libraryFeaturesResult = await axios.get(
         "https://api.spotify.com/v1/audio-features",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: {
-            ids: songIds.join(","), // Join IDs as a comma-separated string
+            ids: songIds.join(","),
           },
         }
       );
-      console.log("Audio Features: ", featuresResult.data.audio_features);
 
-      const songFeatures = featuresResult.data.audio_features;
+      // Array of the library songs features
+      const libraryFeatures = libraryFeaturesResult.data.audio_features;
 
-      // Filter songs based on requested features.
-      const playlist = songFeatures.filter(
+      // Filter feature array of songs for songs that match the form preferences
+      const matchingSongs = libraryFeatures.filter(
         (song) => song.tempo >= Number(bpm[0]) && song.tempo <= Number(bpm[1])
       );
+
+      // Create a set of matching song IDs for quick lookup
+      const matchingSongIds = new Set(matchingSongs.map((song) => song.id));
+
+      // Filter library for songs that match the ids of the matchingSongs array
+      const playlist = library.filter((song) => matchingSongIds.has(song.id));
+
+      if (playlist.length > 20) {
+        // Slice the first 20 songs from the shuffled playlist
+        setPlaylist(playlist.slice(0, 20));
+      } else {
+        setPlaylist(playlist);
+      }
 
       console.log("Playlist:", playlist);
     } catch (error) {
@@ -61,13 +81,15 @@ export default function Form() {
     }
   }
 
+  async function fetchFromLatestLibrary() {}
+
   return (
     <>
       <form
         className="playlist-form"
         onSubmit={(e) => {
           e.preventDefault();
-          fetchSongs();
+          fetchFromTopSongs();
         }}
       >
         <RadioGroup
@@ -76,7 +98,7 @@ export default function Form() {
         >
           <HStack gap="6">
             <Radio value="1">Filter from my top songs</Radio>
-            <Radio value="2">Filter from my saved songs</Radio>
+            <Radio value="2">Filter from my latest saved songs</Radio>
             <Radio value="3">Filter from most popular on Spotify</Radio>
             <Radio value="3">Give me new recommendations</Radio>
           </HStack>
@@ -105,6 +127,7 @@ export default function Form() {
         </Field>
         <Button type="submit">Generate playlist</Button>
       </form>
+      <Playlist playlist={playlist} />
     </>
   );
 }
