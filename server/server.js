@@ -32,7 +32,7 @@ app.get("/login", function (req, res) {
   res.cookie(stateKey, state); // Send the state key to the browser
 
   var scope =
-    "user-read-private user-read-email playlist-read-private playlist-modify-private playlist-modify-public user-library-read";
+    "user-read-private user-read-email user-top-read playlist-read-private playlist-modify-private playlist-modify-public user-library-read";
 
   res.redirect(
     "https://accounts.spotify.com/authorize?" +
