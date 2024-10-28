@@ -4,19 +4,15 @@ import "./App.css";
 import Form from "./components/form";
 import Header from "./components/header";
 import { handleTokens } from "./helpers/backend";
+import { setUpDatabase } from "./helpers/database";
 import {
   fetchAndStoreLibraryData,
-  getAndStoreSampleTrack,
   getLibSizeFromLocalStorage,
-  getTopArtists,
-  getTopTracks,
   getUserFromLocalStorage,
   handleLogin,
   loginOccurred,
-  storeUserLibraryAndFeatures,
 } from "./helpers/frontend";
 import { User } from "./types/types";
-import { setUpDatabase } from "./helpers/database";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
@@ -65,10 +61,8 @@ function App() {
           take approximately Y minutes. (Why?)
         </p>
       )}
-      <Button onClick={getTopArtists}>getTopArtists</Button>
-      <Button onClick={getTopTracks}>getTopTracks</Button>
+
       <Button onClick={storeLibrary}>Store my library in the database!</Button>
-      <Button onClick={getAndStoreSampleTrack}>Sample track</Button>
       {/* 
       <p>
         Do you want to load and store your Spotify library? This will make

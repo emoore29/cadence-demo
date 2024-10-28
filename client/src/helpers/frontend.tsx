@@ -7,7 +7,7 @@ import {
   FeaturesLibrary,
   Track,
 } from "../types/types";
-import { setInStore, setUpDatabase } from "./database";
+import { setInStore, getAllKeysFromStore, getFromStore } from "./database";
 import { SampleTrack } from "../types/types";
 
 // Fetch user data
@@ -771,3 +771,33 @@ export async function getTopArtists() {
     console.error("Error fetching top artists:", error);
   }
 }
+
+// export async function filterUserLibrary(setPlaylist: (playlist: Track[]) => void): Promise<void> {
+//   // Get each song's features from the database
+//   // Check if the features are a match
+
+//   let playlist: Track[] = [];
+
+//   try {
+//     const songIds = await getAllKeysFromStore("library");
+//     for (const id of songIds) {
+//       if (playlist.length >= 20) break;
+//       const song = (await getFromStore("library", id)) as {
+//         track: Track;
+//         features: TrackFeatures;
+//       };
+//       const songFeatures: TrackFeatures = song.features;
+//       // For each feature requested in the form, check if the song is a match
+//       if (
+//         songFeatures.tempo >= Number(bpm[0]) &&
+//         songFeatures.tempo <= Number(bpm[1])
+//       ) {
+//         playlist.push(song.track);
+//       }
+//     }
+//     console.log("playlist generated:", playlist);
+//     setPlaylist(playlist);
+//   } catch (error) {
+//     console.error("Error fetching keys from IDB library", error);
+//   }
+// }

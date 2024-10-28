@@ -45,6 +45,14 @@ export default function Form() {
     }
   }
 
+  // advanced filters:
+  // valence (mood) slider 0-1
+  // danceability 0-1 slider
+  // energy: 0-1 (1 = high energy) - slider
+  // instrumentalness 0-1 (1 = no vocals) - checkbox? and then if yes, filter 0.5-1, if no, filter 0-0.5?
+  // mode (major/minor) - 0 or 1, (0 = minor, 1 = major)
+  // time signature: 3-7 (3/4 - 7/4)
+
   return (
     <>
       <form
