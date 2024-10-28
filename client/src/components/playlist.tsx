@@ -3,8 +3,14 @@ import { Button } from "@chakra-ui/react";
 import { Input } from "@chakra-ui/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import axios from "axios";
+import { Track } from "@/types/types";
 
-export default function Playlist({ playlist }) {
+interface PlaylistProps {
+  playlist: Track[] | null;
+}
+
+export default function Playlist({ playlist }: PlaylistProps) {
+  if (!playlist) return <div>No playlist available</div>;
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [privatePlaylist, setPrivatePlaylist] = useState<boolean>(false);
@@ -12,7 +18,7 @@ export default function Playlist({ playlist }) {
   async function savePlaylist() {
     const token = localStorage.getItem("access_token");
     const user = localStorage.getItem("user_data");
-    const songUris = playlist.map((song) => `spotify:track:${song.id}`);
+    const songUris = playlist!.map((song) => `spotify:track:${song.id}`);
     let userId;
 
     if (user) {

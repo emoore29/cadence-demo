@@ -17,6 +17,12 @@ export interface User {
   uri: string;
 }
 
+export interface SampleTrack {
+  href: string;
+  id: string;
+  name: string;
+}
+
 export interface Track {
   album: {
     album_type: string;
@@ -35,7 +41,7 @@ export interface Track {
     name: string;
     release_date: string;
     release_date_precision: string;
-    restrictions: {
+    restrictions?: {
       reason: string;
     };
     type: string;
@@ -66,16 +72,16 @@ export interface Track {
   duration_ms: number;
   explicit: boolean;
   external_ids: {
-    isrc: string;
-    ean: string;
-    upc: string;
+    isrc?: string;
+    ean?: string;
+    upc?: string;
   };
   external_urls: {
-    spotify: string;
+    spotify?: string;
   };
   href: string;
   id: string;
-  is_playable: boolean;
+  is_playable?: boolean;
   linked_from?: {
     external_urls: {
       spotify: string;
@@ -86,7 +92,7 @@ export interface Track {
     type: string;
     uri: string;
   } | null;
-  restrictions: {
+  restrictions?: {
     reason: string;
   };
   name: string;
@@ -111,6 +117,10 @@ export interface Library {
   previous: string;
   total: number;
   items: SavedTrack[];
+}
+
+export interface FeaturesLibrary {
+  audio_features: TrackFeatures[];
 }
 
 export interface TrackFeatures {

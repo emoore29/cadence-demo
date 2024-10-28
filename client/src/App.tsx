@@ -5,15 +5,18 @@ import Form from "./components/form";
 import Header from "./components/header";
 import { handleTokens } from "./helpers/backend";
 import {
+  fetchAndStoreLibraryData,
+  getAndStoreSampleTrack,
   getLibSizeFromLocalStorage,
   getTopArtists,
   getTopTracks,
   getUserFromLocalStorage,
   handleLogin,
   loginOccurred,
-  setUpDatabase,
+  storeUserLibraryAndFeatures,
 } from "./helpers/frontend";
 import { User } from "./types/types";
+import { setUpDatabase } from "./helpers/database";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
@@ -49,6 +52,10 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  async function storeLibrary() {
+    fetchAndStoreLibraryData();
+  }
+
   return (
     <div className="container">
       <Header user={user} setUser={setUser} setLibSize={setLibSize} />
@@ -60,6 +67,8 @@ function App() {
       )}
       <Button onClick={getTopArtists}>getTopArtists</Button>
       <Button onClick={getTopTracks}>getTopTracks</Button>
+      <Button onClick={storeLibrary}>Store my library in the database!</Button>
+      <Button onClick={getAndStoreSampleTrack}>Sample track</Button>
       {/* 
       <p>
         Do you want to load and store your Spotify library? This will make
