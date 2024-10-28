@@ -1,25 +1,39 @@
 import axios from "axios";
+import { storeTokens } from "./frontend";
 
-export const checkTokenExpiry = () => {
-  // Checks if the current access token has expired
-  // If so, runs updateTokens()
-  const storedAccessToken = localStorage.getItem("access_token");
-  const tokenExpiry = localStorage.getItem("token_expiry");
+// If the current access token has expired, fetches and stores new tokens
+export async function handleTokens(): Promise<void> {
+  const storedAccessToken: string | null = localStorage.getItem("access_token");
+  const storedExpiry: string | null = localStorage.getItem("token_expiry");
 
-  if (storedAccessToken && tokenExpiry) {
-    const now = Date.now();
-    if (now > parseInt(tokenExpiry, 10)) {
-      updateTokens();
+  if (!storedAccessToken || !storedExpiry) {
+    // Either user has not logged in, or there is an error
+    console.error(
+      "Couldn't find stored access token or expiry in local storage."
+    );
+  }
+
+  const now = Date.now();
+  const expiryTime = parseInt(storedExpiry!, 10);
+
+  if (now > expiryTime) {
+    console.log("Tokens out of date. Updating...");
+    const tokens = await getNewTokens();
+    if (tokens) {
+      const [accessToken, newRefreshToken, expiresIn] = tokens;
+      console.log("storing tokens. access token:", accessToken);
+      storeTokens(accessToken, newRefreshToken, expiresIn);
     }
   }
-};
+}
 
-export async function updateTokens() {
+// Fetches and returns new tokens
+export async function getNewTokens(): Promise<string[] | null> {
   // Sends request to backend for new access token
   const refreshToken = localStorage.getItem("refresh_token");
   if (!refreshToken) {
     console.error("No refresh token found in local storage.");
-    return;
+    return null;
   }
   try {
     const response = await axios.get("http://localhost:3000/refresh_token", {
@@ -30,13 +44,10 @@ export async function updateTokens() {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-    const { access_token, refresh_token, expires_in } = response.data;
-    const expiresIn = expires_in || 3600;
-    const expiryTime = Date.now() + expiresIn * 1000; // Convert to milliseconds
-    localStorage.setItem("access_token", access_token);
-    localStorage.setItem("refresh_token", refresh_token);
-    localStorage.setItem("token_expiry", expiryTime.toString());
+    const { accessToken, newRefreshToken, expiresIn } = response.data;
+    return [accessToken, newRefreshToken, expiresIn];
   } catch (error) {
     console.error("There was an error fetching a new access token:", error);
+    return null;
   }
 }

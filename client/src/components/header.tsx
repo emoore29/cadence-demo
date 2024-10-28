@@ -4,9 +4,10 @@ import { User } from "../types/types";
 interface HeaderProps {
   user: User | null;
   setUser: (user: User | null) => void;
+  setLibSize: (libSize: number) => void;
 }
 
-export default function Header({ user, setUser }: HeaderProps) {
+export default function Header({ user, setUser, setLibSize }: HeaderProps) {
   const [userMenu, setUserMenu] = useState<boolean>(false);
 
   const logOut = () => {
@@ -14,7 +15,9 @@ export default function Header({ user, setUser }: HeaderProps) {
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("token_expiry");
     localStorage.removeItem("user_data");
+    localStorage.removeItem("lib_size");
     setUser(null);
+    setLibSize(0);
   };
 
   const showUserMenu = () => {
