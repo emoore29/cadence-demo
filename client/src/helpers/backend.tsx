@@ -39,7 +39,7 @@ export async function handleTokens(): Promise<void> {
 // Fetches new tokens  from backend /refresh_token API endpoint
 export async function getNewTokens(): Promise<string[] | null> {
   // Sends request to backend for new access token
-  const refreshToken = localStorage.getItem("refresh_token");
+  const refreshToken: string | null = localStorage.getItem("refresh_token");
   if (!refreshToken) {
     console.error("No refresh token found in local storage.");
     return null;
@@ -53,7 +53,12 @@ export async function getNewTokens(): Promise<string[] | null> {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-    const { accessToken, newRefreshToken, expiresIn } = response.data;
+    const {
+      access_token: accessToken,
+      refresh_token: newRefreshToken,
+      expires_in: expiresIn,
+    } = response.data;
+
     console.log("New tokens fetched:", accessToken, newRefreshToken, expiresIn);
     return [accessToken, newRefreshToken, expiresIn];
   } catch (error) {

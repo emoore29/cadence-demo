@@ -833,3 +833,12 @@ export function isLibraryStoredInDB(): boolean {
 //     console.error("Error fetching keys from IDB library", error);
 //   }
 // }
+
+export function clearLocalStorage(): void {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("token_expiry");
+  localStorage.removeItem("user_data");
+  localStorage.removeItem("lib_size");
+  localStorage.removeItem("library_was_stored");
+}

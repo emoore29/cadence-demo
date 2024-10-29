@@ -62,7 +62,12 @@ function App() {
 
   return (
     <div className="container">
-      <Header user={user} setUser={setUser} setLibSize={setLibSize} />
+      <Header
+        user={user}
+        setUser={setUser}
+        setLibSize={setLibSize}
+        setLibraryStored={setLibraryStored}
+      />
       {!libraryStored && (
         <>
           <p>

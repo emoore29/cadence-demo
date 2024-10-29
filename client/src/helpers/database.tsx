@@ -1,5 +1,5 @@
-import { openDB, DBSchema, IDBPDatabase } from "idb";
-import { Track, Artist, TrackFeatures, SampleTrack } from "@/types/types";
+import { Artist, Track, TrackFeatures } from "@/types/types";
+import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 type StoreName = "library" | "topArtists" | "topTracks";
 
@@ -47,7 +47,18 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
 }
 
 // Get from a particular store based on a key (e.g. find a song from library with its id)
-export async function getFromStore(storeName: StoreName, key: string) {
+export async function getFromStore(
+  storeName: StoreName,
+  key: string
+): Promise<
+  | {
+      track: Track;
+      features: TrackFeatures;
+    }
+  | Track
+  | Artist
+  | undefined
+> {
   const db = await setUpDatabase();
   return db.get(storeName, key);
 }
@@ -65,19 +76,55 @@ export async function setInStore(
 }
 
 // Remove a key-val pair in a given store
-export async function deleteFromStore(storeName: StoreName, key: string) {
+export async function deleteFromStore(
+  storeName: StoreName,
+  key: string
+): Promise<void> {
   const db = await setUpDatabase();
   return db.delete(storeName, key);
 }
 
 // Remove a store
-export async function clearStore(storeName: StoreName) {
+export async function clearStore(storeName: StoreName): Promise<void> {
   const db = await setUpDatabase();
   return db.clear(storeName);
 }
 
 // Get all keys from a store
-export async function getAllKeysFromStore(storeName: StoreName) {
+export async function getAllKeysFromStore(
+  storeName: StoreName
+): Promise<string[]> {
   const db = await setUpDatabase();
   return db.getAllKeys(storeName);
+}
+
+export async function deleteDatabase(): Promise<void> {
+  const databaseName = "cadence";
+
+  // Close open connections to db
+  const db = await openDB(databaseName);
+  db.close();
+
+  // Return promise to delet database
+  return new Promise((resolve, reject) => {
+    const deleteRequest = indexedDB.deleteDatabase(databaseName);
+
+    deleteRequest.onsuccess = () => {
+      console.log(`Database '${databaseName}' deleted successfully.`);
+      resolve();
+      // Reload the tab after successful deletion
+      location.reload();
+    };
+
+    deleteRequest.onerror = (event) => {
+      console.error(`Error deleting database '${databaseName}':`, event);
+      reject(event);
+    };
+
+    deleteRequest.onblocked = () => {
+      console.warn(
+        `Database deletion is blocked. Close all connections to '${databaseName}' and try again.`
+      );
+    };
+  });
 }
