@@ -3,10 +3,17 @@ import { storeTokens } from "./frontend";
 
 // If the current access token has expired, fetches and stores new tokens
 export async function handleTokens(): Promise<void> {
+  console.log("running handle tokens...");
   const storedAccessToken: string | null = localStorage.getItem("access_token");
   const storedExpiry: string | null = localStorage.getItem("token_expiry");
 
-  if (!storedAccessToken || !storedExpiry) {
+  if (
+    !storedAccessToken ||
+    storedAccessToken === "undefined" ||
+    !storedExpiry ||
+    storedExpiry === "undefined" ||
+    storedExpiry === "NaN"
+  ) {
     // Either user has not logged in, or there is an error
     console.error(
       "Couldn't find stored access token or expiry in local storage."
@@ -15,6 +22,8 @@ export async function handleTokens(): Promise<void> {
 
   const now = Date.now();
   const expiryTime = parseInt(storedExpiry!, 10);
+  console.log("now:", now.toLocaleString());
+  console.log("expiry:", expiryTime.toLocaleString());
 
   if (now > expiryTime) {
     console.log("Tokens out of date. Updating...");
@@ -27,7 +36,7 @@ export async function handleTokens(): Promise<void> {
   }
 }
 
-// Fetches and returns new tokens
+// Fetches new tokens  from backend /refresh_token API endpoint
 export async function getNewTokens(): Promise<string[] | null> {
   // Sends request to backend for new access token
   const refreshToken = localStorage.getItem("refresh_token");
@@ -45,6 +54,7 @@ export async function getNewTokens(): Promise<string[] | null> {
       },
     });
     const { accessToken, newRefreshToken, expiresIn } = response.data;
+    console.log("New tokens fetched:", accessToken, newRefreshToken, expiresIn);
     return [accessToken, newRefreshToken, expiresIn];
   } catch (error) {
     console.error("There was an error fetching a new access token:", error);

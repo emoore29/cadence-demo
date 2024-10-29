@@ -1,14 +1,13 @@
 import axios from "axios";
 import {
-  User,
+  FeaturesLibrary,
   Library,
   SavedTrack,
-  TrackFeatures,
-  FeaturesLibrary,
   Track,
+  TrackFeatures,
+  User,
 } from "../types/types";
-import { setInStore, getAllKeysFromStore, getFromStore } from "./database";
-import { SampleTrack } from "../types/types";
+import { setInStore } from "./database";
 
 // Fetch user data
 export async function fetchUserData(
@@ -126,6 +125,7 @@ export function storeTokens(
   refresh: string,
   expiresIn: string
 ): void {
+  console.log("Storing tokens:", access, refresh, expiresIn);
   const expiryTime = Date.now() + Number(expiresIn) * 1000;
   localStorage.setItem("access_token", access);
   localStorage.setItem("refresh_token", refresh);
@@ -139,7 +139,7 @@ export async function loadUsersLibrary(): Promise<SavedTrack[] | null> {
   console.log("Loading your library");
   const token = getAccessToken();
   if (!token) {
-    console.error("Access token not found.");
+    console.error("Error fetching user's library: Access token not found.");
     return null;
   }
   let library: SavedTrack[] = [];
@@ -159,7 +159,7 @@ export async function loadUsersLibrary(): Promise<SavedTrack[] | null> {
     console.log("Your library was fetched: ", library.length);
     return library;
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching user's library: ", error);
     return null;
   }
 }
@@ -173,7 +173,7 @@ export async function loadUsersLibraryFeatures(
 
   const token = getAccessToken();
   if (!token) {
-    console.error("Access token not found.");
+    console.error("Error fetching library features: access token not found.");
     return null;
   }
 
@@ -207,11 +207,11 @@ export async function loadUsersLibraryFeatures(
       // add the features to the features library
       featuresLibrary.push(...featuresResult.data.audio_features);
     } catch (error) {
-      console.error("There was an error fetching song features", error);
+      console.error("Error fetching library features: ", error);
       return null;
     }
   }
-  console.log("Your library features were loaded");
+  console.log("Library features loaded");
   return featuresLibrary;
 }
 
@@ -219,8 +219,10 @@ export async function loadUsersLibraryFeatures(
 export async function storeUserLibraryAndFeatures(
   library: SavedTrack[],
   featuresLibrary: TrackFeatures[]
-): Promise<void> {
+): Promise<boolean> {
   console.log("Storing songs and their features..");
+  let success = true;
+
   for (const track of library) {
     const trackId = track.track.id;
     const trackFeatures = featuresLibrary.find(
@@ -236,19 +238,40 @@ export async function storeUserLibraryAndFeatures(
         });
       } catch (error) {
         console.error(`Error storing track ${trackId} in IndexedDB:`, error);
+        success = false;
       }
     } else {
       console.warn(`No features found for track ID ${trackId}`);
+      success = false;
     }
   }
 
-  console.log("Library and features successfully stored in IndexedDB.");
+  if (success) {
+    console.log("All tracks successfully stored in IDB");
+  } else {
+    console.warn("Some or all tracks could not be stored in IndexedDB");
+  }
+
+  return success;
 }
 
-export async function fetchAndStoreLibraryData() {
-  const lib = await loadUsersLibrary();
-  const feats = lib && (await loadUsersLibraryFeatures(lib));
-  lib && feats && storeUserLibraryAndFeatures(lib, feats);
+export async function fetchAndStoreLibraryData(): Promise<boolean | null> {
+  const lib: SavedTrack[] | null = await loadUsersLibrary();
+
+  if (lib) {
+    const feats: TrackFeatures[] | null = await loadUsersLibraryFeatures(lib);
+
+    if (feats) {
+      const success = storeUserLibraryAndFeatures(lib, feats);
+      return success;
+    } else {
+      console.error("Error loading user's library features.");
+      return null;
+    }
+  } else {
+    console.error("Error loading the user's library");
+    return null;
+  }
 }
 
 export async function getTopTracks() {
@@ -769,6 +792,15 @@ export async function getTopArtists() {
     console.log("top artists:", res.data);
   } catch (error) {
     console.error("Error fetching top artists:", error);
+  }
+}
+
+export function isLibraryStoredInDB(): boolean {
+  const stored: string | null = localStorage.getItem("library_was_stored");
+  if (stored === "true") {
+    return true;
+  } else {
+    return false;
   }
 }
 

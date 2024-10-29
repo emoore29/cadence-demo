@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Button } from "@chakra-ui/react";
-import { Input } from "@chakra-ui/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import axios from "axios";
 import { Track } from "@/types/types";
+import { Button, Input } from "@chakra-ui/react";
+import axios from "axios";
+import { useState } from "react";
 
 interface PlaylistProps {
   playlist: Track[] | null;

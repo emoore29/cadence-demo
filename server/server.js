@@ -95,7 +95,7 @@ app.get("/callback", async function (req, res) {
       const currentTime = now.toLocaleString();
 
       console.log(
-        `${currentTime}: - ${userResponse.data.display_name} successfully retrieved tokens from Spotify API.`
+        `${currentTime}: ${userResponse.data.display_name} successfully retrieved tokens from Spotify API.`
       );
 
       // Redirect the user back to client app with tokens
@@ -172,7 +172,8 @@ app.get("/refresh_token", async function (req, res) {
       console.log(
         `${currentTime}: Sent ${
           updated_refresh_token ? "new" : "old"
-        } refresh_token, new access_token, and expiry time to client`
+        } refresh_token, new access_token, and expiry time to client. Access token:`,
+        access_token
       );
     } else {
       console.log(

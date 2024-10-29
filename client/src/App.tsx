@@ -10,6 +10,7 @@ import {
   getLibSizeFromLocalStorage,
   getUserFromLocalStorage,
   handleLogin,
+  isLibraryStoredInDB,
   loginOccurred,
 } from "./helpers/frontend";
 import { User } from "./types/types";
@@ -17,6 +18,7 @@ import { User } from "./types/types";
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [libraryStored, setLibraryStored] = useState<boolean>(false);
 
   useEffect(() => {
     const setupDb = async () => {
@@ -40,7 +42,9 @@ function App() {
     if (user) {
       setUser(user);
       setLibSize(getLibSizeFromLocalStorage());
+      console.log("handle tokens running next...");
       handleTokens();
+      setLibraryStored(isLibraryStoredInDB());
     }
 
     // Handle token expiry every hour
@@ -48,21 +52,30 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  async function storeLibrary() {
-    fetchAndStoreLibraryData();
+  async function storeLibrary(): Promise<void> {
+    const success: boolean | null = await fetchAndStoreLibraryData();
+    if (success) {
+      localStorage.setItem("library_was_stored", success.toString());
+      setLibraryStored(isLibraryStoredInDB());
+    }
   }
 
   return (
     <div className="container">
       <Header user={user} setUser={setUser} setLibSize={setLibSize} />
-      {libSize && (
-        <p>
-          You have {libSize} saved songs in your library. Loading them all will
-          take approximately Y minutes. (Why?)
-        </p>
+      {!libraryStored && (
+        <>
+          <p>
+            Welcome to Cadence! You have {libSize} saved songs in your library.
+            Loading them all will take approximately Y minutes. (Why?)
+          </p>
+
+          <Button onClick={storeLibrary}>
+            Store my library in the database!
+          </Button>
+        </>
       )}
 
-      <Button onClick={storeLibrary}>Store my library in the database!</Button>
       {/* 
       <p>
         Do you want to load and store your Spotify library? This will make
