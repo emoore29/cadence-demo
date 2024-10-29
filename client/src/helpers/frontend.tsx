@@ -1,8 +1,10 @@
 import axios from "axios";
 import {
+  Artist,
   FeaturesLibrary,
   Library,
   SavedTrack,
+  TopArtists,
   Track,
   TrackFeatures,
   User,
@@ -255,6 +257,46 @@ export async function storeUserLibraryAndFeatures(
   return success;
 }
 
+export async function storeUserTopTrackData(
+  topTracks: Track[],
+  topTrackFeatures: TrackFeatures[]
+): Promise<boolean> {
+  console.log("Storing top tracks and their features..");
+  let success = true;
+
+  for (const [index, track] of topTracks.entries()) {
+    const trackId = track.id;
+    const trackFeatures = topTrackFeatures.find(
+      (features) => features.id === trackId
+    ); // Find corresponding features
+
+    if (trackFeatures) {
+      // Save the track and its features to IndexedDB
+      try {
+        await setInStore("topTracks", {
+          track: track,
+          features: trackFeatures,
+          order: index, // Add order based on position in the topTracks array
+        });
+      } catch (error) {
+        console.error(`Error storing track ${trackId} in IndexedDB:`, error);
+        success = false;
+      }
+    } else {
+      console.warn(`No features found for track ID ${trackId}`);
+      success = false;
+    }
+  }
+
+  if (success) {
+    console.log("All tracks successfully stored in IDB");
+  } else {
+    console.warn("Some or all tracks could not be stored in IndexedDB");
+  }
+
+  return success;
+}
+
 export async function fetchAndStoreLibraryData(): Promise<boolean | null> {
   const lib: SavedTrack[] | null = await loadUsersLibrary();
 
@@ -274,525 +316,126 @@ export async function fetchAndStoreLibraryData(): Promise<boolean | null> {
   }
 }
 
-export async function getTopTracks() {
+// Fetches user's top tracks from last 6 months (medium_term)
+export async function getTopTracks(): Promise<Track[] | null> {
   const accessToken = getAccessToken();
   if (!accessToken) {
     console.error("Access token not found.");
-    return;
+    return null;
   }
   try {
-    const res = await axios.get(`https://api.spotify.com/v1/me/top/tracks`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-    console.log("top tracks:", res.data);
+    const res = await axios.get(
+      `https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("top tracks from spotify:", res.data);
+    return res.data.items;
   } catch (error) {
     console.error("Error fetching top tracks:", error);
+    return null;
   }
 }
 
-export async function getAndStoreSampleTrack() {
-  const sampleTrack: Track = {
-    album: {
-      album_type: "ALBUM",
-      artists: [
-        {
-          external_urls: {
-            spotify: "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
-          },
-          href: "https://api.spotify.com/v1/artists/06HL4z0CvFAxyc27GXpf02",
-          id: "06HL4z0CvFAxyc27GXpf02",
-          name: "Taylor Swift",
-          type: "artist",
-          uri: "spotify:artist:06HL4z0CvFAxyc27GXpf02",
-        },
-      ],
-      available_markets: [
-        "AR",
-        "AU",
-        "AT",
-        "BE",
-        "BO",
-        "BR",
-        "BG",
-        "CA",
-        "CL",
-        "CO",
-        "CR",
-        "CY",
-        "CZ",
-        "DK",
-        "DO",
-        "DE",
-        "EC",
-        "EE",
-        "SV",
-        "FI",
-        "FR",
-        "GR",
-        "GT",
-        "HN",
-        "HK",
-        "HU",
-        "IS",
-        "IE",
-        "IT",
-        "LV",
-        "LT",
-        "LU",
-        "MY",
-        "MT",
-        "MX",
-        "NL",
-        "NZ",
-        "NI",
-        "NO",
-        "PA",
-        "PY",
-        "PE",
-        "PH",
-        "PL",
-        "PT",
-        "SG",
-        "SK",
-        "ES",
-        "SE",
-        "CH",
-        "TW",
-        "TR",
-        "UY",
-        "US",
-        "GB",
-        "AD",
-        "LI",
-        "MC",
-        "ID",
-        "TH",
-        "VN",
-        "RO",
-        "IL",
-        "ZA",
-        "SA",
-        "AE",
-        "BH",
-        "QA",
-        "OM",
-        "KW",
-        "EG",
-        "MA",
-        "DZ",
-        "TN",
-        "LB",
-        "JO",
-        "PS",
-        "IN",
-        "BY",
-        "KZ",
-        "MD",
-        "UA",
-        "AL",
-        "BA",
-        "HR",
-        "ME",
-        "MK",
-        "RS",
-        "SI",
-        "KR",
-        "BD",
-        "PK",
-        "LK",
-        "GH",
-        "KE",
-        "NG",
-        "TZ",
-        "UG",
-        "AG",
-        "AM",
-        "BS",
-        "BB",
-        "BZ",
-        "BT",
-        "BW",
-        "BF",
-        "CV",
-        "CW",
-        "DM",
-        "FJ",
-        "GM",
-        "GE",
-        "GD",
-        "GW",
-        "GY",
-        "HT",
-        "JM",
-        "KI",
-        "LS",
-        "LR",
-        "MW",
-        "MV",
-        "ML",
-        "MH",
-        "FM",
-        "NA",
-        "NR",
-        "NE",
-        "PW",
-        "PG",
-        "WS",
-        "SM",
-        "ST",
-        "SN",
-        "SC",
-        "SL",
-        "SB",
-        "KN",
-        "LC",
-        "VC",
-        "SR",
-        "TL",
-        "TO",
-        "TT",
-        "TV",
-        "VU",
-        "AZ",
-        "BN",
-        "BI",
-        "KH",
-        "CM",
-        "TD",
-        "KM",
-        "GQ",
-        "SZ",
-        "GA",
-        "GN",
-        "KG",
-        "LA",
-        "MO",
-        "MR",
-        "MN",
-        "NP",
-        "RW",
-        "TG",
-        "UZ",
-        "ZW",
-        "BJ",
-        "MG",
-        "MU",
-        "MZ",
-        "AO",
-        "CI",
-        "DJ",
-        "ZM",
-        "CD",
-        "CG",
-        "IQ",
-        "LY",
-        "TJ",
-        "VE",
-        "ET",
-        "XK",
-      ],
-      external_urls: {
-        spotify: "https://open.spotify.com/album/2Xoteh7uEpea4TohMxjtaq",
-      },
-      href: "https://api.spotify.com/v1/albums/2Xoteh7uEpea4TohMxjtaq",
-      id: "2Xoteh7uEpea4TohMxjtaq",
-      images: [
-        {
-          height: 640,
-          url: "https://i.scdn.co/image/ab67616d0000b27333b8541201f1ef38941024be",
-          width: 640,
-        },
-        {
-          height: 300,
-          url: "https://i.scdn.co/image/ab67616d00001e0233b8541201f1ef38941024be",
-          width: 300,
-        },
-        {
-          height: 64,
-          url: "https://i.scdn.co/image/ab67616d0000485133b8541201f1ef38941024be",
-          width: 64,
-        },
-      ],
-      name: "evermore",
-      release_date: "2020-12-11",
-      release_date_precision: "day",
-      total_tracks: 15,
-      type: "album",
-      uri: "spotify:album:2Xoteh7uEpea4TohMxjtaq",
-    },
-    artists: [
-      {
-        external_urls: {
-          spotify: "https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02",
-        },
-        href: "https://api.spotify.com/v1/artists/06HL4z0CvFAxyc27GXpf02",
-        id: "06HL4z0CvFAxyc27GXpf02",
-        name: "Taylor Swift",
-        type: "artist",
-        uri: "spotify:artist:06HL4z0CvFAxyc27GXpf02",
-      },
-    ],
-    available_markets: [
-      "AR",
-      "AU",
-      "AT",
-      "BE",
-      "BO",
-      "BR",
-      "BG",
-      "CA",
-      "CL",
-      "CO",
-      "CR",
-      "CY",
-      "CZ",
-      "DK",
-      "DO",
-      "DE",
-      "EC",
-      "EE",
-      "SV",
-      "FI",
-      "FR",
-      "GR",
-      "GT",
-      "HN",
-      "HK",
-      "HU",
-      "IS",
-      "IE",
-      "IT",
-      "LV",
-      "LT",
-      "LU",
-      "MY",
-      "MT",
-      "MX",
-      "NL",
-      "NZ",
-      "NI",
-      "NO",
-      "PA",
-      "PY",
-      "PE",
-      "PH",
-      "PL",
-      "PT",
-      "SG",
-      "SK",
-      "ES",
-      "SE",
-      "CH",
-      "TW",
-      "TR",
-      "UY",
-      "US",
-      "GB",
-      "AD",
-      "LI",
-      "MC",
-      "ID",
-      "TH",
-      "VN",
-      "RO",
-      "IL",
-      "ZA",
-      "SA",
-      "AE",
-      "BH",
-      "QA",
-      "OM",
-      "KW",
-      "EG",
-      "MA",
-      "DZ",
-      "TN",
-      "LB",
-      "JO",
-      "PS",
-      "IN",
-      "BY",
-      "KZ",
-      "MD",
-      "UA",
-      "AL",
-      "BA",
-      "HR",
-      "ME",
-      "MK",
-      "RS",
-      "SI",
-      "KR",
-      "BD",
-      "PK",
-      "LK",
-      "GH",
-      "KE",
-      "NG",
-      "TZ",
-      "UG",
-      "AG",
-      "AM",
-      "BS",
-      "BB",
-      "BZ",
-      "BT",
-      "BW",
-      "BF",
-      "CV",
-      "CW",
-      "DM",
-      "FJ",
-      "GM",
-      "GE",
-      "GD",
-      "GW",
-      "GY",
-      "HT",
-      "JM",
-      "KI",
-      "LS",
-      "LR",
-      "MW",
-      "MV",
-      "ML",
-      "MH",
-      "FM",
-      "NA",
-      "NR",
-      "NE",
-      "PW",
-      "PG",
-      "WS",
-      "SM",
-      "ST",
-      "SN",
-      "SC",
-      "SL",
-      "SB",
-      "KN",
-      "LC",
-      "VC",
-      "SR",
-      "TL",
-      "TO",
-      "TT",
-      "TV",
-      "VU",
-      "AZ",
-      "BN",
-      "BI",
-      "KH",
-      "CM",
-      "TD",
-      "KM",
-      "GQ",
-      "SZ",
-      "GA",
-      "GN",
-      "KG",
-      "LA",
-      "MO",
-      "MR",
-      "MN",
-      "NP",
-      "RW",
-      "TG",
-      "UZ",
-      "ZW",
-      "BJ",
-      "MG",
-      "MU",
-      "MZ",
-      "AO",
-      "CI",
-      "DJ",
-      "ZM",
-      "CD",
-      "CG",
-      "IQ",
-      "LY",
-      "TJ",
-      "VE",
-      "ET",
-      "XK",
-    ],
-    disc_number: 1,
-    duration_ms: 257773,
-    explicit: false,
-    external_ids: { isrc: "USUG12004717" },
-    external_urls: {
-      spotify: "https://open.spotify.com/track/12ntTeqEeTg7GAVpe8Mhpl",
-    },
-    href: "https://api.spotify.com/v1/tracks/12ntTeqEeTg7GAVpe8Mhpl",
-    id: "12ntTeqEeTg7GAVpe8Mhpl",
-    is_local: false,
-    name: "marjorie",
-    popularity: 66,
-    preview_url:
-      "https://p.scdn.co/mp3-preview/e95c0c95c1d2e6cfb6232280db5b21658e0a0dbc?cid=4f0e2034492a4683abeb6d0acb94aa0d",
-    track_number: 13,
-    type: "track",
-    uri: "spotify:track:12ntTeqEeTg7GAVpe8Mhpl",
-  };
+export async function getTopTrackFeatures(
+  topTracks: Track[]
+): Promise<TrackFeatures[] | null> {
+  const token = getAccessToken();
+  if (!token) {
+    console.error("Error fetching top track features: access token not found.");
+    return null;
+  }
 
-  const trackFeats: TrackFeatures = {
-    acousticness: 0.011,
-    analysis_url:
-      "https://api.spotify.com/v1/audio-analysis/11dFghVXANMlKmJXsNCbNl",
-    danceability: 0.696,
-    duration_ms: 207960,
-    energy: 0.905,
-    id: "11dFghVXANMlKmJXsNCbNl",
-    instrumentalness: 0.000905,
-    key: 2,
-    liveness: 0.302,
-    loudness: -2.743,
-    mode: 1,
-    speechiness: 0.103,
-    tempo: 114.944,
-    time_signature: 4,
-    track_href: "https://api.spotify.com/v1/tracks/11dFghVXANMlKmJXsNCbNl",
-    type: "audio_features",
-    uri: "spotify:track:11dFghVXANMlKmJXsNCbNl",
-    valence: 0.625,
-  };
+  const songIds = topTracks.map((song) => song!.id);
 
   try {
-    console.log("Adding sample track to store:", {
-      track: sampleTrack,
-      features: trackFeats,
-    });
-    await setInStore("library", {
-      track: sampleTrack,
-      features: trackFeats,
-    });
-    console.log("Added sample song to store");
+    const featuresResult = await axios.get<FeaturesLibrary>(
+      "https://api.spotify.com/v1/audio-features",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          ids: songIds.join(","), // Join IDs as a comma-separated string
+        },
+      }
+    );
+
+    const topTrackFeatures: TrackFeatures[] | null =
+      featuresResult.data.audio_features;
+    return topTrackFeatures;
   } catch (error) {
-    console.error("Error adding sample song to store", error);
+    console.error("Error fetching library features: ", error);
+    return null;
   }
 }
 
-export async function getTopArtists() {
+export async function fetchAndStoreTopTrackData(): Promise<boolean | null> {
+  const topTracks: Track[] | null = await getTopTracks();
+
+  if (topTracks) {
+    const topTrackFeatures: TrackFeatures[] | null = await getTopTrackFeatures(
+      topTracks
+    );
+
+    if (topTrackFeatures) {
+      const success = storeUserTopTrackData(topTracks, topTrackFeatures);
+      return success;
+    } else {
+      console.error("Error loading user's library features.");
+      return null;
+    }
+  } else {
+    console.error("Error loading the user's library");
+    return null;
+  }
+}
+
+// Fetches user's top 5 artists from last 6 months (medium_term)
+export async function getTopArtists(): Promise<Artist[] | null> {
   const accessToken = getAccessToken();
   if (!accessToken) {
     console.error("Access token not found.");
-    return;
+    return null;
   }
   try {
-    const res = await axios.get(`https://api.spotify.com/v1/me/top/artists`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await axios.get(
+      `https://api.spotify.com/v1/me/top/artists?limit=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
     console.log("top artists:", res.data);
+    const topArtists: Artist[] = res.data.items;
+    return topArtists;
   } catch (error) {
     console.error("Error fetching top artists:", error);
+    return null;
   }
+}
+
+export async function storeTopArtistsInDatabase(): Promise<boolean | null> {
+  let success = true;
+  const topArtists: Artist[] | null = await getTopArtists();
+  if (topArtists) {
+    for (const artist of topArtists) {
+      try {
+        await setInStore("topArtists", artist);
+      } catch (error) {
+        console.error(`Error storing artist in IndexedDB:`, error);
+        success = false;
+      }
+    }
+  } else {
+    console.warn(`No artists found`);
+    success = false;
+  }
+  return success;
 }
 
 export function isLibraryStoredInDB(): boolean {
@@ -804,35 +447,23 @@ export function isLibraryStoredInDB(): boolean {
   }
 }
 
-// export async function filterUserLibrary(setPlaylist: (playlist: Track[]) => void): Promise<void> {
-//   // Get each song's features from the database
-//   // Check if the features are a match
+export function areTopTracksStoredInDB(): boolean {
+  const stored: string | null = localStorage.getItem("top_tracks_were_stored");
+  if (stored === "true") {
+    return true;
+  } else {
+    return false;
+  }
+}
 
-//   let playlist: Track[] = [];
-
-//   try {
-//     const songIds = await getAllKeysFromStore("library");
-//     for (const id of songIds) {
-//       if (playlist.length >= 20) break;
-//       const song = (await getFromStore("library", id)) as {
-//         track: Track;
-//         features: TrackFeatures;
-//       };
-//       const songFeatures: TrackFeatures = song.features;
-//       // For each feature requested in the form, check if the song is a match
-//       if (
-//         songFeatures.tempo >= Number(bpm[0]) &&
-//         songFeatures.tempo <= Number(bpm[1])
-//       ) {
-//         playlist.push(song.track);
-//       }
-//     }
-//     console.log("playlist generated:", playlist);
-//     setPlaylist(playlist);
-//   } catch (error) {
-//     console.error("Error fetching keys from IDB library", error);
-//   }
-// }
+export function areTopArtistsStoredInDB(): boolean {
+  const stored: string | null = localStorage.getItem("top_artists_were_stored");
+  if (stored === "true") {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 export function clearLocalStorage(): void {
   localStorage.removeItem("access_token");
@@ -841,4 +472,5 @@ export function clearLocalStorage(): void {
   localStorage.removeItem("user_data");
   localStorage.removeItem("lib_size");
   localStorage.removeItem("library_was_stored");
+  localStorage.removeItem("top_tracks_were_stored");
 }

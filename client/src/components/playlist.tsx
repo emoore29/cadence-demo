@@ -14,6 +14,7 @@ export default function Playlist({ playlist }: PlaylistProps) {
   const [description, setDescription] = useState<string>("");
   const [privatePlaylist, setPrivatePlaylist] = useState<boolean>(false);
 
+  // Creates a new playlist on Spotify and then saves cadence playlist to it (2 separate post requests)
   async function savePlaylist() {
     const token = localStorage.getItem("access_token");
     const user = localStorage.getItem("user_data");
@@ -34,7 +35,7 @@ export default function Playlist({ playlist }: PlaylistProps) {
     const playlistData = {
       name: name,
       description: description,
-      public: !privatePlaylist, // Adjust this if you want the 'public' field to be based on your toggle
+      public: !privatePlaylist,
     };
 
     // Create the new playlist
@@ -94,7 +95,6 @@ export default function Playlist({ playlist }: PlaylistProps) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-
       {playlist &&
         playlist.map((song) => {
           return (

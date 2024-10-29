@@ -1,7 +1,7 @@
 import { Artist, Track, TrackFeatures } from "@/types/types";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
-type StoreName = "library" | "topArtists" | "topTracks";
+export type StoreName = "library" | "topArtists" | "topTracks";
 
 interface MyDB extends DBSchema {
   library: {
@@ -17,7 +17,11 @@ interface MyDB extends DBSchema {
   };
   topTracks: {
     key: string; // track id
-    value: Track;
+    value: {
+      track: Track;
+      features: TrackFeatures;
+      order: number;
+    };
   };
 }
 
@@ -39,7 +43,7 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
 
       // Create an object store for top tracks
       if (!db.objectStoreNames.contains("topTracks")) {
-        db.createObjectStore("topTracks", { keyPath: "id" });
+        db.createObjectStore("topTracks", { keyPath: "track.id" });
       }
     },
   });
@@ -66,10 +70,13 @@ export async function getFromStore(
 // Set a key-val pair in a given store
 export async function setInStore(
   storeName: StoreName,
-  value: {
-    track: Track;
-    features: TrackFeatures;
-  }
+  value:
+    | {
+        track: Track;
+        features: TrackFeatures;
+        order: number;
+      }
+    | Artist
 ) {
   const db = await setUpDatabase();
   return db.put(storeName, value);
@@ -96,6 +103,11 @@ export async function getAllKeysFromStore(
 ): Promise<string[]> {
   const db = await setUpDatabase();
   return db.getAllKeys(storeName);
+}
+
+export async function getAllFromStore(storeName: StoreName): Promise<any[]> {
+  const db = await setUpDatabase();
+  return db.getAll(storeName);
 }
 
 export async function deleteDatabase(): Promise<void> {

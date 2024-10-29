@@ -6,12 +6,16 @@ import Header from "./components/header";
 import { handleTokens } from "./helpers/backend";
 import { setUpDatabase } from "./helpers/database";
 import {
+  areTopArtistsStoredInDB,
+  areTopTracksStoredInDB,
   fetchAndStoreLibraryData,
+  fetchAndStoreTopTrackData,
   getLibSizeFromLocalStorage,
   getUserFromLocalStorage,
   handleLogin,
   isLibraryStoredInDB,
   loginOccurred,
+  storeTopArtistsInDatabase,
 } from "./helpers/frontend";
 import { User } from "./types/types";
 
@@ -19,6 +23,8 @@ function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
+  const [topTracksStored, setTopTracksStored] = useState<boolean>(false);
+  const [topArtistsStored, setTopArtistsStored] = useState<boolean>(false);
 
   useEffect(() => {
     const setupDb = async () => {
@@ -60,6 +66,22 @@ function App() {
     }
   }
 
+  async function storeTopTracks(): Promise<void> {
+    const success: boolean | null = await fetchAndStoreTopTrackData();
+    if (success) {
+      localStorage.setItem("top_tracks_were_stored", success.toString());
+      setTopTracksStored(areTopTracksStoredInDB());
+    }
+  }
+
+  async function storeTopArtists(): Promise<void> {
+    const success: boolean | null = await storeTopArtistsInDatabase();
+    if (success) {
+      localStorage.setItem("top_artists_were_stored", success.toString());
+      setTopArtistsStored(areTopArtistsStoredInDB());
+    }
+  }
+
   return (
     <div className="container">
       <Header
@@ -68,18 +90,26 @@ function App() {
         setLibSize={setLibSize}
         setLibraryStored={setLibraryStored}
       />
-      {!libraryStored && (
-        <>
-          <p>
-            Welcome to Cadence! You have {libSize} saved songs in your library.
-            Loading them all will take approximately Y minutes. (Why?)
-          </p>
 
-          <Button onClick={storeLibrary}>
-            Store my library in the database!
+      <>
+        <p>
+          Welcome to Cadence! You have {libSize} saved songs in your library.
+          Loading them all will take approximately Y minutes. (Why?)
+        </p>
+        <Button onClick={storeLibrary}>
+          Store my library in the database!
+        </Button>
+        (
+        <Button onClick={storeTopTracks}>
+          Store my top tracks in the database!
+        </Button>
+        )
+        {topArtistsStored && (
+          <Button onClick={storeTopArtists}>
+            Store my top artists in the database!
           </Button>
-        </>
-      )}
+        )}
+      </>
 
       {/* 
       <p>
