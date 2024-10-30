@@ -1,4 +1,3 @@
-import { Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import "./App.css";
 import Form from "./components/form";
@@ -12,7 +11,7 @@ import {
 import {
   getItemFromLocalStorage,
   storeDataInLocalStorage,
-  wasItemStoredInDb,
+  wasLibraryStoredInDatabase,
 } from "./helpers/localStorage";
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
@@ -49,7 +48,7 @@ function App() {
         getItemFromLocalStorage("lib_size")
       );
       libSize && setLibSize(libSize);
-      setLibraryStored(wasItemStoredInDb("library_was_stored"));
+      setLibraryStored(wasLibraryStoredInDatabase());
       handleTokens();
     }
 
@@ -64,7 +63,7 @@ function App() {
     const savedTopArtists: boolean | null = await storeTopArtists();
 
     if (savedTracks && savedTopTracks && savedTopArtists) {
-      storeDataInLocalStorage("library_was_stored", "true");
+      storeDataInLocalStorage("library_was_stored", true);
       setLibraryStored(true);
     } else {
       setLibraryStored(false);
@@ -92,12 +91,11 @@ function App() {
             To use your Spotify data to create playlists, you can store your
             data. You have {libSize} saved tracks. This may take a minute...
           </p>
-          <Button onClick={storeMyData}>
+          <button onClick={storeMyData}>
             Store my Spotify data in the database!
-          </Button>
+          </button>
         </>
       )}
-
       <Form />
     </div>
   );

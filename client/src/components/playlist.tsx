@@ -1,6 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Track } from "@/types/types";
-import { Button, Input } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
 
@@ -85,12 +84,12 @@ export default function Playlist({ playlist }: PlaylistProps) {
         savePlaylist();
       }}
     >
-      <Input
+      <input
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Enter your playlist name"
       />
-      <Input
+      <input
         placeholder="Playlist description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
@@ -106,13 +105,13 @@ export default function Playlist({ playlist }: PlaylistProps) {
             </>
           );
         })}
-      <Checkbox
+      {/* <Checkbox
         checked={privatePlaylist}
         onCheckedChange={(e) => setPrivatePlaylist(!!e.checked)}
       >
         Private
-      </Checkbox>
-      <Button type="submit">Save playlist</Button>
+      </Checkbox> */}
+      <button type="submit">Save playlist</button>
     </form>
   );
 }

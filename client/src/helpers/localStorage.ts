@@ -18,8 +18,8 @@ export function clearLocalStorage(): void {
 
 // Items are set to "true" in localStorage when they are stored in database
 // Checks if an item was stored in the database by checking localStorage
-export function wasItemStoredInDb(item: string): boolean {
-  const stored: string | null = localStorage.getItem(item);
+export function wasLibraryStoredInDatabase(): boolean {
+  const stored: string | null = localStorage.getItem("library_was_stored");
   if (stored === "true") {
     return true;
   } else {
