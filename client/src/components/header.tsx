@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { User } from "../types/types";
-import { clearLocalStorage } from "@/helpers/frontend";
+import { clearLocalStorage } from "@/helpers/localStorage";
 import { deleteDatabase } from "@/helpers/database";
 
 interface HeaderProps {

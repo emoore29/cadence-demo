@@ -1,9 +1,8 @@
 import axios from "axios";
-import { storeTokens } from "./frontend";
+import { storeTokens } from "./localStorage";
 
 // If the current access token has expired, fetches and stores new tokens
 export async function handleTokens(): Promise<void> {
-  console.log("running handle tokens...");
   const storedAccessToken: string | null = localStorage.getItem("access_token");
   const storedExpiry: string | null = localStorage.getItem("token_expiry");
 
@@ -22,8 +21,6 @@ export async function handleTokens(): Promise<void> {
 
   const now = Date.now();
   const expiryTime = parseInt(storedExpiry!, 10);
-  console.log("now:", now.toLocaleString());
-  console.log("expiry:", expiryTime.toLocaleString());
 
   if (now > expiryTime) {
     console.log("Tokens out of date. Updating...");
@@ -36,7 +33,7 @@ export async function handleTokens(): Promise<void> {
   }
 }
 
-// Fetches new tokens  from backend /refresh_token API endpoint
+// Fetches new tokens from backend /refresh_token API endpoint
 export async function getNewTokens(): Promise<string[] | null> {
   // Sends request to backend for new access token
   const refreshToken: string | null = localStorage.getItem("refresh_token");

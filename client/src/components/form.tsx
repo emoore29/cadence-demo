@@ -10,12 +10,12 @@ import {
   getFromStore,
   StoreName,
 } from "@/helpers/database";
+import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { Track, TrackFeatures } from "@/types/types";
 import { Button, HStack } from "@chakra-ui/react";
+import axios from "axios";
 import { useState } from "react";
 import Playlist from "./playlist";
-import axios from "axios";
-import { getAccessToken } from "@/helpers/frontend";
 
 export default function Form() {
   const [bpm, setBPM] = useState<[string, string]>(["95", "165"]);
@@ -86,7 +86,7 @@ export default function Form() {
         console.log("top 5 track ids:", topTrackIds.slice(0, 5));
         console.log("artist ids:", topArtistIds);
 
-        const accessToken = getAccessToken();
+        const accessToken = getItemFromLocalStorage("access_token");
         if (!accessToken) {
           console.error("Access token not found.");
           return null;

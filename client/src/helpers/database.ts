@@ -1,6 +1,8 @@
 import { Artist, Track, TrackFeatures } from "@/types/types";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
+// Functions to set up and delete database, and store, delete, and retrieve items from database
+
 export type StoreName = "library" | "topArtists" | "topTracks";
 
 interface MyDB extends DBSchema {

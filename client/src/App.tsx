@@ -3,28 +3,25 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import Form from "./components/form";
 import Header from "./components/header";
-import { handleTokens } from "./helpers/backend";
 import { setUpDatabase } from "./helpers/database";
 import {
-  areTopArtistsStoredInDB,
-  areTopTracksStoredInDB,
-  fetchAndStoreLibraryData,
-  fetchAndStoreTopTrackData,
-  getLibSizeFromLocalStorage,
-  getUserFromLocalStorage,
-  handleLogin,
-  isLibraryStoredInDB,
-  loginOccurred,
-  storeTopArtistsInDatabase,
-} from "./helpers/frontend";
+  storeSavedTracksData,
+  storeTopArtists,
+  storeTopTracksData,
+} from "./helpers/indexedDbHelpers";
+import {
+  getItemFromLocalStorage,
+  storeDataInLocalStorage,
+  wasItemStoredInDb,
+} from "./helpers/localStorage";
+import { handleLogin, loginOccurred } from "./helpers/login";
+import { handleTokens } from "./helpers/tokens";
 import { User } from "./types/types";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
-  const [topTracksStored, setTopTracksStored] = useState<boolean>(false);
-  const [topArtistsStored, setTopArtistsStored] = useState<boolean>(false);
 
   useEffect(() => {
     const setupDb = async () => {
@@ -38,19 +35,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // If user just logged in
+    // Store tokens, user data and library size on login
     if (loginOccurred()) {
-      handleLogin(setLibSize, setUser); // update tokens, user data, and lib size
+      handleLogin(setLibSize, setUser);
     }
 
-    // If user is already logged in
-    const user = getUserFromLocalStorage();
+    // Set data in state if user has already logged in
+    // Check for token expiry with handleTokens()
+    const user: string | null = getItemFromLocalStorage("user_data");
     if (user) {
-      setUser(user);
-      setLibSize(getLibSizeFromLocalStorage());
-      console.log("handle tokens running next...");
+      setUser(JSON.parse(user));
+      const libSize: number | null = Number(
+        getItemFromLocalStorage("lib_size")
+      );
+      libSize && setLibSize(libSize);
+      setLibraryStored(wasItemStoredInDb("library_was_stored"));
       handleTokens();
-      setLibraryStored(isLibraryStoredInDB());
     }
 
     // Handle token expiry every hour
@@ -58,27 +58,17 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  async function storeLibrary(): Promise<void> {
-    const success: boolean | null = await fetchAndStoreLibraryData();
-    if (success) {
-      localStorage.setItem("library_was_stored", success.toString());
-      setLibraryStored(isLibraryStoredInDB());
-    }
-  }
+  async function storeMyData(): Promise<void> {
+    const savedTracks: boolean | null = await storeSavedTracksData();
+    const savedTopTracks: boolean | null = await storeTopTracksData();
+    const savedTopArtists: boolean | null = await storeTopArtists();
 
-  async function storeTopTracks(): Promise<void> {
-    const success: boolean | null = await fetchAndStoreTopTrackData();
-    if (success) {
-      localStorage.setItem("top_tracks_were_stored", success.toString());
-      setTopTracksStored(areTopTracksStoredInDB());
-    }
-  }
-
-  async function storeTopArtists(): Promise<void> {
-    const success: boolean | null = await storeTopArtistsInDatabase();
-    if (success) {
-      localStorage.setItem("top_artists_were_stored", success.toString());
-      setTopArtistsStored(areTopArtistsStoredInDB());
+    if (savedTracks && savedTopTracks && savedTopArtists) {
+      storeDataInLocalStorage("library_was_stored", "true");
+      setLibraryStored(true);
+    } else {
+      setLibraryStored(false);
+      console.log("Sorry, there was an error attempting to store your data.");
     }
   }
 
@@ -90,33 +80,24 @@ function App() {
         setLibSize={setLibSize}
         setLibraryStored={setLibraryStored}
       />
-
-      <>
+      {!user && (
         <p>
-          Welcome to Cadence! You have {libSize} saved songs in your library.
-          Loading them all will take approximately Y minutes. (Why?)
+          Welcome to Cadence! To use the full functionality of Cadence, please
+          log in.
         </p>
-        <Button onClick={storeLibrary}>
-          Store my library in the database!
-        </Button>
-        (
-        <Button onClick={storeTopTracks}>
-          Store my top tracks in the database!
-        </Button>
-        )
-        {topArtistsStored && (
-          <Button onClick={storeTopArtists}>
-            Store my top artists in the database!
+      )}
+      {user && !libraryStored && (
+        <>
+          <p>
+            To use your Spotify data to create playlists, you can store your
+            data. You have {libSize} saved tracks. This may take a minute...
+          </p>
+          <Button onClick={storeMyData}>
+            Store my Spotify data in the database!
           </Button>
-        )}
-      </>
+        </>
+      )}
 
-      {/* 
-      <p>
-        Do you want to load and store your Spotify library? This will make
-        generating playlists quicker!
-      </p> */}
-      {/* <Button onClick={loadUsersLibrary}>Load my library</Button> */}
       <Form />
     </div>
   );
