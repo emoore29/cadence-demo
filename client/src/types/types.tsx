@@ -185,3 +185,25 @@ export interface TopTracks {
   total: number;
   items: Track[];
 }
+
+export interface FormValues {
+  minBpm: number;
+  maxBpm: number;
+  valence: number;
+  danceability: number;
+  energy: number;
+  instrumental: boolean;
+  acoustic: boolean;
+  source: string;
+}
+
+export interface PlaylistData {
+  name: string;
+  description: string;
+  public: boolean;
+}
+
+export interface PlaylistObject {
+  track: Track;
+  features: TrackFeatures;
+}

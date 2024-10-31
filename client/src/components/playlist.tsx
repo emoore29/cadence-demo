@@ -1,116 +1,89 @@
-import { Checkbox } from "@/components/ui/checkbox";
-import { Track } from "@/types/types";
-import axios from "axios";
-import { useState } from "react";
+import { savePlaylist } from "@/helpers/playlist";
+import { PlaylistData, PlaylistObject } from "@/types/types";
+import { Checkbox, TextInput } from "@mantine/core";
+import { useForm } from "@mantine/form";
 
 interface PlaylistProps {
-  playlist: Track[] | null;
+  playlist: PlaylistObject[] | null;
 }
 
 export default function Playlist({ playlist }: PlaylistProps) {
   if (!playlist) return <div>No playlist available</div>;
-  const [name, setName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [privatePlaylist, setPrivatePlaylist] = useState<boolean>(false);
+  const form = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      name: "Cadence playlist",
+      description: "Cadence playlist description",
+      public: true,
+    },
+  });
 
-  // Creates a new playlist on Spotify and then saves cadence playlist to it (2 separate post requests)
-  async function savePlaylist() {
-    const token = localStorage.getItem("access_token");
-    const user = localStorage.getItem("user_data");
-    const songUris = playlist!.map((song) => `spotify:track:${song.id}`);
-    let userId;
-
-    if (user) {
-      const parsedUser = JSON.parse(user); // Parse the string into a JavaScript object
-      console.log("user", parsedUser);
-
-      userId = parsedUser.id; // Access the id property from the parsed object
-      console.log("user id", userId);
-    } else {
-      console.error("No user data found in localStorage.");
-    }
-
-    // Prepare the playlist data
-    const playlistData = {
-      name: name,
-      description: description,
-      public: !privatePlaylist,
-    };
-
-    // Create the new playlist
-    try {
-      const result = await axios.post(
-        `https://api.spotify.com/v1/users/${userId}/playlists`,
-        playlistData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const playlistId = result.data.id;
-
-      // Add items to playlist
-      try {
-        const res = await axios.post(
-          `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-          {
-            uris: songUris,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } catch (error) {
-        console.error("Error adding items to playlist:", error);
-      }
-
-      console.log("Playlist created successfully:", result.data);
-    } catch (error) {
-      console.error("Error creating playlist:", error);
-    }
+  async function handleSubmit(
+    formValues: PlaylistData,
+    playlist: PlaylistObject[] | null
+  ) {
+    await savePlaylist(playlist, formValues);
   }
 
   return (
     <form
-      className="playlist-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        savePlaylist();
-      }}
+      className="playlist"
+      onSubmit={form.onSubmit((values) => handleSubmit(values, playlist))}
     >
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Enter your playlist name"
+      <TextInput
+        label="Playlist Name"
+        placeholder="Cadence: Playlist Name"
+        key={form.key("name")}
+        {...form.getInputProps("name")}
+        styles={{
+          input: {
+            backgroundColor: "rgb(126, 74, 101)",
+            color: "rgba(255, 255, 255, 0.87)",
+            borderColor: "rgba(255, 255, 255, 0.3)",
+          },
+          label: {
+            color: "rgba(255, 255, 255, 0.87)",
+          },
+        }}
       />
-      <input
-        placeholder="Playlist description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+      <TextInput
+        label="Playlist Description"
+        placeholder="Playlist generated with cadence"
+        key={form.key("description")}
+        {...form.getInputProps("description")}
+        styles={{
+          input: {
+            backgroundColor: "rgb(126, 74, 101)",
+            color: "rgba(255, 255, 255, 0.87)",
+            borderColor: "rgba(255, 255, 255, 0.3)",
+          },
+          label: {
+            color: "rgba(255, 255, 255, 0.87)",
+          },
+        }}
       />
       {playlist &&
-        playlist.map((song) => {
+        playlist.map((track: PlaylistObject) => {
           return (
-            <>
-              <a href={song.external_urls.spotify}>
-                {song.name}, {song.artists[0].name}
+            <div key={track.track.id}>
+              <a href={track.track.external_urls.spotify}>
+                {track.track.name}, {track.track.artists[0].name}, Tempo:{" "}
+                {track.features.tempo.toFixed(0)}, Instrumentalness:{" "}
+                {track.features.instrumentalness.toFixed(1)}, Acousticness:{" "}
+                {track.features.acousticness.toFixed(1)}
               </a>
+
               <br />
-            </>
+            </div>
           );
         })}
-      {/* <Checkbox
-        checked={privatePlaylist}
-        onCheckedChange={(e) => setPrivatePlaylist(!!e.checked)}
-      >
-        Private
-      </Checkbox> */}
+
+      <Checkbox
+        label="Public"
+        key={form.key("public")}
+        {...form.getInputProps("public", { type: "checkbox" })}
+      />
+
       <button type="submit">Save playlist</button>
     </form>
   );
