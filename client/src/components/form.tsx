@@ -128,7 +128,11 @@ export default function Form() {
           <Button type="submit">Submit</Button>
         </Group>
       </form>
-      {playlist && <Playlist playlist={playlist} />}
+      {playlist ? (
+        <Playlist playlist={playlist} />
+      ) : (
+        "Please submit your preferences to generate a playlist."
+      )}
     </div>
   );
 }
