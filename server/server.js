@@ -172,8 +172,7 @@ app.get("/refresh_token", async function (req, res) {
       console.log(
         `${currentTime}: Sent ${
           updated_refresh_token ? "new" : "old"
-        } refresh_token, new access_token, and expiry time to client. Access token:`,
-        access_token
+        } refresh_token, new access_token, and expiry time to client.`
       );
     } else {
       console.log(

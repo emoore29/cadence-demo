@@ -1,5 +1,5 @@
 import { Artist, SavedTrack, Track, TrackFeatures } from "@/types/types";
-import { setInStore } from "./database";
+import { getAllFromStore, setInStore } from "./database";
 import {
   fetchSavedTracks,
   fetchSavedTracksFeatures,
@@ -84,7 +84,7 @@ export async function storeUserTopTrackData(
         await setInStore("topTracks", {
           track: track,
           features: trackFeatures,
-          order: index, // Add order based on position in the topTracks array
+          order: index, // Add order based on position in the topTracks array, so that the top of the top can be retrieved
         });
       } catch (error) {
         console.error(`Error storing track ${trackId} in IndexedDB:`, error);
@@ -144,4 +144,43 @@ export async function storeUserLibraryAndFeatures(
   }
 
   return success;
+}
+
+// Returns top 5 tracks from database
+export async function getTop5TrackIds(): Promise<string[] | null> {
+  try {
+    const topTracks = await getAllFromStore("topTracks");
+    if (!topTracks) {
+      console.log("Couldn't find top tracks in database");
+      return null;
+    }
+
+    const top5Tracks = topTracks
+      .filter((track) => track.order >= 0 && track.order < 5) // Only keep tracks with order 0 to 4
+      .sort((a, b) => a.order - b.order); // Sort by 'order' in ascending order
+
+    // Extract track ids from db object
+    const top5TrackIds = top5Tracks.map((entry) => entry.track.id);
+    console.log("Top 5 track ids:", top5Tracks);
+    return top5TrackIds;
+  } catch (error) {
+    console.error(`Error retrieving top 5 tracks:`, error);
+    return null;
+  }
+}
+
+// Returns top 5 artists from database
+export async function getTop5ArtistIds(): Promise<string[] | null> {
+  try {
+    const topArtists = await getAllFromStore("topArtists");
+    if (!topArtists) {
+      console.log("Couldn't find top artists in database");
+      return null;
+    }
+    const ids = topArtists.map((artist) => artist.id);
+    return ids;
+  } catch (error) {
+    console.error(`Error retrieving top 5 artists:`, error);
+    return null;
+  }
 }

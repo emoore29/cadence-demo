@@ -3,35 +3,82 @@ import {
   FormValues,
   PlaylistData,
   PlaylistObject,
-  Track,
   TrackFeatures,
 } from "@/types/types";
 import axios from "axios";
+import { fetchRecommendations } from "./fetchers";
 import { getItemFromLocalStorage } from "./localStorage";
 
 export async function filterDatabase(
   formValues: FormValues
-): Promise<PlaylistObject[] | null> {
-  console.log(`filtering from ${formValues.source}`);
-  console.log(`instrumental target`, formValues.instrumental);
-  let playlist: PlaylistObject[] = [];
-  const storeName: string = formValues.source;
+): Promise<[number, PlaylistObject[]] | null> {
+  const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
+
+  switch (store) {
+    case "1":
+      return await filterFromStore("library", formValues);
+    case "2":
+      return await filterFromStore("topTracks", formValues);
+    case "3":
+      return await getRecommendations(formValues);
+    default:
+      return null;
+  }
+}
+
+async function filterFromStore(
+  storeName: StoreName,
+  formValues: FormValues
+): Promise<[number, PlaylistObject[]] | null> {
+  let matchingTracks: PlaylistObject[] = [];
+
   try {
     const tracks = await getAllFromStore(storeName);
     for (const track of tracks) {
-      if (playlist.length >= 25) break;
       const trackFeatures: TrackFeatures = track.features;
       // For each feature requested in the form, check if the song is a match
-
       const match: boolean = matches(trackFeatures, formValues);
-      match && playlist.push(track);
+      match && matchingTracks.push(track);
     }
-    console.log("Final playlist:", playlist);
-    return playlist;
+    const totalMatches = matchingTracks.length;
+    if (totalMatches > formValues.target) {
+      matchingTracks = shuffleAndSlice(matchingTracks, formValues.target);
+    }
+    return [totalMatches, matchingTracks];
   } catch (error) {
     console.error(`Error fetching tracks from IDB ${storeName}`, error);
     return null;
   }
+}
+
+async function getRecommendations(
+  formValues: FormValues
+): Promise<[number, PlaylistObject[]] | null> {
+  const { source, target, ...filters } = formValues;
+
+  const recs: PlaylistObject[] | null = await fetchRecommendations(
+    filters,
+    target
+  );
+
+  if (recs) {
+    return [recs.length, recs];
+  } else {
+    console.error("Fetch recommendations returned null");
+    return null;
+  }
+}
+
+// Function that finds the closest matches if the total matching tracks > target number tracks
+function shuffleAndSlice(matchingTracks: PlaylistObject[], size: number) {
+  // Shuffles matches and returns a playlist the size requested
+  for (let i: number = matchingTracks.length - 1; i > 0; i--) {
+    const j: number = Math.floor(Math.random() * (i + 1));
+    const temp = matchingTracks[i];
+    matchingTracks[i] = matchingTracks[j];
+    matchingTracks[j] = temp;
+  }
+  return matchingTracks.slice(0, size);
 }
 
 // Checks if a given track's features match values requested by the user
@@ -39,34 +86,48 @@ function matches(
   trackFeatures: TrackFeatures,
   formValues: FormValues
 ): boolean {
-  const buffer: number = 0.3;
-  if (
-    trackFeatures.tempo <= formValues.minBpm ||
-    trackFeatures.tempo >= formValues.maxBpm
-  ) {
+  const {
+    minTempo,
+    maxTempo,
+    targetValence,
+    targetDanceability,
+    targetEnergy,
+    targetInstrumentalness,
+    targetAcousticness,
+  } = formValues;
+
+  const buffer: number = 0.2; // +/- buffer for target values (e.g. target valence 0.5 +/- 0.2)
+  if (trackFeatures.tempo <= minTempo || trackFeatures.tempo >= maxTempo) {
     return false;
   }
   if (
-    (formValues.instrumental && trackFeatures.instrumentalness < 0.95) ||
-    (!formValues.instrumental && trackFeatures.instrumentalness >= 0.95)
+    (targetInstrumentalness &&
+      trackFeatures.instrumentalness < targetInstrumentalness - buffer) ||
+    (targetInstrumentalness &&
+      trackFeatures.instrumentalness >= targetInstrumentalness + buffer)
   ) {
+    // Instrumentals only returned with likelihood they are instrumentals > 70%
     return false;
   }
   if (
-    (formValues.acoustic && trackFeatures.acousticness < 0.95) ||
-    (!formValues.acoustic && trackFeatures.acousticness >= 0.95)
+    (targetAcousticness &&
+      trackFeatures.acousticness < targetAcousticness - buffer) ||
+    (targetAcousticness &&
+      trackFeatures.acousticness >= targetAcousticness + buffer)
   ) {
+    // Acoustic only returned with likelihood they are acoustic > 50%
     return false;
   }
   if (
-    trackFeatures.energy <= formValues.energy - buffer ||
-    trackFeatures.energy >= formValues.energy + buffer
+    trackFeatures.energy <= targetEnergy - buffer ||
+    trackFeatures.energy >= targetEnergy + buffer
   ) {
     return false;
   }
   return true;
 }
 
+// Playlist
 // Creates a new playlist on Spotify and then saves cadence playlist to it (2 separate post requests)
 export async function savePlaylist(
   playlist: PlaylistObject[] | null,

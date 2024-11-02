@@ -27,7 +27,6 @@ export async function handleTokens(): Promise<void> {
     const tokens = await getNewTokens();
     if (tokens) {
       const [accessToken, newRefreshToken, expiresIn] = tokens;
-      console.log("storing tokens. access token:", accessToken);
       storeTokens(accessToken, newRefreshToken, expiresIn);
     }
   }

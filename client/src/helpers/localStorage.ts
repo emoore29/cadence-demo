@@ -33,7 +33,6 @@ export function storeTokens(
   refresh: string,
   expiresIn: string
 ): void {
-  console.log("Storing tokens:", access, refresh, expiresIn);
   const expiryTime = Date.now() + Number(expiresIn) * 1000;
   localStorage.setItem("access_token", access);
   localStorage.setItem("refresh_token", refresh);

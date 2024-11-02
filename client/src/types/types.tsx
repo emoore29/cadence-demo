@@ -187,14 +187,15 @@ export interface TopTracks {
 }
 
 export interface FormValues {
-  minBpm: number;
-  maxBpm: number;
-  valence: number;
-  danceability: number;
-  energy: number;
-  instrumental: boolean;
-  acoustic: boolean;
+  minTempo: number;
+  maxTempo: number;
+  targetValence: number;
+  targetDanceability: number;
+  targetEnergy: number;
+  targetInstrumentalness: number;
+  targetAcousticness: number;
   source: string;
+  target: number;
 }
 
 export interface PlaylistData {
@@ -206,4 +207,28 @@ export interface PlaylistData {
 export interface PlaylistObject {
   track: Track;
   features: TrackFeatures;
+}
+
+export type FilterOptions = "library" | "topTracks" | "recommendations";
+
+export interface Filters {
+  minTempo: number;
+  maxTempo: number;
+  targetValence: number;
+  targetDanceability: number;
+  targetEnergy: number;
+  targetInstrumentalness: number;
+  targetAcousticness: number;
+}
+
+export interface Recommendations {
+  seeds: {
+    afterFilteringSize: number;
+    afterRelinkingSize: number;
+    href: string;
+    id: string;
+    initialPoolSize: number;
+    type: string;
+  }[];
+  tracks: Track[];
 }

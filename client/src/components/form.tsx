@@ -2,13 +2,12 @@ import { filterDatabase } from "@/helpers/playlist";
 import { FormValues, PlaylistObject } from "@/types/types";
 import {
   Button,
+  Checkbox,
+  Group,
   NumberInput,
+  Radio,
   Slider,
   Text,
-  Checkbox,
-  Radio,
-  Group,
-  RangeSlider,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -18,25 +17,31 @@ export default function Form() {
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      minBpm: 165,
-      maxBpm: 180,
-      valence: 0.5,
-      danceability: 0.5,
-      energy: 0.5,
-      instrumental: false,
-      acoustic: false,
-      source: "library",
+      minTempo: 165,
+      maxTempo: 180,
+      targetValence: 0.5,
+      targetDanceability: 0.5,
+      targetEnergy: 0.5,
+      targetInstrumentalness: 0.5,
+      targetAcousticness: 0.5,
+      source: "1",
+      target: 15,
     },
   });
-
+  const [total, setTotal] = useState(0);
   const [playlist, setPlaylist] = useState<PlaylistObject[] | null>(null);
+  // const [isDisabled, setIsDisabled] = useState(true);
 
   async function handleSubmit(values: FormValues) {
     console.log("Filtering:", values);
-    const result: PlaylistObject[] | null = await filterDatabase(values);
+    const result: [number, PlaylistObject[]] | null = await filterDatabase(
+      values
+    );
     if (result) {
-      console.log("Setting new playlist...");
-      setPlaylist(result);
+      setTotal(result[0]);
+      setPlaylist(result[1]);
+    } else {
+      setPlaylist([]);
     }
   }
 
@@ -49,28 +54,33 @@ export default function Form() {
           {...form.getInputProps("source")}
         >
           <Group mt="xs">
-            <Radio value="library" label="My Saved Songs" />
-            <Radio value="topTracks" label="My Top Tracks" />
-            <Radio value="recommendations" label="Get recommendations" />
+            <Radio value={"1"} label="My Saved Songs" />
+            <Radio value={"2"} label="My Top Tracks" />
+            <Radio value={"3"} label="Get recommendations" />
           </Group>
         </Radio.Group>
         <div className="bpm">
           <NumberInput
             label="Min BPM"
-            key={form.key("minBpm")}
+            key={form.key("minTempo")}
             description=">=30"
             placeholder="Input placeholder"
-            {...form.getInputProps("minBpm")}
+            {...form.getInputProps("minTempo")}
           />
           <NumberInput
             label="Max BPM"
-            key={form.key("maxBPM")}
+            key={form.key("maxTempo")}
             description="<=300"
             placeholder="Input placeholder"
-            {...form.getInputProps("maxBpm")}
+            {...form.getInputProps("maxTempo")}
           />
         </div>
-
+        <NumberInput
+          label="Target number of tracks"
+          key={form.key("target")}
+          placeholder="20"
+          {...form.getInputProps("target")}
+        />
         <Text>Energy</Text>
         <Slider
           label={null}
@@ -82,8 +92,8 @@ export default function Form() {
             { value: 0, label: "0%" },
             { value: 1, label: "100%" },
           ]}
-          key={form.key("energy")}
-          {...form.getInputProps("energy")}
+          key={form.key("targetEnergy")}
+          {...form.getInputProps("targetEnergy")}
         />
 
         {/* <Text>Mood</Text>
@@ -127,6 +137,13 @@ export default function Form() {
         <Group justify="flex-end" mt="md">
           <Button type="submit">Submit</Button>
         </Group>
+        {total && (
+          <div>
+            <p>There were {total} results.</p>
+            <Button type="button">Show all</Button>
+            <Button type="button">Shuffle</Button>
+          </div>
+        )}
       </form>
       {playlist ? (
         <Playlist playlist={playlist} />

@@ -2,12 +2,17 @@ import axios from "axios";
 import {
   Artist,
   FeaturesLibrary,
+  Filters,
   Library,
+  PlaylistObject,
+  Recommendations,
   SavedTrack,
+  TopTracks,
   Track,
   TrackFeatures,
   User,
 } from "../types/types";
+import { getTop5ArtistIds, getTop5TrackIds } from "./indexedDbHelpers";
 import { getItemFromLocalStorage } from "./localStorage";
 
 // Fetches user data
@@ -131,25 +136,51 @@ export async function fetchSavedTracksFeatures(
 // Returns Track[] or null if failed to fetch
 export async function fetchTopTracks(): Promise<Track[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
+
   if (accessToken) {
+    let topTracks: Track[] = [];
+    let nextUrl =
+      "https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50";
     try {
-      const res = await axios.get(
-        `https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      return res.data.items;
+      while (nextUrl && topTracks.length < 100) {
+        const res = await axios.get<TopTracks>(nextUrl, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        topTracks = [...topTracks, ...res.data.items];
+        nextUrl = res.data.next;
+      }
+
+      // Log songs fetched to console to check they're all there.
+      console.log("Your top tracks were fetched: ", topTracks.length);
+      return topTracks;
     } catch (error) {
-      console.error("Error fetching top tracks:", error);
+      console.error("Error fetching user's top tracks: ", error);
       return null;
     }
   } else {
     return null;
   }
+
+  // if (accessToken) {
+  //   try {
+  //     const res = await axios.get(
+  //       `https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+  //     return res.data.items;
+  //   } catch (error) {
+  //     console.error("Error fetching top tracks:", error);
+  //     return null;
+  //   }
+  // } else {
+  //   return null;
+  // }
 }
 
 // Fetches user's top track features
@@ -204,4 +235,88 @@ export async function fetchTopArtists(): Promise<Artist[] | null> {
   } else {
     return null;
   }
+}
+
+function toSnakeCaseAndStringify(filters: Filters) {
+  return Object.fromEntries(
+    Object.entries(filters).map(([key, value]) => [
+      key.replace(/([A-Z])/g, "_$1").toLowerCase(),
+      String(value), // Convert all values to strings
+    ])
+  );
+}
+
+// Fetches X number of recommended tracks + their features
+// Returns PlaylistObject[] containing recommended songs and their features
+export async function fetchRecommendations(
+  filters: Filters,
+  target: number
+): Promise<PlaylistObject[] | null> {
+  const accessToken: string | null = getItemFromLocalStorage("access_token");
+  const topTracks: string[] | null = await getTop5TrackIds();
+  const topArtists: string[] | null = await getTop5ArtistIds();
+  if (!accessToken || !topTracks || !topArtists) return null;
+
+  const trackIds: string = topTracks.slice(0, 3).join(",");
+  const artistIds: string = topArtists.slice(0, 2).join(",");
+
+  let recommendations: PlaylistObject[] = [];
+
+  // Convert filter values to strings for URl params
+  const params = new URLSearchParams({
+    ...toSnakeCaseAndStringify(filters),
+    limit: String(target),
+    seed_artists: artistIds,
+    seed_tracks: trackIds,
+  });
+
+  let recommendedTracks: Track[];
+
+  try {
+    const res = await axios.get<Recommendations>(
+      `https://api.spotify.com/v1/recommendations?${params}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    recommendedTracks = res.data.tracks;
+  } catch (error) {
+    console.error("Error fetching recommendations:", error);
+    return null;
+  }
+
+  let recommendedTrackFeatures: TrackFeatures[];
+  const songIds = recommendedTracks.map((song) => song!.id);
+  try {
+    const res = await axios.get<FeaturesLibrary>(
+      "https://api.spotify.com/v1/audio-features",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {
+          ids: songIds.join(","), // Join IDs as a comma-separated string
+        },
+      }
+    );
+    recommendedTrackFeatures = res.data.audio_features;
+  } catch (error) {
+    console.error("Error fetching recommended tracks' features: ", error);
+    return null;
+  }
+
+  for (const track of recommendedTracks) {
+    const features = recommendedTrackFeatures.find((f) => f.id === track.id);
+    if (features) {
+      recommendations.push({
+        track: track,
+        features: features,
+      });
+    } else {
+      console.warn(`No features found for track ID ${track.id}`);
+    }
+  }
+  console.log("recommended songs:", recommendations);
+  return recommendations;
 }
