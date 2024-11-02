@@ -8,6 +8,7 @@ import {
   Radio,
   Slider,
   Text,
+  Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -19,13 +20,13 @@ export default function Form() {
     initialValues: {
       minTempo: 165,
       maxTempo: 180,
-      targetValence: 0.5,
-      targetDanceability: 0.5,
-      targetEnergy: 0.5,
-      targetInstrumentalness: 0.5,
-      targetAcousticness: 0.5,
+      targetValence: "Any",
+      targetDanceability: "Any",
+      targetEnergy: "Any",
+      targetInstrumentalness: "Any",
+      targetAcousticness: "Any",
       source: "1",
-      target: 15,
+      target: 10,
     },
   });
   const [total, setTotal] = useState(0);
@@ -59,6 +60,12 @@ export default function Form() {
             <Radio value={"3"} label="Get recommendations" />
           </Group>
         </Radio.Group>
+        <NumberInput
+          label="Target number of tracks"
+          key={form.key("target")}
+          placeholder="20"
+          {...form.getInputProps("target")}
+        />
         <div className="bpm">
           <NumberInput
             label="Min BPM"
@@ -75,65 +82,49 @@ export default function Form() {
             {...form.getInputProps("maxTempo")}
           />
         </div>
-        <NumberInput
-          label="Target number of tracks"
-          key={form.key("target")}
-          placeholder="20"
-          {...form.getInputProps("target")}
+
+        <Select
+          variant="filled"
+          key={form.key("targetValence")}
+          {...form.getInputProps("targetValence")}
+          label="Valence"
+          data={["Any", "Low", "Medium", "High"]}
+          allowDeselect={false}
         />
-        <Text>Energy</Text>
-        <Slider
-          label={null}
-          min={0}
-          max={1}
-          defaultValue={0.5}
-          step={0.001}
-          marks={[
-            { value: 0, label: "0%" },
-            { value: 1, label: "100%" },
-          ]}
-          key={form.key("targetEnergy")}
-          {...form.getInputProps("targetEnergy")}
+        <Select
+          variant="filled"
+          key={form.key("targetDanceability")}
+          {...form.getInputProps("targetDanceability")}
+          label="Danceability"
+          data={["Any", "Low", "Medium", "High"]}
+          allowDeselect={false}
         />
 
-        {/* <Text>Mood</Text>
-        <Slider
-          label={null}
-          min={0}
-          max={1}
-          defaultValue={0.5}
-          step={0.001}
-          marks={[
-            { value: 0, label: "Low" },
-            { value: 1, label: "High" },
-          ]}
-          key={form.key("valence")}
-          {...form.getInputProps("valence")}
+        <Select
+          variant="filled"
+          key={form.key("targetEnergy")}
+          {...form.getInputProps("targetEnergy")}
+          label="Energy"
+          data={["Any", "Low", "Medium", "High"]}
+          allowDeselect={false}
         />
-        <Text>Danceability</Text>
-        <Slider
-          label={null}
-          min={0}
-          max={1}
-          defaultValue={0.5}
-          step={0.001}
-          marks={[
-            { value: 0, label: "0%" },
-            { value: 1, label: "100%" },
-          ]}
-          key={form.key("danceability")}
-          {...form.getInputProps("danceability")}
-        /> */}
-        <Checkbox
-          label="Instrumental"
-          key={form.key("instrumental")}
-          {...form.getInputProps("instrumental", { type: "checkbox" })}
+        <Select
+          variant="filled"
+          key={form.key("targetInstrumentalness")}
+          {...form.getInputProps("targetInstrumentalness")}
+          label="Instrumentalness"
+          data={["Any", "Low", "Medium", "High"]}
+          allowDeselect={false}
         />
-        <Checkbox
-          label="Acoustic"
-          key={form.key("acoustic")}
-          {...form.getInputProps("acoustic", { type: "checkbox" })}
+        <Select
+          variant="filled"
+          key={form.key("targetAcousticness")}
+          {...form.getInputProps("targetAcousticness")}
+          label="Acousticness"
+          data={["Any", "Low", "Medium", "High"]}
+          allowDeselect={false}
         />
+
         <Group justify="flex-end" mt="md">
           <Button type="submit">Submit</Button>
         </Group>

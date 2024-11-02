@@ -187,13 +187,13 @@ export interface TopTracks {
 }
 
 export interface FormValues {
-  minTempo: number;
-  maxTempo: number;
-  targetValence: number;
-  targetDanceability: number;
-  targetEnergy: number;
-  targetInstrumentalness: number;
-  targetAcousticness: number;
+  minTempo: number | undefined;
+  maxTempo: number | undefined;
+  targetValence: string;
+  targetDanceability: string;
+  targetEnergy: string;
+  targetInstrumentalness: string;
+  targetAcousticness: string;
   source: string;
   target: number;
 }
@@ -212,13 +212,23 @@ export interface PlaylistObject {
 export type FilterOptions = "library" | "topTracks" | "recommendations";
 
 export interface Filters {
-  minTempo: number;
-  maxTempo: number;
-  targetValence: number;
-  targetDanceability: number;
-  targetEnergy: number;
-  targetInstrumentalness: number;
-  targetAcousticness: number;
+  minTempo: number | undefined;
+  maxTempo: number | undefined;
+  targetValence: string;
+  targetDanceability: string;
+  targetEnergy: string;
+  targetInstrumentalness: string;
+  targetAcousticness: string;
+}
+
+export interface NumericFilters {
+  minTempo?: number;
+  maxTempo?: number;
+  targetValence?: number;
+  targetDanceability?: number;
+  targetEnergy?: number;
+  targetInstrumentalnes?: number;
+  targetAcousticness?: number;
 }
 
 export interface Recommendations {
@@ -232,3 +242,5 @@ export interface Recommendations {
   }[];
   tracks: Track[];
 }
+
+export type FeaturesDropDown = "Any" | "Low" | "Medium" | "High";

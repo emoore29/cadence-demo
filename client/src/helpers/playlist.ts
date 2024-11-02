@@ -8,6 +8,7 @@ import {
 import axios from "axios";
 import { fetchRecommendations } from "./fetchers";
 import { getItemFromLocalStorage } from "./localStorage";
+import { TbMapX } from "react-icons/tb";
 
 export async function filterDatabase(
   formValues: FormValues
@@ -56,8 +57,45 @@ async function getRecommendations(
 ): Promise<[number, PlaylistObject[]] | null> {
   const { source, target, ...filters } = formValues;
 
+  function convertToNumber(level: string): number | null {
+    switch (level) {
+      case "Any":
+        return null;
+      case "Low":
+        return 0.333;
+      case "Medium":
+        return 0.666;
+      case "High":
+        return 1;
+      default:
+        return null;
+    }
+  }
+
+  const targetValence: number | null = convertToNumber(filters.targetValence);
+  const targetDanceability: number | null = convertToNumber(
+    filters.targetDanceability
+  );
+  const targetEnergy: number | null = convertToNumber(filters.targetEnergy);
+  const targetInstrumentalness: number | null = convertToNumber(
+    filters.targetInstrumentalness
+  );
+  const targetAcousticness: number | null = convertToNumber(
+    filters.targetAcousticness
+  );
+
+  const numericFilters = {
+    ...(filters.minTempo !== null && { minTempo: filters.minTempo }),
+    ...(filters.maxTempo !== null && { maxTempo: filters.maxTempo }),
+    ...(targetValence !== null && { targetValence }),
+    ...(targetDanceability !== null && { targetDanceability }),
+    ...(targetEnergy !== null && { targetEnergy }),
+    ...(targetInstrumentalness !== null && { targetInstrumentalness }),
+    ...(targetAcousticness !== null && { targetAcousticness }),
+  };
+
   const recs: PlaylistObject[] | null = await fetchRecommendations(
-    filters,
+    numericFilters,
     target
   );
 
@@ -96,34 +134,51 @@ function matches(
     targetAcousticness,
   } = formValues;
 
-  const buffer: number = 0.2; // +/- buffer for target values (e.g. target valence 0.5 +/- 0.2)
-  if (trackFeatures.tempo <= minTempo || trackFeatures.tempo >= maxTempo) {
-    return false;
-  }
   if (
-    (targetInstrumentalness &&
-      trackFeatures.instrumentalness < targetInstrumentalness - buffer) ||
-    (targetInstrumentalness &&
-      trackFeatures.instrumentalness >= targetInstrumentalness + buffer)
-  ) {
-    // Instrumentals only returned with likelihood they are instrumentals > 70%
-    return false;
-  }
-  if (
-    (targetAcousticness &&
-      trackFeatures.acousticness < targetAcousticness - buffer) ||
-    (targetAcousticness &&
-      trackFeatures.acousticness >= targetAcousticness + buffer)
-  ) {
-    // Acoustic only returned with likelihood they are acoustic > 50%
-    return false;
-  }
-  if (
-    trackFeatures.energy <= targetEnergy - buffer ||
-    trackFeatures.energy >= targetEnergy + buffer
+    minTempo != null &&
+    maxTempo != null &&
+    (trackFeatures.tempo <= minTempo || trackFeatures.tempo >= maxTempo)
   ) {
     return false;
   }
+
+  // Define the feature to check and the target
+  const properties = [
+    { name: "valence", target: targetValence },
+    { name: "danceability", target: targetDanceability },
+    { name: "energy", target: targetEnergy },
+    { name: "instrumentalness", target: targetInstrumentalness },
+    { name: "acousticness", target: targetAcousticness },
+  ];
+
+  // Function to generate a target range based on low/med/high
+  function getRange(level: string) {
+    switch (level) {
+      case "Low":
+        return { min: 0, max: 0.333 };
+      case "Medium":
+        return { min: 0.333, max: 0.666 };
+      case "High":
+        return { min: 0.666, max: 1 };
+      default:
+        return { min: 0, max: 1 };
+    }
+  }
+
+  // Checks if a specific track feature (e.g. valence) is within range of the target level (low/med/high)
+  function isInRange(trackFeature: number, targetLevel: string) {
+    if (targetLevel === "Any") return true;
+    const range = getRange(targetLevel);
+    return trackFeature >= range.min && trackFeature < range.max;
+  }
+
+  // Loop through each feature to check if track is within the target range
+  for (const { name, target } of properties) {
+    if (!isInRange(trackFeatures[name], target)) {
+      return false;
+    }
+  }
+
   return true;
 }
 

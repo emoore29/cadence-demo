@@ -4,6 +4,7 @@ import {
   FeaturesLibrary,
   Filters,
   Library,
+  NumericFilters,
   PlaylistObject,
   Recommendations,
   SavedTrack,
@@ -237,19 +238,21 @@ export async function fetchTopArtists(): Promise<Artist[] | null> {
   }
 }
 
-function toSnakeCaseAndStringify(filters: Filters) {
+function parseFilters(filters: NumericFilters) {
   return Object.fromEntries(
-    Object.entries(filters).map(([key, value]) => [
-      key.replace(/([A-Z])/g, "_$1").toLowerCase(),
-      String(value), // Convert all values to strings
-    ])
+    Object.entries(filters)
+      .filter(([key, value]) => value != undefined)
+      .map(([key, value]) => [
+        key.replace(/([A-Z])/g, "_$1").toLowerCase(),
+        String(value), // Convert all values to strings
+      ])
   );
 }
 
 // Fetches X number of recommended tracks + their features
 // Returns PlaylistObject[] containing recommended songs and their features
 export async function fetchRecommendations(
-  filters: Filters,
+  filters: NumericFilters,
   target: number
 ): Promise<PlaylistObject[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
@@ -257,14 +260,14 @@ export async function fetchRecommendations(
   const topArtists: string[] | null = await getTop5ArtistIds();
   if (!accessToken || !topTracks || !topArtists) return null;
 
-  const trackIds: string = topTracks.slice(0, 3).join(",");
-  const artistIds: string = topArtists.slice(0, 2).join(",");
+  const trackIds: string = topTracks.slice(0, 1).join(",");
+  const artistIds: string = topArtists.slice(0, 4).join(",");
 
   let recommendations: PlaylistObject[] = [];
 
   // Convert filter values to strings for URl params
   const params = new URLSearchParams({
-    ...toSnakeCaseAndStringify(filters),
+    ...parseFilters(filters),
     limit: String(target),
     seed_artists: artistIds,
     seed_tracks: trackIds,
