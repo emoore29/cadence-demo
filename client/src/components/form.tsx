@@ -1,15 +1,10 @@
-import { filterDatabase } from "@/helpers/playlist";
-import { FormValues, PlaylistObject } from "@/types/types";
 import {
-  Button,
-  Checkbox,
-  Group,
-  NumberInput,
-  Radio,
-  Slider,
-  Text,
-  Select,
-} from "@mantine/core";
+  filterDatabase,
+  getRecommendations,
+  shuffleAndSlice,
+} from "@/helpers/playlist";
+import { FormValues, PlaylistObject } from "@/types/types";
+import { Button, Group, NumberInput, Radio, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import Playlist from "./playlist";
@@ -31,16 +26,33 @@ export default function Form() {
   });
   const [total, setTotal] = useState(0);
   const [playlist, setPlaylist] = useState<PlaylistObject[] | null>(null);
-  // const [isDisabled, setIsDisabled] = useState(true);
+  const [recommendations, setRecommendations] = useState<
+    PlaylistObject[] | null
+  >(null);
 
   async function handleSubmit(values: FormValues) {
     console.log("Filtering:", values);
     const result: [number, PlaylistObject[]] | null = await filterDatabase(
       values
     );
+
     if (result) {
       setTotal(result[0]);
       setPlaylist(result[1]);
+
+      // Handle if result[0] < target number of tracks (values.target)
+      // Fetch 5 recommended tracks
+
+      if (result[0] < values.target) {
+        const recs: [number, PlaylistObject[]] | null =
+          await getRecommendations(values);
+        if (recs) {
+          const sampleRecs = shuffleAndSlice(recs[1], 5);
+          setRecommendations(sampleRecs);
+        }
+      } else {
+        setRecommendations(null);
+      }
     } else {
       setPlaylist([]);
     }
@@ -137,7 +149,7 @@ export default function Form() {
         )}
       </form>
       {playlist ? (
-        <Playlist playlist={playlist} />
+        <Playlist playlist={playlist} recommendations={recommendations} />
       ) : (
         "Please submit your preferences to generate a playlist."
       )}

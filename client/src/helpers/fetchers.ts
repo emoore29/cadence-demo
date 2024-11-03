@@ -93,95 +93,69 @@ export async function fetchSavedTracksFeatures(
   library: SavedTrack[]
 ): Promise<TrackFeatures[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (accessToken) {
-    const featuresLibrary: TrackFeatures[] = [];
+  if (!accessToken) return null;
+  const featuresLibrary: TrackFeatures[] = [];
 
-    // Break library into chunks of 100 songs for fetching 100 at a time
-    let n = 0;
-    const chunks = [];
-    while (n < library.length) {
-      chunks.push(library.slice(n, Math.min(n + 100, library.length))); // Stop at the last index of the array if n + 100 > library length
-      n += 100;
-    }
-
-    // For each chunk, request features for those songs
-    for (const chunk of chunks) {
-      // Get all the ids of the songs in the chunk
-      const songIds = chunk.map((song) => song!.track.id);
-      try {
-        const featuresResult = await axios.get<FeaturesLibrary>(
-          "https://api.spotify.com/v1/audio-features",
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            params: {
-              ids: songIds.join(","), // Join IDs as a comma-separated string
-            },
-          }
-        );
-
-        // add the features to the features library
-        featuresLibrary.push(...featuresResult.data.audio_features);
-      } catch (error) {
-        console.error("Error fetching library features: ", error);
-        return null;
-      }
-    }
-    console.log("Library features loaded");
-    return featuresLibrary;
-  } else {
-    return null;
+  // Break library into chunks of 100 songs for fetching 100 at a time
+  let n = 0;
+  const chunks = [];
+  while (n < library.length) {
+    chunks.push(library.slice(n, Math.min(n + 100, library.length))); // Stop at the last index of the array if n + 100 > library length
+    n += 100;
   }
+
+  // For each chunk, request features for those songs
+  for (const chunk of chunks) {
+    // Get all the ids of the songs in the chunk
+    const songIds = chunk.map((song) => song!.track.id);
+    try {
+      const featuresResult = await axios.get<FeaturesLibrary>(
+        "https://api.spotify.com/v1/audio-features",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          params: {
+            ids: songIds.join(","), // Join IDs as a comma-separated string
+          },
+        }
+      );
+
+      // add the features to the features library
+      featuresLibrary.push(...featuresResult.data.audio_features);
+    } catch (error) {
+      console.error("Error fetching library features: ", error);
+      return null;
+    }
+  }
+  console.log("Library features loaded");
+  return featuresLibrary;
 }
 
 // Fetches user's top 50 tracks from last 12 months (long_term)
 // Returns Track[] or null if failed to fetch
 export async function fetchTopTracks(): Promise<Track[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
+  if (!accessToken) return null;
 
-  if (accessToken) {
-    let topTracks: Track[] = [];
-    let nextUrl =
-      "https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50";
-    try {
-      while (nextUrl && topTracks.length < 100) {
-        const res = await axios.get<TopTracks>(nextUrl, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+  let topTracks: Track[] = [];
+  let nextUrl =
+    "https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50";
+  try {
+    while (nextUrl && topTracks.length < 300) {
+      const res = await axios.get<TopTracks>(nextUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-        topTracks = [...topTracks, ...res.data.items];
-        nextUrl = res.data.next;
-      }
-
-      // Log songs fetched to console to check they're all there.
-      console.log("Your top tracks were fetched: ", topTracks.length);
-      return topTracks;
-    } catch (error) {
-      console.error("Error fetching user's top tracks: ", error);
-      return null;
+      topTracks = [...topTracks, ...res.data.items];
+      nextUrl = res.data.next;
     }
-  } else {
+
+    // Log songs fetched to console to check they're all there.
+    console.log("Your top tracks were fetched: ", topTracks);
+    return topTracks;
+  } catch (error) {
+    console.error("Error fetching user's top tracks: ", error);
     return null;
   }
-
-  // if (accessToken) {
-  //   try {
-  //     const res = await axios.get(
-  //       `https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${accessToken}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
-  //     return res.data.items;
-  //   } catch (error) {
-  //     console.error("Error fetching top tracks:", error);
-  //     return null;
-  //   }
-  // } else {
-  //   return null;
-  // }
 }
 
 // Fetches user's top track features
@@ -191,10 +165,24 @@ export async function fetchTopTrackFeatures(
   topTracks: Track[]
 ): Promise<TrackFeatures[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (accessToken) {
-    const songIds = topTracks.map((song) => song!.id);
+  if (!accessToken) return null;
+
+  const featuresTopTracks: TrackFeatures[] = [];
+
+  // Break top tracks into chunks of 100 songs for fetching 100 at a time
+  let n = 0;
+  const chunks = [];
+  while (n < topTracks.length) {
+    chunks.push(topTracks.slice(n, Math.min(n + 100, topTracks.length))); // Stop at the last index of the array if n + 100 > library length
+    n += 100;
+  }
+
+  // For each chunk, request features for those songs
+  for (const chunk of chunks) {
+    // Get all the ids of the songs in the chunk
+    const songIds = chunk.map((song) => song!.id);
     try {
-      const res = await axios.get<FeaturesLibrary>(
+      const featuresResult = await axios.get<FeaturesLibrary>(
         "https://api.spotify.com/v1/audio-features",
         {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -203,14 +191,33 @@ export async function fetchTopTrackFeatures(
           },
         }
       );
-      return res.data.audio_features;
+
+      // add the features to the features library
+      featuresTopTracks.push(...featuresResult.data.audio_features);
     } catch (error) {
-      console.error("Error fetching library features: ", error);
+      console.error("Error fetching top track features: ", error);
       return null;
     }
-  } else {
-    return null;
   }
+
+  return featuresTopTracks;
+
+  // const songIds = topTracks.map((song) => song!.id);
+  // try {
+  //   const res = await axios.get<FeaturesLibrary>(
+  //     "https://api.spotify.com/v1/audio-features",
+  //     {
+  //       headers: { Authorization: `Bearer ${accessToken}` },
+  //       params: {
+  //         ids: songIds.join(","), // Join IDs as a comma-separated string
+  //       },
+  //     }
+  //   );
+  //   return res.data.audio_features;
+  // } catch (error) {
+  //   console.error("Error fetching library features: ", error);
+  //   return null;
+  // }
 }
 
 // Fetches user's top 5 artists from last 12 months (long_term)

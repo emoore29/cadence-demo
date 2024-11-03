@@ -1,6 +1,7 @@
 import { getAllFromStore, StoreName } from "@/helpers/database";
 import {
   FormValues,
+  NumericFeatures,
   PlaylistData,
   PlaylistObject,
   TrackFeatures,
@@ -8,7 +9,6 @@ import {
 import axios from "axios";
 import { fetchRecommendations } from "./fetchers";
 import { getItemFromLocalStorage } from "./localStorage";
-import { TbMapX } from "react-icons/tb";
 
 export async function filterDatabase(
   formValues: FormValues
@@ -52,7 +52,7 @@ async function filterFromStore(
   }
 }
 
-async function getRecommendations(
+export async function getRecommendations(
   formValues: FormValues
 ): Promise<[number, PlaylistObject[]] | null> {
   const { source, target, ...filters } = formValues;
@@ -108,7 +108,10 @@ async function getRecommendations(
 }
 
 // Function that finds the closest matches if the total matching tracks > target number tracks
-function shuffleAndSlice(matchingTracks: PlaylistObject[], size: number) {
+export function shuffleAndSlice(
+  matchingTracks: PlaylistObject[],
+  size: number
+): PlaylistObject[] {
   // Shuffles matches and returns a playlist the size requested
   for (let i: number = matchingTracks.length - 1; i > 0; i--) {
     const j: number = Math.floor(Math.random() * (i + 1));
@@ -174,7 +177,7 @@ function matches(
 
   // Loop through each feature to check if track is within the target range
   for (const { name, target } of properties) {
-    if (!isInRange(trackFeatures[name], target)) {
+    if (!isInRange(trackFeatures[name as keyof NumericFeatures], target)) {
       return false;
     }
   }

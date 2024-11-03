@@ -1,38 +1,18 @@
-import { savePlaylist } from "@/helpers/playlist";
-import { PlaylistData, PlaylistObject } from "@/types/types";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { Checkbox, TextInput, Table, Modal, Button } from "@mantine/core";
-import { useForm } from "@mantine/form";
+import { PlaylistObject } from "@/types/types";
+import { Table } from "@mantine/core";
 import { useRef, useState } from "react";
-import Recommendations from "./recommendations";
 
-interface PlaylistProps {
-  playlist: PlaylistObject[] | null;
-  recommendations: PlaylistObject[] | null;
+interface RecommendationsProps {
+  recommendations: PlaylistObject[];
 }
 
-export default function Playlist({ playlist, recommendations }: PlaylistProps) {
+export default function Recommendations({
+  recommendations,
+}: RecommendationsProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>("");
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-  const [opened, { open, close }] = useDisclosure(false); // handles open of save playlist modal
-  const isMobile = useMediaQuery("(max-width: 50em)");
 
-  if (!playlist) return <div>No playlist available</div>;
-  const form = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      name: "Cadence playlist",
-      description: "Cadence playlist description",
-      public: true,
-    },
-  });
-
-  async function handleSubmit(
-    formValues: PlaylistData,
-    playlist: PlaylistObject[] | null
-  ) {
-    await savePlaylist(playlist, formValues);
-  }
+  if (!recommendations) return <div>No recommendations available</div>;
 
   const playSampleTrack = (trackId: string) => {
     const audioElement = audioRefs.current[trackId];
@@ -52,7 +32,7 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
     }
   };
 
-  const rows = playlist!.map((track) => (
+  const rows = recommendations!.map((track) => (
     <Table.Tr key={track.track.id}>
       <Table.Td>
         {track.track.preview_url && (
@@ -152,9 +132,9 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
   ));
 
   return (
-    <div className="playlist-container">
-      <h2>Playlist</h2>
-
+    <>
+      <h2>Recommended</h2>
+      <p>Your search didn't yield many results. Here are some suggestions:</p>
       <Table>
         <Table.Thead>
           <Table.Tr>
@@ -172,77 +152,11 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
             <Table.Th>speechiness</Table.Th>
             <Table.Th>time_signature</Table.Th>
             <Table.Th>{"<3"}</Table.Th>
-            <Table.Th>Remove</Table.Th>
+            <Table.Th>Add</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      <Modal.Root
-        opened={opened}
-        onClose={close}
-        fullScreen={isMobile}
-        centered
-      >
-        <Modal.Overlay />
-        <Modal.Content>
-          <Modal.Header>
-            <Modal.Title>Save Playlist</Modal.Title>
-            <Modal.CloseButton />
-          </Modal.Header>
-          <Modal.Body>
-            <form
-              className="playlist"
-              onSubmit={form.onSubmit((values) =>
-                handleSubmit(values, playlist)
-              )}
-            >
-              <TextInput
-                label="Playlist Name"
-                placeholder="Cadence: Playlist Name"
-                key={form.key("name")}
-                {...form.getInputProps("name")}
-                styles={{
-                  input: {
-                    backgroundColor: "rgb(126, 74, 101)",
-                    color: "rgba(255, 255, 255, 0.87)",
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  label: {
-                    color: "rgba(255, 255, 255, 0.87)",
-                  },
-                }}
-              />
-              <TextInput
-                label="Playlist Description"
-                placeholder="Playlist generated with cadence"
-                key={form.key("description")}
-                {...form.getInputProps("description")}
-                styles={{
-                  input: {
-                    backgroundColor: "rgb(126, 74, 101)",
-                    color: "rgba(255, 255, 255, 0.87)",
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  label: {
-                    color: "rgba(255, 255, 255, 0.87)",
-                  },
-                }}
-              />
-              <Checkbox
-                label="Public"
-                key={form.key("public")}
-                {...form.getInputProps("public", { type: "checkbox" })}
-              />
-              <Button type="submit">Save playlist</Button>
-            </form>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal.Root>
-      <Button type="button" onClick={open}>
-        Save playlist
-      </Button>
-
-      {recommendations && <Recommendations recommendations={recommendations} />}
-    </div>
+    </>
   );
 }
