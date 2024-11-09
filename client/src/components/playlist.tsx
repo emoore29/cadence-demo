@@ -1,17 +1,33 @@
 import { savePlaylist } from "@/helpers/playlist";
 import { PlaylistData, PlaylistObject } from "@/types/types";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { Checkbox, TextInput, Table, Modal, Button } from "@mantine/core";
+import {
+  Checkbox,
+  TextInput,
+  Table,
+  Modal,
+  Button,
+  Tooltip,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
 
 interface PlaylistProps {
   playlist: PlaylistObject[] | null;
+  setPlaylist: React.Dispatch<React.SetStateAction<PlaylistObject[] | null>>;
   recommendations: PlaylistObject[] | null;
+  setRecommendations: React.Dispatch<
+    React.SetStateAction<PlaylistObject[] | null>
+  >;
 }
 
-export default function Playlist({ playlist, recommendations }: PlaylistProps) {
+export default function Playlist({
+  playlist,
+  setPlaylist,
+  recommendations,
+  setRecommendations,
+}: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>("");
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const [opened, { open, close }] = useDisclosure(false); // handles open of save playlist modal
@@ -51,6 +67,13 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
       setPlayingTrackId("");
     }
   };
+
+  function removeFromPlaylist(trackId: string) {
+    const updatedPlaylist = playlist?.filter(
+      (track) => track.track.id != trackId
+    );
+    updatedPlaylist && setPlaylist(updatedPlaylist);
+  }
 
   const rows = playlist!.map((track) => (
     <Table.Tr key={track.track.id}>
@@ -100,54 +123,76 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
           </>
         )}
       </Table.Td>
-      <Table.Td>
-        <div className="track-display">
-          <img
-            src={track.track.album.images[0].url}
-            alt={track.track.album.name}
-            className="album-img"
-          />
-          <div
-            className="title-and-artist"
-            style={{
-              maxWidth: 300, // Limit cell width
-            }}
-          >
-            <a
-              className="track-name"
-              href={track.track.external_urls.spotify}
+      <Tooltip.Floating
+        multiline
+        w={200}
+        label={`Tempo: ${track.features.tempo.toFixed(
+          0
+        )} Energy: ${track.features.energy.toFixed(
+          1
+        )} Acousticness: ${track.features.acousticness.toFixed(
+          1
+        )} Instrumentalness: ${track.features.instrumentalness.toFixed(
+          1
+        )} Danceability: ${track.features.danceability.toFixed(
+          1
+        )} Liveness: ${track.features.liveness.toFixed(
+          1
+        )} Loudness: ${track.features.loudness.toFixed(
+          1
+        )} Mode: ${track.features.mode.toFixed(
+          1
+        )} Speechiness: ${track.features.speechiness.toFixed(
+          1
+        )} Time signature: ${track.features.time_signature.toFixed(1)}`}
+      >
+        <Table.Td>
+          <div className="track-display">
+            <img
+              src={track.track.album.images[0].url}
+              alt={track.track.album.name}
+              className="album-img"
+            />
+            <div
+              className="title-and-artist"
               style={{
-                whiteSpace: "nowrap", // Prevent wrapping
-                overflow: "hidden", // Hide overflow
-                textOverflow: "ellipsis", // Add "..." at end of overflowed text
+                maxWidth: 300, // Limit cell width
               }}
             >
-              {track.track.name}
-            </a>
-            <a
-              className="track-artist"
-              href={track.track.artists[0].external_urls.spotify}
-            >
-              {track.track.artists[0].name}
-            </a>
+              <a
+                className="track-name"
+                href={track.track.external_urls.spotify}
+                style={{
+                  whiteSpace: "nowrap", // Prevent wrapping
+                  overflow: "hidden", // Hide overflow
+                  textOverflow: "ellipsis", // Add "..." at end of overflowed text
+                }}
+              >
+                {track.track.name}
+              </a>
+
+              <a
+                className="track-artist"
+                href={track.track.artists[0].external_urls.spotify}
+              >
+                {track.track.artists[0].name}
+              </a>
+            </div>
           </div>
-        </div>
-      </Table.Td>
+        </Table.Td>
+      </Tooltip.Floating>
       <Table.Td>
         <a href={track.track.album.external_urls.spotify}>
           {track.track.album.name}
         </a>
       </Table.Td>
-      <Table.Td>{track.features.tempo.toFixed(0)}</Table.Td>
-      <Table.Td>{track.features.energy.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.acousticness.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.instrumentalness.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.danceability.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.liveness.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.loudness.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.mode.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.speechiness.toFixed(1)}</Table.Td>
-      <Table.Td>{track.features.time_signature.toFixed(1)}</Table.Td>
+      <Table.Td>Saved?</Table.Td>
+      <Table.Td>
+        <Button onClick={() => removeFromPlaylist(track.track.id)}>
+          Remove
+        </Button>
+      </Table.Td>
+      <Table.Td>Pin</Table.Td>
     </Table.Tr>
   ));
 
@@ -161,18 +206,9 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
             <Table.Th>Preview</Table.Th>
             <Table.Th>Title</Table.Th>
             <Table.Th>Album</Table.Th>
-            <Table.Th>Tempo</Table.Th>
-            <Table.Th>Energy</Table.Th>
-            <Table.Th>Acousticness</Table.Th>
-            <Table.Th>Instrumentalness</Table.Th>
-            <Table.Th>danceability</Table.Th>
-            <Table.Th>liveness</Table.Th>
-            <Table.Th>loudness</Table.Th>
-            <Table.Th>mode</Table.Th>
-            <Table.Th>speechiness</Table.Th>
-            <Table.Th>time_signature</Table.Th>
             <Table.Th>{"<3"}</Table.Th>
             <Table.Th>Remove</Table.Th>
+            <Table.Th>Pin</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
@@ -242,7 +278,14 @@ export default function Playlist({ playlist, recommendations }: PlaylistProps) {
         Save playlist
       </Button>
 
-      {recommendations && <Recommendations recommendations={recommendations} />}
+      {recommendations && (
+        <Recommendations
+          recommendations={recommendations}
+          playlist={playlist}
+          setPlaylist={setPlaylist}
+          setRecommendations={setRecommendations}
+        />
+      )}
     </div>
   );
 }

@@ -46,7 +46,7 @@ h1 {
 .playlist-form {
   display: flex;
   flex-direction: column;
-  width: 300px;
+  min-width: 300px;
 }
 
 .playlist {

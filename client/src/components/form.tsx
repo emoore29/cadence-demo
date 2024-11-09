@@ -94,49 +94,22 @@ export default function Form() {
             {...form.getInputProps("maxTempo")}
           />
         </div>
-
-        <Select
-          variant="filled"
-          key={form.key("targetValence")}
-          {...form.getInputProps("targetValence")}
-          label="Valence"
-          data={["Any", "Low", "Medium", "High"]}
-          allowDeselect={false}
-        />
-        <Select
-          variant="filled"
-          key={form.key("targetDanceability")}
-          {...form.getInputProps("targetDanceability")}
-          label="Danceability"
-          data={["Any", "Low", "Medium", "High"]}
-          allowDeselect={false}
-        />
-
-        <Select
-          variant="filled"
-          key={form.key("targetEnergy")}
-          {...form.getInputProps("targetEnergy")}
-          label="Energy"
-          data={["Any", "Low", "Medium", "High"]}
-          allowDeselect={false}
-        />
-        <Select
-          variant="filled"
-          key={form.key("targetInstrumentalness")}
-          {...form.getInputProps("targetInstrumentalness")}
-          label="Instrumentalness"
-          data={["Any", "Low", "Medium", "High"]}
-          allowDeselect={false}
-        />
-        <Select
-          variant="filled"
-          key={form.key("targetAcousticness")}
-          {...form.getInputProps("targetAcousticness")}
-          label="Acousticness"
-          data={["Any", "Low", "Medium", "High"]}
-          allowDeselect={false}
-        />
-
+        {[
+          "Valence",
+          "Danceability",
+          "Energy",
+          "Instrumentalness",
+          "Acousticness",
+        ].map((filter: string) => (
+          <Select
+            variant="filled"
+            key={form.key(`target` + filter)}
+            {...form.getInputProps(`target` + filter)}
+            label={filter}
+            data={["Any", "Low", "Medium", "High"]}
+            allowDeselect={false}
+          />
+        ))}
         <Group justify="flex-end" mt="md">
           <Button type="submit">Submit</Button>
         </Group>
@@ -149,7 +122,12 @@ export default function Form() {
         )}
       </form>
       {playlist ? (
-        <Playlist playlist={playlist} recommendations={recommendations} />
+        <Playlist
+          playlist={playlist}
+          setPlaylist={setPlaylist}
+          recommendations={recommendations}
+          setRecommendations={setRecommendations}
+        />
       ) : (
         "Please submit your preferences to generate a playlist."
       )}
