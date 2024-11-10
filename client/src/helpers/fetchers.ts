@@ -130,7 +130,7 @@ export async function fetchSavedTracksFeatures(
   return featuresLibrary;
 }
 
-// Fetches user's top 50 tracks from last 12 months (long_term)
+// Fetches user's top 500 tracks from last 12 months (long_term)
 // Returns Track[] or null if failed to fetch
 export async function fetchTopTracks(): Promise<Track[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
@@ -140,7 +140,7 @@ export async function fetchTopTracks(): Promise<Track[] | null> {
   let nextUrl =
     "https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50";
   try {
-    while (nextUrl && topTracks.length < 300) {
+    while (nextUrl && topTracks.length < 500) {
       const res = await axios.get<TopTracks>(nextUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -150,7 +150,7 @@ export async function fetchTopTracks(): Promise<Track[] | null> {
     }
 
     // Log songs fetched to console to check they're all there.
-    console.log("Your top tracks were fetched: ", topTracks);
+    console.log("Your top 500 tracks were fetched: ", topTracks);
     return topTracks;
   } catch (error) {
     console.error("Error fetching user's top tracks: ", error);

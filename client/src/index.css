@@ -33,9 +33,10 @@ h1 {
   background: none;
 }
 
-#user-img {
+.user-img {
   object-fit: cover;
   border-radius: 50%;
+  cursor: pointer;
 }
 
 #user-menu {
@@ -47,6 +48,10 @@ h1 {
   display: flex;
   flex-direction: column;
   min-width: 300px;
+}
+
+.playlist-container {
+  width: 100%;
 }
 
 .playlist {

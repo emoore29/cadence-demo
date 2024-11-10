@@ -16,11 +16,13 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { User } from "./types/types";
+import { Loader } from "@mantine/core";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
+  const [loadingData, setLoadingData] = useState<boolean>(false);
 
   useEffect(() => {
     const setupDb = async () => {
@@ -58,14 +60,18 @@ function App() {
   }, []);
 
   async function storeMyData(): Promise<void> {
+    setLoadingData(true);
+
     const savedTracks: boolean | null = await storeSavedTracksData();
     const savedTopTracks: boolean | null = await storeTopTracksData();
     const savedTopArtists: boolean | null = await storeTopArtists();
 
     if (savedTracks && savedTopTracks && savedTopArtists) {
+      setLoadingData(false);
       storeDataInLocalStorage("library_was_stored", true);
       setLibraryStored(true);
     } else {
+      setLoadingData(false);
       setLibraryStored(false);
       console.log("Sorry, there was an error attempting to store your data.");
     }
@@ -91,9 +97,13 @@ function App() {
             To use your Spotify data to create playlists, you can store your
             data. You have {libSize} saved tracks. This may take a minute...
           </p>
-          <button onClick={storeMyData}>
-            Store my Spotify data in the database!
-          </button>
+          {!loadingData ? (
+            <button onClick={storeMyData}>
+              Store my Spotify data in the database!
+            </button>
+          ) : (
+            <Loader color="teal" type="dots" />
+          )}
         </>
       )}
       <Form />

@@ -24,7 +24,7 @@ export default function Form() {
       target: 10,
     },
   });
-  const [total, setTotal] = useState(0);
+  const [numResults, setNumResults] = useState(0);
   const [playlist, setPlaylist] = useState<PlaylistObject[] | null>(null);
   const [recommendations, setRecommendations] = useState<
     PlaylistObject[] | null
@@ -37,7 +37,7 @@ export default function Form() {
     );
 
     if (result) {
-      setTotal(result[0]);
+      setNumResults(result[0]);
       setPlaylist(result[1]);
 
       // Handle if result[0] < target number of tracks (values.target)
@@ -113,12 +113,14 @@ export default function Form() {
         <Group justify="flex-end" mt="md">
           <Button type="submit">Submit</Button>
         </Group>
-        {total && (
+        {numResults ? (
           <div>
-            <p>There were {total} results.</p>
+            <p>There were {numResults} results.</p>
             <Button type="button">Show all</Button>
             <Button type="button">Shuffle</Button>
           </div>
+        ) : (
+          ""
         )}
       </form>
       {playlist ? (

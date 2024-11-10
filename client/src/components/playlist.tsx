@@ -12,6 +12,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
+import { notifications } from "@mantine/notifications";
 
 interface PlaylistProps {
   playlist: PlaylistObject[] | null;
@@ -30,7 +31,7 @@ export default function Playlist({
 }: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>("");
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-  const [opened, { open, close }] = useDisclosure(false); // handles open of save playlist modal
+  const [opened, setOpened] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
 
   if (!playlist) return <div>No playlist available</div>;
@@ -43,11 +44,24 @@ export default function Playlist({
     },
   });
 
+  function successNotification() {
+    notifications.show({
+      title: "Playlist saved",
+      message: "Your playlist was successfully saved.",
+    });
+  }
+
   async function handleSubmit(
     formValues: PlaylistData,
     playlist: PlaylistObject[] | null
   ) {
-    await savePlaylist(playlist, formValues);
+    const savedPlaylist = await savePlaylist(playlist, formValues);
+    if (savedPlaylist) {
+      successNotification();
+      setOpened(false);
+    } else {
+      console.error("Error saving playlist");
+    }
   }
 
   const playSampleTrack = (trackId: string) => {
@@ -199,7 +213,6 @@ export default function Playlist({
   return (
     <div className="playlist-container">
       <h2>Playlist</h2>
-
       <Table>
         <Table.Thead>
           <Table.Tr>
@@ -215,7 +228,7 @@ export default function Playlist({
       </Table>
       <Modal.Root
         opened={opened}
-        onClose={close}
+        onClose={() => setOpened(false)}
         fullScreen={isMobile}
         centered
       >
@@ -274,7 +287,7 @@ export default function Playlist({
           </Modal.Body>
         </Modal.Content>
       </Modal.Root>
-      <Button type="button" onClick={open}>
+      <Button type="button" onClick={() => setOpened(true)}>
         Save playlist
       </Button>
 
