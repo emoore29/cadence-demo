@@ -4,7 +4,7 @@
 }
 
 .container {
-  max-width: 1660px;
+  max-width: 2400px;
   margin: 0 auto;
   text-align: left;
 }
@@ -94,4 +94,27 @@ h1 {
 
 .mantine-Select-option {
   color: black;
+}
+
+.mantine-Table-th,
+.mantine-Table-td {
+  padding: 5px;
+}
+
+#playPauseButton {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.centerContent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+}
+
+td {
+  height: 100%;
 }
