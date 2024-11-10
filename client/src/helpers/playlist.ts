@@ -9,6 +9,7 @@ import {
 import axios from "axios";
 import { fetchRecommendations } from "./fetchers";
 import { getItemFromLocalStorage } from "./localStorage";
+import { showErrorNotif } from "./general";
 
 export async function filterDatabase(
   formValues: FormValues
@@ -16,11 +17,11 @@ export async function filterDatabase(
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
-    case "1":
+    case "My Saved Songs":
       return await filterFromStore("library", formValues);
-    case "2":
+    case "My Top Tracks":
       return await filterFromStore("topTracks", formValues);
-    case "3":
+    case "Get Recommendations":
       return await getRecommendations(formValues);
     default:
       return null;
@@ -28,7 +29,7 @@ export async function filterDatabase(
 }
 
 // Gets songs matching filters from saved songs or top songs library
-// Returns array of matching tracks the length requested
+// Returns array of matching tracks
 async function filterFromStore(
   storeName: StoreName,
   formValues: FormValues
@@ -44,11 +45,12 @@ async function filterFromStore(
       match && matchingTracks.push(track);
     }
     const totalMatches = matchingTracks.length;
-    // if (totalMatches > formValues.target) {
-    //   matchingTracks = shuffleAndSlice(matchingTracks, formValues.target);
-    // }
     return [totalMatches, matchingTracks];
   } catch (error) {
+    showErrorNotif(
+      "Error",
+      "There was an error fetching tracks from the database. Please raise an issue on GitHub if this persists."
+    );
     console.error(`Error fetching tracks from IDB ${storeName}`, error);
     return null;
   }

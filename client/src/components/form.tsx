@@ -20,7 +20,7 @@ export default function Form() {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "1",
+      source: "My Saved Songs",
       target: 10,
     },
   });
@@ -29,6 +29,7 @@ export default function Form() {
   const [recommendations, setRecommendations] = useState<
     PlaylistObject[] | null
   >(null);
+  const [playlistLen, setPlaylistLen] = useState<number>(0);
 
   async function handleSubmit(values: FormValues) {
     console.log("Filtering:", values);
@@ -37,6 +38,7 @@ export default function Form() {
     );
 
     if (result) {
+      setPlaylistLen(values.target);
       setNumResults(result[0]);
       setPlaylist(result[1]);
 
@@ -61,17 +63,15 @@ export default function Form() {
   return (
     <div className="main">
       <form className="playlist-form" onSubmit={form.onSubmit(handleSubmit)}>
-        <Radio.Group
-          name="source"
-          label="Where would you like to filter songs from"
+        <h2>Filters</h2>
+        <Select
+          variant="filled"
+          key={form.key("source")}
           {...form.getInputProps("source")}
-        >
-          <Group mt="xs">
-            <Radio value={"1"} label="My Saved Songs" />
-            <Radio value={"2"} label="My Top Tracks" />
-            <Radio value={"3"} label="Get recommendations" />
-          </Group>
-        </Radio.Group>
+          label={"Source"}
+          data={["My Saved Songs", "My Top Tracks", "Get Recommendations"]}
+          allowDeselect={false}
+        />
         <NumberInput
           label="Target number of tracks"
           key={form.key("target")}
@@ -113,18 +113,12 @@ export default function Form() {
         <Group justify="flex-end" mt="md">
           <Button type="submit">Submit</Button>
         </Group>
-        {numResults ? (
-          <div>
-            <p>There were {numResults} results.</p>
-            <Button type="button">Show all</Button>
-            <Button type="button">Shuffle</Button>
-          </div>
-        ) : (
-          ""
-        )}
+        {numResults ? <p>There were {numResults} results.</p> : ""}
       </form>
       {playlist ? (
         <Playlist
+          playlistLen={playlistLen}
+          setPlaylistLen={setPlaylistLen}
           playlist={playlist}
           setPlaylist={setPlaylist}
           recommendations={recommendations}

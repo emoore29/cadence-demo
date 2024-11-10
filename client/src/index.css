@@ -1,5 +1,10 @@
+#root {
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
 .container {
-  max-width: 1440px;
+  max-width: 1660px;
   margin: 0 auto;
   text-align: left;
 }
@@ -37,6 +42,11 @@ h1 {
   object-fit: cover;
   border-radius: 50%;
   cursor: pointer;
+  border: 5px solid transparent; /* Set initial border as transparent */
+}
+
+.user-img:hover {
+  border-color: #d2d2d2a3; /* Change border color on hover */
 }
 
 #user-menu {

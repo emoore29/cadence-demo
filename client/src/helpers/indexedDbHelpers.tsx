@@ -7,6 +7,7 @@ import {
   fetchTopTrackFeatures,
   fetchTopTracks,
 } from "./fetchers";
+import { showErrorNotif, showSuccessNotif, showWarnNotif } from "./general";
 
 export async function storeTopArtists(): Promise<boolean | null> {
   let success = true;
@@ -16,7 +17,11 @@ export async function storeTopArtists(): Promise<boolean | null> {
       try {
         await setInStore("topArtists", artist);
       } catch (error) {
-        console.error(`Error storing artist in IndexedDB:`, error);
+        showErrorNotif(
+          "Error",
+          "There was an error storing top artists in the database. If the issue persists, please raise an issue on GitHub."
+        );
+        console.error("Error details: ", error);
         success = false;
       }
     }
@@ -28,48 +33,32 @@ export async function storeTopArtists(): Promise<boolean | null> {
 
 export async function storeTopTracksData(): Promise<boolean | null> {
   const topTracks: Track[] | null = await fetchTopTracks();
+  if (!topTracks) return null;
 
-  if (topTracks) {
-    const topTrackFeatures: TrackFeatures[] | null =
-      await fetchTopTrackFeatures(topTracks);
+  const topTrackFeatures: TrackFeatures[] | null = await fetchTopTrackFeatures(
+    topTracks
+  );
+  if (!topTrackFeatures) return null;
 
-    if (topTrackFeatures) {
-      const success = storeUserTopTrackData(topTracks, topTrackFeatures);
-      return success;
-    } else {
-      console.error("Error loading user's library features.");
-      return null;
-    }
-  } else {
-    console.error("Error loading the user's library");
-    return null;
-  }
+  const success = storeUserTopTrackData(topTracks, topTrackFeatures);
+  return success;
 }
 
 export async function storeSavedTracksData(): Promise<boolean | null> {
   const lib: SavedTrack[] | null = await fetchSavedTracks();
+  if (!lib) return null;
 
-  if (lib) {
-    const feats: TrackFeatures[] | null = await fetchSavedTracksFeatures(lib);
+  const feats: TrackFeatures[] | null = await fetchSavedTracksFeatures(lib);
+  if (!feats) return null;
 
-    if (feats) {
-      const success = storeUserLibraryAndFeatures(lib, feats);
-      return success;
-    } else {
-      console.error("Error loading user's library features.");
-      return null;
-    }
-  } else {
-    console.error("Error loading the user's library");
-    return null;
-  }
+  const success = storeUserLibraryAndFeatures(lib, feats);
+  return success;
 }
 
 export async function storeUserTopTrackData(
   topTracks: Track[],
   topTrackFeatures: TrackFeatures[]
 ): Promise<boolean> {
-  console.log("Storing top tracks and their features..");
   let success = true;
 
   for (const [index, track] of topTracks.entries()) {
@@ -87,7 +76,7 @@ export async function storeUserTopTrackData(
           order: index, // Add order based on position in the topTracks array, so that the top of the top can be retrieved
         });
       } catch (error) {
-        console.error(`Error storing track ${trackId} in IndexedDB:`, error);
+        console.warn(`Error storing track ${trackId} in IndexedDB:`, error);
         success = false;
       }
     } else {
@@ -97,11 +86,13 @@ export async function storeUserTopTrackData(
   }
 
   if (success) {
-    console.log("All tracks successfully stored in IDB");
+    showSuccessNotif(
+      "Top tracks stored",
+      "Your top tracks were successfully stored."
+    );
   } else {
-    console.warn("Some or all tracks could not be stored in IndexedDB");
+    showWarnNotif("Warning", "Some or all tracks could not be stored.");
   }
-
   return success;
 }
 

@@ -1,20 +1,22 @@
+import { showErrorNotif, showSuccessNotif } from "@/helpers/general";
 import { savePlaylist } from "@/helpers/playlist";
 import { PlaylistData, PlaylistObject } from "@/types/types";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import {
-  Checkbox,
-  TextInput,
-  Table,
-  Modal,
   Button,
+  Checkbox,
+  Modal,
+  Table,
+  TextInput,
   Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useMediaQuery } from "@mantine/hooks";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
-import { notifications } from "@mantine/notifications";
 
 interface PlaylistProps {
+  playlistLen: number;
+  setPlaylistLen: React.Dispatch<React.SetStateAction<number>>;
   playlist: PlaylistObject[] | null;
   setPlaylist: React.Dispatch<React.SetStateAction<PlaylistObject[] | null>>;
   recommendations: PlaylistObject[] | null;
@@ -24,6 +26,8 @@ interface PlaylistProps {
 }
 
 export default function Playlist({
+  playlistLen,
+  setPlaylistLen,
   playlist,
   setPlaylist,
   recommendations,
@@ -33,7 +37,6 @@ export default function Playlist({
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
   const [opened, setOpened] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
-
   if (!playlist) return <div>No playlist available</div>;
   const form = useForm({
     mode: "uncontrolled",
@@ -44,25 +47,28 @@ export default function Playlist({
     },
   });
 
-  function successNotification() {
-    notifications.show({
-      title: "Playlist saved",
-      message: "Your playlist was successfully saved.",
-    });
-  }
-
   async function handleSubmit(
     formValues: PlaylistData,
     playlist: PlaylistObject[] | null
   ) {
     const savedPlaylist = await savePlaylist(playlist, formValues);
     if (savedPlaylist) {
-      successNotification();
+      showSuccessNotif(
+        "Playlist saved",
+        "Your playlist was successfully saved."
+      );
       setOpened(false);
     } else {
-      console.error("Error saving playlist");
+      showErrorNotif(
+        "Error",
+        "Your playlist could not be saved. If the issue persists, please raise an issue on GitHub."
+      );
     }
   }
+
+  const addMoreTracks = () => {
+    setPlaylistLen((prev) => prev + 10); // Show 10 more tracks each time
+  };
 
   const playSampleTrack = (trackId: string) => {
     const audioElement = audioRefs.current[trackId];
@@ -89,7 +95,7 @@ export default function Playlist({
     updatedPlaylist && setPlaylist(updatedPlaylist);
   }
 
-  const rows = playlist!.map((track) => (
+  const rows = playlist.slice(0, playlistLen).map((track) => (
     <Table.Tr key={track.track.id}>
       <Table.Td>
         {track.track.preview_url && (
@@ -140,25 +146,21 @@ export default function Playlist({
       <Tooltip.Floating
         multiline
         w={200}
-        label={`Tempo: ${track.features.tempo.toFixed(
-          0
-        )} Energy: ${track.features.energy.toFixed(
-          1
-        )} Acousticness: ${track.features.acousticness.toFixed(
-          1
-        )} Instrumentalness: ${track.features.instrumentalness.toFixed(
-          1
-        )} Danceability: ${track.features.danceability.toFixed(
-          1
-        )} Liveness: ${track.features.liveness.toFixed(
-          1
-        )} Loudness: ${track.features.loudness.toFixed(
-          1
-        )} Mode: ${track.features.mode.toFixed(
-          1
-        )} Speechiness: ${track.features.speechiness.toFixed(
-          1
-        )} Time signature: ${track.features.time_signature.toFixed(1)}`}
+        label={
+          <>
+            {`Tempo: ${track.features.tempo.toFixed(0)}`} <br />
+            {`Energy: ${track.features.energy.toFixed(1)}`} <br />
+            {`Acousticness: ${track.features.acousticness.toFixed(1)}`} <br />
+            {`Instrumentalness: ${track.features.instrumentalness.toFixed(1)}`}
+            <br />
+            {`Danceability: ${track.features.danceability.toFixed(1)}`} <br />
+            {`Liveness: ${track.features.liveness.toFixed(1)}`} <br />
+            {`Loudness: ${track.features.loudness.toFixed(1)}`} <br />
+            {`Mode: ${track.features.mode.toFixed(1)}`} <br />
+            {`Speechiness: ${track.features.speechiness.toFixed(1)}`} <br />
+            {`Time signature: ${track.features.time_signature.toFixed(1)}`}
+          </>
+        }
       >
         <Table.Td>
           <div className="track-display">
@@ -226,6 +228,9 @@ export default function Playlist({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
+      {playlistLen < playlist.length && (
+        <Button onClick={addMoreTracks}>Show More</Button>
+      )}
       <Modal.Root
         opened={opened}
         onClose={() => setOpened(false)}

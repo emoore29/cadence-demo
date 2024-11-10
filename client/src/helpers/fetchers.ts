@@ -15,6 +15,7 @@ import {
 } from "../types/types";
 import { getTop5ArtistIds, getTop5TrackIds } from "./indexedDbHelpers";
 import { getItemFromLocalStorage } from "./localStorage";
+import { showErrorNotif } from "./general";
 
 // Fetches user data
 // Returns User
@@ -27,7 +28,12 @@ export async function fetchUserData(): Promise<User | null> {
       });
       return res.data;
     } catch (error) {
-      console.error(`There was an error fetching user data:`, error);
+      showErrorNotif(
+        "Error",
+        "There was an error fetching your user data. If the issue persists, please raise an issue on GitHub."
+      );
+      console.error("Error details: ", error);
+
       return null;
     }
   } else {
@@ -49,7 +55,12 @@ export async function fetchLibrarySize(): Promise<number | null> {
       );
       return Number(res.data.total);
     } catch (error) {
-      console.error(`There was an error fetching user data:`, error);
+      showErrorNotif(
+        "Error",
+        "There was an error fetching your library size. If the issue persists, please raise an issue on GitHub."
+      );
+      console.error("Error details: ", error);
+
       return null;
     }
   } else {
@@ -78,7 +89,11 @@ export async function fetchSavedTracks(): Promise<SavedTrack[] | null> {
       console.log("Your library was fetched: ", library.length);
       return library;
     } catch (error) {
-      console.error("Error fetching user's library: ", error);
+      showErrorNotif(
+        "Error",
+        "There was an error fetching your saved tracks. If the issue persists, please raise an issue on GitHub."
+      );
+      console.error("Error details: ", error);
       return null;
     }
   } else {
@@ -122,7 +137,11 @@ export async function fetchSavedTracksFeatures(
       // add the features to the features library
       featuresLibrary.push(...featuresResult.data.audio_features);
     } catch (error) {
-      console.error("Error fetching library features: ", error);
+      showErrorNotif(
+        "Error",
+        "There was an error fetching your library features. If the issue persists, please raise an issue on GitHub."
+      );
+      console.error("Error details: ", error);
       return null;
     }
   }
@@ -153,7 +172,11 @@ export async function fetchTopTracks(): Promise<Track[] | null> {
     console.log("Your top 500 tracks were fetched: ", topTracks);
     return topTracks;
   } catch (error) {
-    console.error("Error fetching user's top tracks: ", error);
+    showErrorNotif(
+      "Error",
+      "There was an error fetching your top tracks. If the issue persists, please raise an issue on GitHub."
+    );
+    console.error("Error details: ", error);
     return null;
   }
 }
@@ -195,29 +218,16 @@ export async function fetchTopTrackFeatures(
       // add the features to the features library
       featuresTopTracks.push(...featuresResult.data.audio_features);
     } catch (error) {
-      console.error("Error fetching top track features: ", error);
+      showErrorNotif(
+        "Error",
+        "There was an error fetching your top track features. If the issue persists, please raise an issue on GitHub."
+      );
+      console.error("Error details: ", error);
       return null;
     }
   }
 
   return featuresTopTracks;
-
-  // const songIds = topTracks.map((song) => song!.id);
-  // try {
-  //   const res = await axios.get<FeaturesLibrary>(
-  //     "https://api.spotify.com/v1/audio-features",
-  //     {
-  //       headers: { Authorization: `Bearer ${accessToken}` },
-  //       params: {
-  //         ids: songIds.join(","), // Join IDs as a comma-separated string
-  //       },
-  //     }
-  //   );
-  //   return res.data.audio_features;
-  // } catch (error) {
-  //   console.error("Error fetching library features: ", error);
-  //   return null;
-  // }
 }
 
 // Fetches user's top 5 artists from last 12 months (long_term)
@@ -237,7 +247,11 @@ export async function fetchTopArtists(): Promise<Artist[] | null> {
       );
       return res.data.items;
     } catch (error) {
-      console.error("Error fetching top artists:", error);
+      showErrorNotif(
+        "Error",
+        "There was an error fetching your top artists. If the issue persists, please raise an issue on GitHub."
+      );
+      console.error("Error details: ", error);
       return null;
     }
   } else {
@@ -294,7 +308,11 @@ export async function fetchRecommendations(
     );
     recommendedTracks = res.data.tracks;
   } catch (error) {
-    console.error("Error fetching recommendations:", error);
+    showErrorNotif(
+      "Error",
+      "There was an error fetching recommendations. If the issue persists, please raise an issue on GitHub."
+    );
+    console.error("Error details: ", error);
     return null;
   }
 
@@ -312,7 +330,11 @@ export async function fetchRecommendations(
     );
     recommendedTrackFeatures = res.data.audio_features;
   } catch (error) {
-    console.error("Error fetching recommended tracks' features: ", error);
+    showErrorNotif(
+      "Error",
+      "There was an error fetching recommended track features. If the issue persists, please raise an issue on GitHub."
+    );
+    console.error("Error details: ", error);
     return null;
   }
 
