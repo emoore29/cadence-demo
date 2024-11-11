@@ -1,14 +1,16 @@
-import { PlaylistObject } from "@/types/types";
+import { TrackObject } from "@/types/types";
 import { Table, Tooltip, Button } from "@mantine/core";
 import { useRef, useState } from "react";
+import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 
 interface RecommendationsProps {
-  recommendations: PlaylistObject[];
-  playlist: PlaylistObject[] | null;
-  setPlaylist: React.Dispatch<React.SetStateAction<PlaylistObject[] | null>>;
+  recommendations: TrackObject[];
+  playlist: TrackObject[] | null;
+  setPlaylist: React.Dispatch<React.SetStateAction<TrackObject[] | null>>;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<PlaylistObject[] | null>
+    React.SetStateAction<TrackObject[] | null>
   >;
+  handleSaveClick: (trackId: string, saved: boolean) => void;
 }
 
 export default function Recommendations({
@@ -16,6 +18,7 @@ export default function Recommendations({
   playlist,
   setPlaylist,
   setRecommendations,
+  handleSaveClick,
 }: RecommendationsProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>("");
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -150,15 +153,27 @@ export default function Recommendations({
           {track.track.album.name}
         </a>
       </Table.Td>
-      <Table.Td>Saved?</Table.Td>
+      <Table.Td>
+        <button
+          type="button"
+          className="saveTrackBtn"
+          onClick={() => handleSaveClick(track.track.id, track.saved!)}
+        >
+          {track.saved === true ? (
+            <IconHeartFilled size={16} />
+          ) : (
+            <IconHeart stroke={2} size={16} />
+          )}
+        </button>
+      </Table.Td>
       <Table.Td>
         <Button onClick={() => addToPlaylist(track)}>Add</Button>
       </Table.Td>
     </Table.Tr>
   ));
 
-  function addToPlaylist(track: PlaylistObject) {
-    setPlaylist((playlist) => [...playlist, track]);
+  function addToPlaylist(track: TrackObject) {
+    setPlaylist((playlist) => [...playlist!, track]);
     setRecommendations((recommendations) =>
       recommendations
         ? recommendations.filter((recTrack) => recTrack !== track)
@@ -170,13 +185,13 @@ export default function Recommendations({
     <>
       <h2>Recommended</h2>
       <p>Your search didn't yield many results. Here are some suggestions:</p>
-      <Table>
+      <Table highlightOnHover>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Preview</Table.Th>
             <Table.Th>Title</Table.Th>
             <Table.Th>Album</Table.Th>
-            <Table.Th>{"<3"}</Table.Th>
+            <Table.Th></Table.Th>
             <Table.Th>Add</Table.Th>
           </Table.Tr>
         </Table.Thead>

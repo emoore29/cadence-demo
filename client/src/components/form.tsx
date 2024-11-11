@@ -3,11 +3,13 @@ import {
   getRecommendations,
   shuffleAndSlice,
 } from "@/helpers/playlist";
-import { FormValues, PlaylistObject } from "@/types/types";
-import { Button, Group, NumberInput, Radio, Select } from "@mantine/core";
+import { FormValues, TrackObject } from "@/types/types";
+import { Button, Group, NumberInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import Playlist from "./playlist";
+import { checkSavedTracks } from "@/helpers/fetchers";
+import { syncSpotifyAndIdb } from "@/helpers/general";
 
 export default function Form() {
   const form = useForm({
@@ -25,38 +27,45 @@ export default function Form() {
     },
   });
   const [numResults, setNumResults] = useState(0);
-  const [playlist, setPlaylist] = useState<PlaylistObject[] | null>(null);
-  const [recommendations, setRecommendations] = useState<
-    PlaylistObject[] | null
-  >(null);
+  const [playlist, setPlaylist] = useState<TrackObject[] | null>(null);
+  const [recommendations, setRecommendations] = useState<TrackObject[] | null>(
+    null
+  );
   const [playlistLen, setPlaylistLen] = useState<number>(0);
 
   async function handleSubmit(values: FormValues) {
     console.log("Filtering:", values);
-    const result: [number, PlaylistObject[]] | null = await filterDatabase(
-      values
-    );
+    const result: [number, TrackObject[]] | null = await filterDatabase(values);
+    if (!result) {
+      setPlaylist([]);
+      return;
+    }
 
-    if (result) {
-      setPlaylistLen(values.target);
-      setNumResults(result[0]);
-      setPlaylist(result[1]);
+    // Check if tracks are saved in Spotify library
+    const tracks: TrackObject[] | null = await checkSavedTracks(result[1]);
+    if (!tracks) return;
 
-      // Handle if result[0] < target number of tracks (values.target)
-      // Fetch 5 recommended tracks
+    // Sync IDB with Spotify
+    for (const track of tracks) {
+      syncSpotifyAndIdb(track, track.saved!);
+    }
 
-      if (result[0] < values.target) {
-        const recs: [number, PlaylistObject[]] | null =
-          await getRecommendations(values);
-        if (recs) {
-          const sampleRecs = shuffleAndSlice(recs[1], 5);
-          setRecommendations(sampleRecs);
-        }
-      } else {
-        setRecommendations(null);
+    setPlaylistLen(values.target);
+    setNumResults(result[0]);
+    setPlaylist(tracks);
+
+    // Handle if result[0] < target number of tracks (values.target)
+    // Fetch 5 recommended tracks
+    if (result[0] < values.target) {
+      const recs: [number, TrackObject[]] | null = await getRecommendations(
+        values
+      );
+      if (recs) {
+        const sampleRecs = shuffleAndSlice(recs[1], 5);
+        setRecommendations(sampleRecs);
       }
     } else {
-      setPlaylist([]);
+      setRecommendations(null);
     }
   }
 

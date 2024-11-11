@@ -5,7 +5,7 @@ import {
   Filters,
   Library,
   NumericFilters,
-  PlaylistObject,
+  TrackObject,
   Recommendations,
   SavedTrack,
   TopTracks,
@@ -15,7 +15,7 @@ import {
 } from "../types/types";
 import { getTop5ArtistIds, getTop5TrackIds } from "./indexedDbHelpers";
 import { getItemFromLocalStorage } from "./localStorage";
-import { showErrorNotif } from "./general";
+import { showErrorNotif, showWarnNotif } from "./general";
 
 // Fetches user data
 // Returns User
@@ -28,10 +28,7 @@ export async function fetchUserData(): Promise<User | null> {
       });
       return res.data;
     } catch (error) {
-      showErrorNotif(
-        "Error",
-        "There was an error fetching your user data. If the issue persists, please raise an issue on GitHub."
-      );
+      showErrorNotif("Error", "There was an error fetching your user data.");
       console.error("Error details: ", error);
 
       return null;
@@ -55,10 +52,7 @@ export async function fetchLibrarySize(): Promise<number | null> {
       );
       return Number(res.data.total);
     } catch (error) {
-      showErrorNotif(
-        "Error",
-        "There was an error fetching your library size. If the issue persists, please raise an issue on GitHub."
-      );
+      showErrorNotif("Error", "There was an error fetching your library size.");
       console.error("Error details: ", error);
 
       return null;
@@ -89,10 +83,7 @@ export async function fetchSavedTracks(): Promise<SavedTrack[] | null> {
       console.log("Your library was fetched: ", library.length);
       return library;
     } catch (error) {
-      showErrorNotif(
-        "Error",
-        "There was an error fetching your saved tracks. If the issue persists, please raise an issue on GitHub."
-      );
+      showErrorNotif("Error", "There was an error fetching your saved tracks.");
       console.error("Error details: ", error);
       return null;
     }
@@ -139,7 +130,7 @@ export async function fetchSavedTracksFeatures(
     } catch (error) {
       showErrorNotif(
         "Error",
-        "There was an error fetching your library features. If the issue persists, please raise an issue on GitHub."
+        "There was an error fetching your library features."
       );
       console.error("Error details: ", error);
       return null;
@@ -172,10 +163,7 @@ export async function fetchTopTracks(): Promise<Track[] | null> {
     console.log("Your top 500 tracks were fetched: ", topTracks);
     return topTracks;
   } catch (error) {
-    showErrorNotif(
-      "Error",
-      "There was an error fetching your top tracks. If the issue persists, please raise an issue on GitHub."
-    );
+    showErrorNotif("Error", "There was an error fetching your top tracks.");
     console.error("Error details: ", error);
     return null;
   }
@@ -220,7 +208,7 @@ export async function fetchTopTrackFeatures(
     } catch (error) {
       showErrorNotif(
         "Error",
-        "There was an error fetching your top track features. If the issue persists, please raise an issue on GitHub."
+        "There was an error fetching your top track features."
       );
       console.error("Error details: ", error);
       return null;
@@ -234,27 +222,22 @@ export async function fetchTopTrackFeatures(
 // Returns Artist[] or null if failed to fetch
 export async function fetchTopArtists(): Promise<Artist[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (accessToken) {
-    try {
-      const res = await axios.get(
-        `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=5`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      return res.data.items;
-    } catch (error) {
-      showErrorNotif(
-        "Error",
-        "There was an error fetching your top artists. If the issue persists, please raise an issue on GitHub."
-      );
-      console.error("Error details: ", error);
-      return null;
-    }
-  } else {
+  if (!accessToken) return null;
+
+  try {
+    const res = await axios.get(
+      `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return res.data.items;
+  } catch (error) {
+    showErrorNotif("Error", "There was an error fetching your top artists.");
+    console.error("Error details: ", error);
     return null;
   }
 }
@@ -271,11 +254,11 @@ function parseFilters(filters: NumericFilters) {
 }
 
 // Fetches X number of recommended tracks + their features
-// Returns PlaylistObject[] containing recommended songs and their features
+// Returns TrackObject[] containing recommended songs and their features
 export async function fetchRecommendations(
   filters: NumericFilters,
   target: number
-): Promise<PlaylistObject[] | null> {
+): Promise<TrackObject[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   const topTracks: string[] | null = await getTop5TrackIds();
   const topArtists: string[] | null = await getTop5ArtistIds();
@@ -284,7 +267,7 @@ export async function fetchRecommendations(
   const trackIds: string = topTracks.slice(0, 1).join(",");
   const artistIds: string = topArtists.slice(0, 4).join(",");
 
-  let recommendations: PlaylistObject[] = [];
+  let recommendations: TrackObject[] = [];
 
   // Convert filter values to strings for URl params
   const params = new URLSearchParams({
@@ -308,10 +291,7 @@ export async function fetchRecommendations(
     );
     recommendedTracks = res.data.tracks;
   } catch (error) {
-    showErrorNotif(
-      "Error",
-      "There was an error fetching recommendations. If the issue persists, please raise an issue on GitHub."
-    );
+    showErrorNotif("Error", "There was an error fetching recommendations.");
     console.error("Error details: ", error);
     return null;
   }
@@ -332,7 +312,7 @@ export async function fetchRecommendations(
   } catch (error) {
     showErrorNotif(
       "Error",
-      "There was an error fetching recommended track features. If the issue persists, please raise an issue on GitHub."
+      "There was an error fetching recommended track features."
     );
     console.error("Error details: ", error);
     return null;
@@ -351,4 +331,104 @@ export async function fetchRecommendations(
   }
   console.log("recommended songs:", recommendations);
   return recommendations;
+}
+
+// Given a TrackObject[], checks if the tracks are currently saved in the user's Spotify library
+// Returns TrackObject[] with saved property added to each TrackObject
+export async function checkSavedTracks(
+  tracks: TrackObject[]
+): Promise<TrackObject[] | null> {
+  const accessToken: string | null = getItemFromLocalStorage("access_token");
+  if (!accessToken) return null;
+
+  // Break library into chunks of 50 songs for checking 50 at a time
+  let n = 0;
+  const chunks = [];
+  while (n < tracks.length) {
+    chunks.push(tracks.slice(n, Math.min(n + 50, tracks.length))); // Stop at the last index of the array if n + 50 > library length
+    n += 50;
+  }
+
+  const booleanRes: boolean[] = [];
+
+  // For each chunk, check if the songs are saved
+  for (const chunk of chunks) {
+    const songIds = chunk.map((song) => song!.track.id);
+    try {
+      const res = await axios.get<boolean[]>(
+        "https://api.spotify.com/v1/me/tracks/contains",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          params: {
+            ids: songIds.join(","), // Join IDs as a comma-separated string
+          },
+        }
+      );
+      booleanRes.push(...res.data);
+    } catch (error) {
+      showWarnNotif(
+        "Error",
+        "There was an error verifying which tracks are saved in your Spotify library."
+      );
+      console.error("Error details: ", error);
+      return null;
+    }
+  }
+
+  // Boolean array as res, e.g. [true, false, true, true, true, false]
+  // Loop through tracks and booleanRes, adding the result to each track
+  for (let i = 0; i < tracks.length; i++) {
+    tracks[i].saved = booleanRes[i];
+  }
+
+  return tracks;
+}
+
+export async function updateSavedStatus(
+  trackId: string,
+  saved: boolean
+): Promise<string | null> {
+  // TODO: Update IDB as well as Spotify
+  const accessToken: string | null = getItemFromLocalStorage("access_token");
+  if (!accessToken) return null;
+
+  if (saved) {
+    try {
+      const res = await axios.delete("https://api.spotify.com/v1/me/tracks", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {
+          ids: trackId, // Join IDs as a comma-separated string
+        },
+      });
+      console.log("Removed from spotify saved tracks");
+
+      return "Removed";
+    } catch (error) {
+      showErrorNotif(
+        "Error",
+        "There was an error removing track from Spotify."
+      );
+      console.error("Error details: ", error);
+      return null;
+    }
+  } else {
+    try {
+      const res = await axios.put(
+        "https://api.spotify.com/v1/me/tracks",
+        null,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          params: {
+            ids: trackId, // Join IDs as a comma-separated string
+          },
+        }
+      );
+      console.log("Added to spotify saved tracks");
+      return "Added";
+    } catch (error) {
+      showErrorNotif("Error", "There was an error adding track to Spotify.");
+      console.error("Error details: ", error);
+      return null;
+    }
+  }
 }

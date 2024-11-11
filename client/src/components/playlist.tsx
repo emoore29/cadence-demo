@@ -1,6 +1,7 @@
+import { updateSavedStatus } from "@/helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "@/helpers/general";
 import { savePlaylist } from "@/helpers/playlist";
-import { PlaylistData, PlaylistObject } from "@/types/types";
+import { PlaylistData, TrackObject } from "@/types/types";
 import {
   Button,
   Checkbox,
@@ -11,21 +12,22 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
+import {
+  IconPlayerPauseFilled,
+  IconPlayerPlayFilled,
+} from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
-import {
-  IconPlayerPlayFilled,
-  IconPlayerPauseFilled,
-} from "@tabler/icons-react";
+import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 
 interface PlaylistProps {
   playlistLen: number;
   setPlaylistLen: React.Dispatch<React.SetStateAction<number>>;
-  playlist: PlaylistObject[] | null;
-  setPlaylist: React.Dispatch<React.SetStateAction<PlaylistObject[] | null>>;
-  recommendations: PlaylistObject[] | null;
+  playlist: TrackObject[] | null;
+  setPlaylist: React.Dispatch<React.SetStateAction<TrackObject[] | null>>;
+  recommendations: TrackObject[] | null;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<PlaylistObject[] | null>
+    React.SetStateAction<TrackObject[] | null>
   >;
 }
 
@@ -53,7 +55,7 @@ export default function Playlist({
 
   async function handleSubmit(
     formValues: PlaylistData,
-    playlist: PlaylistObject[] | null
+    playlist: TrackObject[] | null
   ) {
     const savedPlaylist = await savePlaylist(playlist, formValues);
     if (savedPlaylist) {
@@ -63,10 +65,7 @@ export default function Playlist({
       );
       setOpened(false);
     } else {
-      showErrorNotif(
-        "Error",
-        "Your playlist could not be saved. If the issue persists, please raise an issue on GitHub."
-      );
+      showErrorNotif("Error", "Your playlist could not be saved.");
     }
   }
 
@@ -114,7 +113,7 @@ export default function Playlist({
             </audio>
             <button
               type="button"
-              id="playPauseButton"
+              className="playPauseButton"
               onClick={() => playSampleTrack(track.track.id)}
             >
               {playingTrackId === track.track.id ? (
@@ -185,7 +184,19 @@ export default function Playlist({
           {track.track.album.name}
         </a>
       </Table.Td>
-      <Table.Td>{"<3"}</Table.Td>
+      <Table.Td>
+        <button
+          type="button"
+          className="saveTrackBtn"
+          onClick={() => handleSaveClick(track.track.id, track.saved!)}
+        >
+          {track.saved === true ? (
+            <IconHeartFilled size={16} />
+          ) : (
+            <IconHeart stroke={2} size={16} />
+          )}
+        </button>
+      </Table.Td>
       <Table.Td>
         <Button onClick={() => removeFromPlaylist(track.track.id)}>-</Button>
       </Table.Td>
@@ -193,10 +204,36 @@ export default function Playlist({
     </Table.Tr>
   ));
 
+  async function handleSaveClick(trackId: string, saved: boolean) {
+    const updateStatus: string | null = await updateSavedStatus(trackId, saved);
+    if (!updateStatus) console.log("Failed to update track saved status");
+    // Get track to update
+    const trackToUpdate = playlist!.filter(
+      (track) => track.track.id === trackId
+    )[0];
+    if (!trackToUpdate) {
+      console.error("Could not find track to update.");
+      return;
+    }
+
+    // Find and update track directly in playlist
+    const updatedPlaylist = playlist!.map((track) => {
+      if (track.track.id === trackId) {
+        return {
+          ...track,
+          saved: updateStatus === "Added" ? true : false,
+        };
+      }
+      return track;
+    });
+
+    setPlaylist(updatedPlaylist); // Update playlist state with modified array
+  }
+
   return (
     <div className="playlist-container">
       <h2>Results</h2>
-      <Table horizontalSpacing="xs" verticalSpacing="xs">
+      <Table highlightOnHover horizontalSpacing="xs" verticalSpacing="xs">
         <Table.Thead>
           <Table.Tr>
             <Table.Th style={{ width: "5%" }}>Preview</Table.Th>
@@ -236,32 +273,12 @@ export default function Playlist({
                 placeholder="Cadence: Playlist Name"
                 key={form.key("name")}
                 {...form.getInputProps("name")}
-                styles={{
-                  input: {
-                    backgroundColor: "rgb(126, 74, 101)",
-                    color: "rgba(255, 255, 255, 0.87)",
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  label: {
-                    color: "rgba(255, 255, 255, 0.87)",
-                  },
-                }}
               />
               <TextInput
                 label="Playlist Description"
                 placeholder="Playlist generated with cadence"
                 key={form.key("description")}
                 {...form.getInputProps("description")}
-                styles={{
-                  input: {
-                    backgroundColor: "rgb(126, 74, 101)",
-                    color: "rgba(255, 255, 255, 0.87)",
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  label: {
-                    color: "rgba(255, 255, 255, 0.87)",
-                  },
-                }}
               />
               <Checkbox
                 label="Public"
@@ -283,6 +300,7 @@ export default function Playlist({
           playlist={playlist}
           setPlaylist={setPlaylist}
           setRecommendations={setRecommendations}
+          handleSaveClick={handleSaveClick}
         />
       )}
     </div>

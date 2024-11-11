@@ -220,12 +220,11 @@ export interface PlaylistData {
   public: boolean;
 }
 
-export interface PlaylistObject {
+export interface TrackObject {
   track: Track;
   features: TrackFeatures;
+  saved?: boolean;
 }
-
-export type FilterOptions = "library" | "topTracks" | "recommendations";
 
 export interface Filters {
   minTempo: number | undefined;

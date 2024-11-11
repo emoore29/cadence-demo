@@ -3,7 +3,7 @@ import {
   FormValues,
   NumericFeatures,
   PlaylistData,
-  PlaylistObject,
+  TrackObject,
   TrackFeatures,
 } from "@/types/types";
 import axios from "axios";
@@ -13,7 +13,7 @@ import { showErrorNotif } from "./general";
 
 export async function filterDatabase(
   formValues: FormValues
-): Promise<[number, PlaylistObject[]] | null> {
+): Promise<[number, TrackObject[]] | null> {
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
@@ -33,8 +33,8 @@ export async function filterDatabase(
 async function filterFromStore(
   storeName: StoreName,
   formValues: FormValues
-): Promise<[number, PlaylistObject[]] | null> {
-  let matchingTracks: PlaylistObject[] = [];
+): Promise<[number, TrackObject[]] | null> {
+  let matchingTracks: TrackObject[] = [];
 
   try {
     const tracks = await getAllFromStore(storeName);
@@ -49,7 +49,7 @@ async function filterFromStore(
   } catch (error) {
     showErrorNotif(
       "Error",
-      "There was an error fetching tracks from the database. Please raise an issue on GitHub if this persists."
+      "There was an error fetching tracks from the database."
     );
     console.error(`Error fetching tracks from IDB ${storeName}`, error);
     return null;
@@ -60,7 +60,7 @@ async function filterFromStore(
 // Returns 5 recommended songs
 export async function getRecommendations(
   formValues: FormValues
-): Promise<[number, PlaylistObject[]] | null> {
+): Promise<[number, TrackObject[]] | null> {
   const { source, target, ...filters } = formValues;
 
   function convertToNumber(level: string): number | null {
@@ -100,7 +100,7 @@ export async function getRecommendations(
     ...(targetAcousticness !== null && { targetAcousticness }),
   };
 
-  const recs: PlaylistObject[] | null = await fetchRecommendations(
+  const recs: TrackObject[] | null = await fetchRecommendations(
     numericFilters,
     target
   );
@@ -115,9 +115,9 @@ export async function getRecommendations(
 
 // Shuffles the matched songs and returns an array of a given size
 export function shuffleAndSlice(
-  matchingTracks: PlaylistObject[],
+  matchingTracks: TrackObject[],
   size: number
-): PlaylistObject[] {
+): TrackObject[] {
   // Shuffles matches and returns a playlist the size requested
   for (let i: number = matchingTracks.length - 1; i > 0; i--) {
     const j: number = Math.floor(Math.random() * (i + 1));
@@ -194,7 +194,7 @@ function matches(
 // Playlist
 // Creates a new playlist on Spotify and then saves cadence playlist to it (2 separate post requests)
 export async function savePlaylist(
-  playlist: PlaylistObject[] | null,
+  playlist: TrackObject[] | null,
   playlistData: PlaylistData
 ) {
   const accessToken: string | null = getItemFromLocalStorage("access_token");

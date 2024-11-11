@@ -1,4 +1,4 @@
-import { Artist, Track, TrackFeatures } from "@/types/types";
+import { Artist, Track, TrackFeatures, TrackObject } from "@/types/types";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 // Functions to set up and delete database, and store, delete, and retrieve items from database
@@ -56,15 +56,7 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
 export async function getFromStore(
   storeName: StoreName,
   key: string
-): Promise<
-  | {
-      track: Track;
-      features: TrackFeatures;
-    }
-  | Track
-  | Artist
-  | undefined
-> {
+): Promise<TrackObject | Track | Artist | undefined> {
   const db = await setUpDatabase();
   return db.get(storeName, key);
 }
@@ -76,7 +68,8 @@ export async function setInStore(
     | {
         track: Track;
         features: TrackFeatures;
-        order: number;
+        saved?: boolean;
+        order?: number;
       }
     | Artist
 ) {

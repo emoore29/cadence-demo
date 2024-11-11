@@ -19,7 +19,7 @@ export async function storeTopArtists(): Promise<boolean | null> {
       } catch (error) {
         showErrorNotif(
           "Error",
-          "There was an error storing top artists in the database. If the issue persists, please raise an issue on GitHub."
+          "There was an error storing top artists in the database."
         );
         console.error("Error details: ", error);
         success = false;
@@ -31,6 +31,8 @@ export async function storeTopArtists(): Promise<boolean | null> {
   return success;
 }
 
+// Stores user's top tracks in IDB
+// saved: not included
 export async function storeTopTracksData(): Promise<boolean | null> {
   const topTracks: Track[] | null = await fetchTopTracks();
   if (!topTracks) return null;
@@ -44,6 +46,8 @@ export async function storeTopTracksData(): Promise<boolean | null> {
   return success;
 }
 
+// Stores user's saved tracks in IDB
+// Stores saved: true for all
 export async function storeSavedTracksData(): Promise<boolean | null> {
   const lib: SavedTrack[] | null = await fetchSavedTracks();
   if (!lib) return null;
@@ -116,6 +120,7 @@ export async function storeUserLibraryAndFeatures(
         await setInStore("library", {
           track: track.track,
           features: trackFeatures,
+          saved: true,
           order: index,
         });
       } catch (error) {
