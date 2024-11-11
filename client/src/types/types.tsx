@@ -17,12 +17,6 @@ export interface User {
   uri: string;
 }
 
-export interface SampleTrack {
-  href: string;
-  id: string;
-  name: string;
-}
-
 export interface Track {
   album: {
     album_type: string;
@@ -224,6 +218,7 @@ export interface TrackObject {
   track: Track;
   features: TrackFeatures;
   saved?: boolean;
+  pinned?: boolean;
 }
 
 export interface Filters {

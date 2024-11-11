@@ -50,9 +50,19 @@ export default function Form() {
       syncSpotifyAndIdb(track, track.saved!);
     }
 
+    const pinnedTracks: TrackObject[] | undefined = playlist?.filter(
+      (track) => track.pinned && track.pinned === true
+    );
+    let newPlaylist: TrackObject[] = [];
+    if (pinnedTracks) {
+      newPlaylist = [...pinnedTracks, ...tracks];
+    } else {
+      newPlaylist = [...tracks];
+    }
+
     setPlaylistLen(values.target);
     setNumResults(result[0]);
-    setPlaylist(tracks);
+    setPlaylist(newPlaylist);
 
     // Handle if result[0] < target number of tracks (values.target)
     // Fetch 5 recommended tracks

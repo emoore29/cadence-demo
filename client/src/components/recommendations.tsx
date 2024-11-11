@@ -172,7 +172,7 @@ export default function Recommendations({
       </Table.Td>
       <Table.Td>
         <Button onClick={() => addToPlaylist(track)}>
-          <IconCirclePlus stroke={2} />
+          <IconCirclePlus stroke={2} size={16} />
         </Button>
       </Table.Td>
     </Table.Tr>

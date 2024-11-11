@@ -104,6 +104,32 @@ export default function Playlist({
     updatedPlaylist && setPlaylist(updatedPlaylist);
   }
 
+  function pinToPlaylist(trackId: string) {
+    const updatedPlaylist = playlist!.map((track) => {
+      if (track.track.id === trackId) {
+        console.log("found matching track");
+        if (track.pinned && track.pinned === true) {
+          return {
+            ...track,
+            pinned: false,
+          };
+        } else if (!track.pinned) {
+          console.log(
+            "Track pinned status not saved. Returning following object: ",
+            { ...track, pinned: true }
+          );
+          return {
+            ...track,
+            pinned: true,
+          };
+        }
+      }
+      return track;
+    });
+
+    setPlaylist(updatedPlaylist);
+  }
+
   const rows = playlist.slice(0, playlistLen).map((track) => (
     <Table.Tr key={track.track.id}>
       <Table.Td className="centerContent">
@@ -205,11 +231,17 @@ export default function Playlist({
       </Table.Td>
       <Table.Td>
         <Button onClick={() => removeFromPlaylist(track.track.id)}>
-          <IconCircleMinus stroke={2} />
+          <IconCircleMinus stroke={2} size={16} />
         </Button>
       </Table.Td>
       <Table.Td>
-        <IconPin stroke={2} />
+        <Button onClick={() => pinToPlaylist(track.track.id)}>
+          {track.pinned === true ? (
+            <IconPinFilled size={16} />
+          ) : (
+            <IconPin stroke={2} size={16} />
+          )}
+        </Button>
       </Table.Td>
     </Table.Tr>
   ));
@@ -217,14 +249,6 @@ export default function Playlist({
   async function handleSaveClick(trackId: string, saved: boolean) {
     const updateStatus: string | null = await updateSavedStatus(trackId, saved);
     if (!updateStatus) console.log("Failed to update track saved status");
-    // Get track to update
-    const trackToUpdate = playlist!.filter(
-      (track) => track.track.id === trackId
-    )[0];
-    if (!trackToUpdate) {
-      console.error("Could not find track to update.");
-      return;
-    }
 
     // Find and update track directly in playlist
     const updatedPlaylist = playlist!.map((track) => {
