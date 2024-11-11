@@ -1,7 +1,11 @@
 import { TrackObject } from "@/types/types";
 import { Table, Tooltip, Button } from "@mantine/core";
 import { useRef, useState } from "react";
-import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
+import {
+  IconHeart,
+  IconHeartFilled,
+  IconCirclePlus,
+} from "@tabler/icons-react";
 
 interface RecommendationsProps {
   recommendations: TrackObject[];
@@ -167,7 +171,9 @@ export default function Recommendations({
         </button>
       </Table.Td>
       <Table.Td>
-        <Button onClick={() => addToPlaylist(track)}>Add</Button>
+        <Button onClick={() => addToPlaylist(track)}>
+          <IconCirclePlus stroke={2} />
+        </Button>
       </Table.Td>
     </Table.Tr>
   ));

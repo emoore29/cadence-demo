@@ -18,7 +18,13 @@ import {
 } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
-import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
+import {
+  IconHeart,
+  IconHeartFilled,
+  IconCircleMinus,
+  IconPin,
+  IconPinFilled,
+} from "@tabler/icons-react";
 
 interface PlaylistProps {
   playlistLen: number;
@@ -198,9 +204,13 @@ export default function Playlist({
         </button>
       </Table.Td>
       <Table.Td>
-        <Button onClick={() => removeFromPlaylist(track.track.id)}>-</Button>
+        <Button onClick={() => removeFromPlaylist(track.track.id)}>
+          <IconCircleMinus stroke={2} />
+        </Button>
       </Table.Td>
-      <Table.Td>Pin</Table.Td>
+      <Table.Td>
+        <IconPin stroke={2} />
+      </Table.Td>
     </Table.Tr>
   ));
 
