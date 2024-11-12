@@ -16,6 +16,7 @@ import {
 import { getTop5ArtistIds, getTop5TrackIds } from "./indexedDbHelpers";
 import { getItemFromLocalStorage } from "./localStorage";
 import { showErrorNotif, showWarnNotif } from "./general";
+import { deleteFromStore, setInStore } from "./database";
 
 // Fetches user data
 // Returns User
@@ -368,7 +369,7 @@ export async function checkSavedTracks(
     } catch (error) {
       showWarnNotif(
         "Error",
-        "There was an error verifying which tracks are saved in your Spotify library."
+        "There was an error verifying if the playlist tracks are saved in your Spotify library."
       );
       console.error("Error details: ", error);
       return null;
@@ -384,23 +385,32 @@ export async function checkSavedTracks(
   return tracks;
 }
 
+// Updates track's saved status in Spotify & IDB
 export async function updateSavedStatus(
-  trackId: string,
+  trackObj: TrackObject,
   saved: boolean
 ): Promise<string | null> {
   // TODO: Update IDB as well as Spotify
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
 
+  // If track is recorded as saved in Cadence
+  // Note: if user has deleted it via Spotify,
+  // and it is still recorded as saved in Cadence,
+  // this will still send a delete request to Spotify.
+  // No error occurs, however it's a redundant request and probably needs rethinking.
   if (saved) {
     try {
       const res = await axios.delete("https://api.spotify.com/v1/me/tracks", {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: {
-          ids: trackId, // Join IDs as a comma-separated string
+          ids: trackObj.track.id, // Join IDs as a comma-separated string
         },
       });
-      console.log("Removed from spotify saved tracks");
+
+      // Remove from IDB
+      await deleteFromStore("library", trackObj.track.id);
+      console.log(`Removed ${trackObj.track.name} from spotify saved tracks`);
 
       return "Removed";
     } catch (error) {
@@ -419,11 +429,15 @@ export async function updateSavedStatus(
         {
           headers: { Authorization: `Bearer ${accessToken}` },
           params: {
-            ids: trackId, // Join IDs as a comma-separated string
+            ids: trackObj.track.id, // Join IDs as a comma-separated string
           },
         }
       );
-      console.log("Added to spotify saved tracks");
+
+      // Add to idb
+      await setInStore("library", trackObj);
+      console.log(`Added ${trackObj.track.name} to spotify saved tracks`);
+
       return "Added";
     } catch (error) {
       showErrorNotif("Error", "There was an error adding track to Spotify.");

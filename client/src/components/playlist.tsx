@@ -12,10 +12,6 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
-import {
-  IconPlayerPauseFilled,
-  IconPlayerPlayFilled,
-} from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
 import {
@@ -24,7 +20,10 @@ import {
   IconCircleMinus,
   IconPin,
   IconPinFilled,
+  IconPlayerPauseFilled,
+  IconPlayerPlayFilled,
 } from "@tabler/icons-react";
+import TrackRow from "./trackRow";
 
 interface PlaylistProps {
   playlistLen: number;
@@ -45,8 +44,11 @@ export default function Playlist({
   recommendations,
   setRecommendations,
 }: PlaylistProps) {
-  const [playingTrackId, setPlayingTrackId] = useState<string>("");
+  const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+  const [loadingSaveStatusTrackIds, setLoadingSaveStatusTrackIds] = useState<
+    string[]
+  >([]);
   const [opened, setOpened] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
   if (!playlist) return <div>No playlist available</div>;
@@ -79,7 +81,7 @@ export default function Playlist({
     setPlaylistLen((prev) => prev + 10); // Show 10 more tracks each time
   };
 
-  const playSampleTrack = (trackId: string) => {
+  function playSampleTrack(trackId: string) {
     const audioElement = audioRefs.current[trackId];
     if (!audioElement) return; // Early return if no audio element found
 
@@ -95,7 +97,7 @@ export default function Playlist({
       audioElement.pause();
       setPlayingTrackId("");
     }
-  };
+  }
 
   function removeFromPlaylist(trackId: string) {
     const updatedPlaylist = playlist?.filter(
@@ -130,105 +132,48 @@ export default function Playlist({
     setPlaylist(updatedPlaylist);
   }
 
+  // Updates track's saved status in Spotify & IDB
+  // Updates saved status accordingly in playlist
+  // Adds loading icon while awaiting Spotify API reqs
+  async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
+    setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]); // Add trackid to loading list
+
+    const updateStatus: string | null = await updateSavedStatus(
+      trackObj,
+      saved
+    );
+    if (!updateStatus) console.log("Failed to update track saved status");
+
+    setPlaylist((prevPlaylist) =>
+      prevPlaylist!.map((track) =>
+        track.track.id === trackObj.track.id
+          ? { ...track, saved: updateStatus === "Added" }
+          : track
+      )
+    );
+
+    setRecommendations((prevRecs) =>
+      prevRecs!.map((track) =>
+        track.track.id === trackObj.track.id
+          ? { ...track, saved: updateStatus === "Added" }
+          : track
+      )
+    );
+    setLoadingSaveStatusTrackIds((prevIds) =>
+      prevIds.filter((id) => id !== trackObj.track.id)
+    ); // Filter for all but the current track id
+  }
+
   const rows = playlist.slice(0, playlistLen).map((track) => (
     <Table.Tr key={track.track.id}>
-      <Table.Td className="centerContent">
-        {track.track.preview_url && (
-          <>
-            <audio
-              ref={(el) => (audioRefs.current[track.track.id] = el)}
-              id={`audio-${track.track.id}`}
-            >
-              <source src={track.track.preview_url} type="audio/ogg" />
-              <source src={track.track.preview_url} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
-            <button
-              type="button"
-              className="playPauseButton"
-              onClick={() => playSampleTrack(track.track.id)}
-            >
-              {playingTrackId === track.track.id ? (
-                <IconPlayerPauseFilled size={16} />
-              ) : (
-                <IconPlayerPlayFilled size={16} />
-              )}
-            </button>
-          </>
-        )}
-      </Table.Td>
-      <Tooltip.Floating
-        multiline
-        w={200}
-        label={
-          <>
-            {`Tempo: ${track.features.tempo.toFixed(0)}`} <br />
-            {`Energy: ${track.features.energy.toFixed(1)}`} <br />
-            {`Acousticness: ${track.features.acousticness.toFixed(1)}`} <br />
-            {`Instrumentalness: ${track.features.instrumentalness.toFixed(1)}`}
-            <br />
-            {`Danceability: ${track.features.danceability.toFixed(1)}`} <br />
-            {`Liveness: ${track.features.liveness.toFixed(1)}`} <br />
-            {`Loudness: ${track.features.loudness.toFixed(1)}`} <br />
-            {`Mode: ${track.features.mode.toFixed(1)}`} <br />
-            {`Speechiness: ${track.features.speechiness.toFixed(1)}`} <br />
-            {`Time signature: ${track.features.time_signature.toFixed(1)}`}
-          </>
-        }
-      >
-        <Table.Td>
-          <div className="track-display">
-            <img
-              src={track.track.album.images[0].url}
-              alt={track.track.album.name}
-              className="album-img"
-            />
-            <div
-              className="title-and-artist"
-              style={{
-                maxWidth: 300, // Limit cell width
-              }}
-            >
-              <a
-                className="track-name"
-                href={track.track.external_urls.spotify}
-                style={{
-                  whiteSpace: "nowrap", // Prevent wrapping
-                  overflow: "hidden", // Hide overflow
-                  textOverflow: "ellipsis", // Add "..." at end of overflowed text
-                }}
-              >
-                {track.track.name}
-              </a>
-
-              <a
-                className="track-artist"
-                href={track.track.artists[0].external_urls.spotify}
-              >
-                {track.track.artists[0].name}
-              </a>
-            </div>
-          </div>
-        </Table.Td>
-      </Tooltip.Floating>
-      <Table.Td>
-        <a href={track.track.album.external_urls.spotify}>
-          {track.track.album.name}
-        </a>
-      </Table.Td>
-      <Table.Td>
-        <button
-          type="button"
-          className="saveTrackBtn"
-          onClick={() => handleSaveClick(track.track.id, track.saved!)}
-        >
-          {track.saved === true ? (
-            <IconHeartFilled size={16} />
-          ) : (
-            <IconHeart stroke={2} size={16} />
-          )}
-        </button>
-      </Table.Td>
+      <TrackRow
+        track={track}
+        audioRefs={audioRefs}
+        playingTrackId={playingTrackId}
+        playSampleTrack={playSampleTrack}
+        handleSaveClick={handleSaveClick}
+        loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+      />
       <Table.Td>
         <Button onClick={() => removeFromPlaylist(track.track.id)}>
           <IconCircleMinus stroke={2} size={16} />
@@ -245,24 +190,6 @@ export default function Playlist({
       </Table.Td>
     </Table.Tr>
   ));
-
-  async function handleSaveClick(trackId: string, saved: boolean) {
-    const updateStatus: string | null = await updateSavedStatus(trackId, saved);
-    if (!updateStatus) console.log("Failed to update track saved status");
-
-    // Find and update track directly in playlist
-    const updatedPlaylist = playlist!.map((track) => {
-      if (track.track.id === trackId) {
-        return {
-          ...track,
-          saved: updateStatus === "Added" ? true : false,
-        };
-      }
-      return track;
-    });
-
-    setPlaylist(updatedPlaylist); // Update playlist state with modified array
-  }
 
   return (
     <div className="playlist-container">
@@ -335,6 +262,7 @@ export default function Playlist({
           setPlaylist={setPlaylist}
           setRecommendations={setRecommendations}
           handleSaveClick={handleSaveClick}
+          loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
         />
       )}
     </div>
