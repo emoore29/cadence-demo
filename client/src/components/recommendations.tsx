@@ -3,8 +3,6 @@ import { Button, Table } from "@mantine/core";
 import { IconCirclePlus } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import TrackRow from "./trackRow";
-import { fetchRecommendations } from "@/helpers/fetchers";
-import { getRecommendations } from "@/helpers/playlist";
 
 interface RecommendationsProps {
   recommendations: TrackObject[];

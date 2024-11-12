@@ -13,7 +13,7 @@ import { showErrorNotif } from "./general";
 
 export async function filterDatabase(
   formValues: FormValues
-): Promise<[number, TrackObject[]] | null> {
+): Promise<[number, Map<string, TrackObject>] | null> {
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
@@ -33,18 +33,21 @@ export async function filterDatabase(
 async function filterFromStore(
   storeName: StoreName,
   formValues: FormValues
-): Promise<[number, TrackObject[]] | null> {
-  let matchingTracks: TrackObject[] = [];
+): Promise<[number, Map<string, TrackObject>] | null> {
+  const matchingTracks = new Map<string, TrackObject>();
 
   try {
     const tracks = await getAllFromStore(storeName);
+    console.log("GetAllFromStore() from IDB returns this:", tracks);
+
     for (const track of tracks) {
       const trackFeatures: TrackFeatures = track.features;
-      // For each feature requested in the form, check if the song is a match
-      const match: boolean = matches(trackFeatures, formValues);
-      match && matchingTracks.push(track);
+      if (matches(trackFeatures, formValues)) {
+        // If track features match, add to map with id as key
+        matchingTracks.set(track.track.id, track);
+      }
     }
-    const totalMatches = matchingTracks.length;
+    const totalMatches = matchingTracks.size;
     return [totalMatches, matchingTracks];
   } catch (error) {
     showErrorNotif(

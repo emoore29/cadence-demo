@@ -100,6 +100,7 @@ export async function getAllKeysFromStore(
   return db.getAllKeys(storeName);
 }
 
+// Gets all values from store
 export async function getAllFromStore(storeName: StoreName): Promise<any[]> {
   const db = await setUpDatabase();
   return db.getAll(storeName);

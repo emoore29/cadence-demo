@@ -2,21 +2,20 @@ import axios from "axios";
 import {
   Artist,
   FeaturesLibrary,
-  Filters,
   Library,
   NumericFilters,
-  TrackObject,
   Recommendations,
   SavedTrack,
   TopTracks,
   Track,
   TrackFeatures,
+  TrackObject,
   User,
 } from "../types/types";
+import { deleteFromStore, setInStore } from "./database";
+import { showErrorNotif, showWarnNotif } from "./general";
 import { getTop5ArtistIds, getTop5TrackIds } from "./indexedDbHelpers";
 import { getItemFromLocalStorage } from "./localStorage";
-import { showErrorNotif, showWarnNotif } from "./general";
-import { deleteFromStore, setInStore } from "./database";
 
 // Fetches user data
 // Returns User
@@ -338,16 +337,17 @@ export async function fetchRecommendations(
 // Given a TrackObject[], checks if the tracks are currently saved in the user's Spotify library
 // Returns TrackObject[] with saved property added to each TrackObject
 export async function checkSavedTracks(
-  tracks: TrackObject[]
-): Promise<TrackObject[] | null> {
+  tracks: Map<string, TrackObject>
+): Promise<Map<string, TrackObject> | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
 
+  const tracksArray: TrackObject[] = Array.from(tracks.values());
   // Break library into chunks of 50 songs for checking 50 at a time
   let n = 0;
   const chunks = [];
-  while (n < tracks.length) {
-    chunks.push(tracks.slice(n, Math.min(n + 50, tracks.length))); // Stop at the last index of the array if n + 50 > library length
+  while (n < tracksArray.length) {
+    chunks.push(tracksArray.slice(n, Math.min(n + 50, tracksArray.length))); // Stop at the last index of the array if n + 50 > library length
     n += 50;
   }
 
@@ -379,10 +379,10 @@ export async function checkSavedTracks(
 
   // Boolean array as res, e.g. [true, false, true, true, true, false]
   // Loop through tracks and booleanRes, adding the result to each track
-  for (let i = 0; i < tracks.length; i++) {
-    tracks[i].saved = booleanRes[i];
+  let index = 0;
+  for (const [trackId, track] of tracks.entries()) {
+    track.saved = booleanRes[index++];
   }
-
   return tracks;
 }
 

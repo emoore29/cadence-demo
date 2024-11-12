@@ -1,7 +1,7 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
 import { syncSpotifyAndIdb } from "@/helpers/general";
 import { filterDatabase, getRecommendations } from "@/helpers/playlist";
-import { FormValues, TrackObject } from "@/types/types";
+import { FormValues, Track, TrackObject } from "@/types/types";
 import { Button, Group, NumberInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -24,41 +24,60 @@ export default function Form() {
   });
   const [numResults, setNumResults] = useState(0);
   const [playlist, setPlaylist] = useState<TrackObject[] | null>(null);
+  const [mapPlaylist, setMapPlaylist] = useState<Map<
+    string,
+    TrackObject
+  > | null>(null);
+  const [matchingTracks, setMatchingTracks] = useState<Map<
+    string,
+    TrackObject
+  > | null>(null);
   const [recommendations, setRecommendations] = useState<TrackObject[] | null>(
     null
   );
   const [playlistLen, setPlaylistLen] = useState<number>(0);
 
   async function handleSubmit(values: FormValues) {
-    console.log("Filtering:", values);
-    const result: [number, TrackObject[]] | null = await filterDatabase(values);
+    const result: [number, Map<string, TrackObject>] | null =
+      await filterDatabase(values);
     if (!result) {
-      setPlaylist([]);
+      console.log("Could not find matching tracks");
       return;
     }
 
+    const [totalMatches, matchingTracksMap] = result;
+
     // Check if tracks are saved in Spotify library
-    const tracks: TrackObject[] | null = await checkSavedTracks(result[1]);
+    const tracks: Map<string, TrackObject> | null = await checkSavedTracks(
+      matchingTracksMap
+    );
     if (!tracks) return;
 
-    // Sync IDB with Spotify
-    for (const track of tracks) {
-      syncSpotifyAndIdb(track, track.saved!);
+    const newPlaylistMap = new Map(matchingTracksMap);
+
+    // Sync IDB with Spotify when playlist is generated
+    for (const trackObject of matchingTracksMap.values()) {
+      syncSpotifyAndIdb(trackObject, trackObject.saved!);
     }
 
-    const pinnedTracks: TrackObject[] | undefined = playlist?.filter(
-      (track) => track.pinned && track.pinned === true
-    );
-    let newPlaylist: TrackObject[] = [];
-    if (pinnedTracks) {
-      newPlaylist = [...pinnedTracks, ...tracks];
-    } else {
-      newPlaylist = [...tracks];
+    // Find tracks user has "pinned" in mapPlaylist
+    // add to newPlaylistMap
+    // in mapPlaylist, does key, value value.pinned == true, if so, add to newPlaylistMap
+    for (const [key, value] of newPlaylistMap.entries()) {
+      if (value.pinned === true) {
+        newPlaylistMap.set(key, value);
+      }
     }
 
-    setPlaylistLen(values.target);
-    setNumResults(result[0]);
-    setPlaylist(newPlaylist);
+    setPlaylistLen(values.target); // for tracking how many tracks to display to the user
+    // TODO: Probably need a separate "results" state that stores the results, and the playlist state only stores the target number of tracks
+    // Then if the user wants to see more tracks in their playlist and there are more results available to add, add them
+    // This way when a user adds a recommended track, it is added to the actual playlist that is displayed and will be visible to the user
+    // rather than being added to the bottom of the entire results list, and won't be visible to the user.
+    // Also, when the user saves the playlist, we only want to save the actual visible playlist, not all the other results.
+    setNumResults(totalMatches);
+    // setPlaylist(newPlaylist);
+    setMapPlaylist(newPlaylistMap);
 
     // Display 5 recommendations
     // Fetch 100, but display 5, adding new ones every time a recommendation is added
