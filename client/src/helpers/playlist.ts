@@ -59,10 +59,12 @@ async function filterFromStore(
 // Gets recommendations from Spotify based on filters
 // Returns 5 recommended songs
 export async function getRecommendations(
-  formValues: FormValues
+  formValues: FormValues,
+  targetRecs?: number
 ): Promise<[number, TrackObject[]] | null> {
   const { source, target, ...filters } = formValues;
 
+  // Converts String selection to a number
   function convertToNumber(level: string): number | null {
     switch (level) {
       case "Any":
@@ -100,9 +102,11 @@ export async function getRecommendations(
     ...(targetAcousticness !== null && { targetAcousticness }),
   };
 
+  // If a target is specified when passed to getRecs, use that (e.g. for fetching recommended below playlist)
+  // otherwise, use the target from the form filters (e.g. user is searching with 'get recommendations' filter)
   const recs: TrackObject[] | null = await fetchRecommendations(
     numericFilters,
-    target
+    targetRecs ? targetRecs : target
   );
 
   if (recs) {

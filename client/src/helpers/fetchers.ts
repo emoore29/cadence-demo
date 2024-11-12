@@ -243,6 +243,7 @@ export async function fetchTopArtists(): Promise<Artist[] | null> {
   }
 }
 
+// Converts filter keys to snake case and values to strings for adding to URL query params
 function parseFilters(filters: NumericFilters) {
   return Object.fromEntries(
     Object.entries(filters)
@@ -254,7 +255,7 @@ function parseFilters(filters: NumericFilters) {
   );
 }
 
-// Fetches X number of recommended tracks + their features
+// Fetches X number of recommended tracks + their features based on user's top tracks and artists
 // Returns TrackObject[] containing recommended songs and their features
 export async function fetchRecommendations(
   filters: NumericFilters,

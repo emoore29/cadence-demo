@@ -1,15 +1,11 @@
-import {
-  filterDatabase,
-  getRecommendations,
-  shuffleAndSlice,
-} from "@/helpers/playlist";
+import { checkSavedTracks } from "@/helpers/fetchers";
+import { syncSpotifyAndIdb } from "@/helpers/general";
+import { filterDatabase, getRecommendations } from "@/helpers/playlist";
 import { FormValues, TrackObject } from "@/types/types";
 import { Button, Group, NumberInput, Select } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import Playlist from "./playlist";
-import { checkSavedTracks } from "@/helpers/fetchers";
-import { syncSpotifyAndIdb } from "@/helpers/general";
 
 export default function Form() {
   const form = useForm({
@@ -64,18 +60,45 @@ export default function Form() {
     setNumResults(result[0]);
     setPlaylist(newPlaylist);
 
-    // Handle if result[0] < target number of tracks (values.target)
-    // Fetch 5 recommended tracks
-    if (result[0] < values.target) {
+    // Display 5 recommendations
+    // Fetch 100, but display 5, adding new ones every time a recommendation is added
+    // Display the next 5 if user clicks refresh
+    const recs: [number, TrackObject[]] | null = await getRecommendations(
+      values,
+      2
+    );
+    if (recs) {
+      // const sampleRecs = shuffleAndSlice(recs[1], 5);
+      setRecommendations(recs[1]);
+    }
+  }
+
+  // Adds a recommendation to the playlist, and checks if this makes recs.len < 5, if so, fetches more recs
+  async function addRecToPlaylist(track: TrackObject) {
+    console.log(
+      "Adding track to playlist. Recommendations currently:",
+      recommendations
+    );
+    setPlaylist((playlist) => [...playlist!, track]);
+    setRecommendations((recommendations) =>
+      recommendations
+        ? recommendations.filter((recTrack) => recTrack !== track)
+        : recommendations
+    );
+
+    // If recs.length < 5, fetch a new rec and add to recs
+    // Access form.values directly to use the current form values
+    if (recommendations && recommendations.length <= 5) {
+      console.log("recommendation length < 5:", recommendations);
       const recs: [number, TrackObject[]] | null = await getRecommendations(
-        values
+        form.values, // Pass the current form values here
+        2
       );
-      if (recs) {
-        const sampleRecs = shuffleAndSlice(recs[1], 5);
-        setRecommendations(sampleRecs);
-      }
-    } else {
-      setRecommendations(null);
+      if (!recs) return;
+      setRecommendations((recommendations) => [
+        ...recommendations!,
+        ...recs[1],
+      ]);
     }
   }
 
@@ -142,6 +165,7 @@ export default function Form() {
           setPlaylist={setPlaylist}
           recommendations={recommendations}
           setRecommendations={setRecommendations}
+          addRecToPlaylist={addRecToPlaylist}
         />
       ) : (
         "Please submit your preferences to generate a playlist."

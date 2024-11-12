@@ -3,6 +3,8 @@ import { Button, Table } from "@mantine/core";
 import { IconCirclePlus } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import TrackRow from "./trackRow";
+import { fetchRecommendations } from "@/helpers/fetchers";
+import { getRecommendations } from "@/helpers/playlist";
 
 interface RecommendationsProps {
   recommendations: TrackObject[];
@@ -13,6 +15,7 @@ interface RecommendationsProps {
   >;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
+  addRecToPlaylist: (track: TrackObject) => void;
 }
 
 export default function Recommendations({
@@ -22,6 +25,7 @@ export default function Recommendations({
   setRecommendations,
   handleSaveClick,
   loadingSaveStatusTrackIds,
+  addRecToPlaylist,
 }: RecommendationsProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>("");
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -46,7 +50,7 @@ export default function Recommendations({
     }
   };
 
-  const rows = recommendations!.map((track) => (
+  const rows = recommendations!.slice(0, 5).map((track) => (
     <Table.Tr key={track.track.id}>
       <TrackRow
         track={track}
@@ -57,26 +61,20 @@ export default function Recommendations({
         loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
       />
       <Table.Td>
-        <Button onClick={() => addToPlaylist(track)}>
+        <Button onClick={() => addRecToPlaylist(track)}>
           <IconCirclePlus stroke={2} size={16} />
         </Button>
       </Table.Td>
     </Table.Tr>
   ));
 
-  function addToPlaylist(track: TrackObject) {
-    setPlaylist((playlist) => [...playlist!, track]);
-    setRecommendations((recommendations) =>
-      recommendations
-        ? recommendations.filter((recTrack) => recTrack !== track)
-        : recommendations
-    );
+  function handleRefreshRecs() {
+    console.log("Refreshing recommended tracks");
   }
 
   return (
     <>
       <h2>Recommended</h2>
-      <p>Your search didn't yield many results. Here are some suggestions:</p>
       <Table highlightOnHover>
         <Table.Thead>
           <Table.Tr>
@@ -89,6 +87,7 @@ export default function Recommendations({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
+      <Button onClick={handleRefreshRecs}>Refresh</Button>
     </>
   );
 }

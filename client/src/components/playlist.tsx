@@ -2,27 +2,12 @@ import { updateSavedStatus } from "@/helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "@/helpers/general";
 import { savePlaylist } from "@/helpers/playlist";
 import { PlaylistData, TrackObject } from "@/types/types";
-import {
-  Button,
-  Checkbox,
-  Modal,
-  Table,
-  TextInput,
-  Tooltip,
-} from "@mantine/core";
+import { Button, Checkbox, Modal, Table, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
+import { IconCircleMinus, IconPin, IconPinFilled } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
-import {
-  IconHeart,
-  IconHeartFilled,
-  IconCircleMinus,
-  IconPin,
-  IconPinFilled,
-  IconPlayerPauseFilled,
-  IconPlayerPlayFilled,
-} from "@tabler/icons-react";
 import TrackRow from "./trackRow";
 
 interface PlaylistProps {
@@ -34,6 +19,7 @@ interface PlaylistProps {
   setRecommendations: React.Dispatch<
     React.SetStateAction<TrackObject[] | null>
   >;
+  addRecToPlaylist: (track: TrackObject) => void;
 }
 
 export default function Playlist({
@@ -43,6 +29,7 @@ export default function Playlist({
   setPlaylist,
   recommendations,
   setRecommendations,
+  addRecToPlaylist,
 }: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -263,6 +250,7 @@ export default function Playlist({
           setRecommendations={setRecommendations}
           handleSaveClick={handleSaveClick}
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+          addRecToPlaylist={addRecToPlaylist}
         />
       )}
     </div>
