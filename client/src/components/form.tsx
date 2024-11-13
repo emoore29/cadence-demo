@@ -65,13 +65,10 @@ export default function Form() {
     // If there are tracks in the current playlist, find tracks user has "pinned" and add them to the newPlaylist
     // If value.pinned === true for each value in current playlist, add to newPlaylistMap
     if (playlist) {
-      console.log(
-        "playlist exists, checking for pinned tracks in playlist",
-        playlist
-      );
       for (const [key, value] of playlist.entries()) {
         if (value.pinned === true) {
           newPlaylist.set(key, value);
+          console.log("adding pinned track to new playlist:", value);
         }
       }
     }
@@ -81,9 +78,6 @@ export default function Form() {
 
     // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
     if (newPlaylist.size < values.target) {
-      console.log(
-        "not enough pinned tracks to meet target; adding matching tracks to playlist"
-      );
       const missingNumber: number = values.target - newPlaylist.size;
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
       const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
@@ -99,7 +93,18 @@ export default function Form() {
       await getRecommendations(values, 5);
     if (recs) {
       // const sampleRecs = shuffleAndSlice(recs[1], 5);
-      setRecommendations(recs[1]);
+
+      const [numRecs, recsMap] = recs;
+
+      // Loop through recsMap items, checking if already in playlist
+      for (const key of recsMap.keys()) {
+        if (playlist?.get(key)) {
+          console.log(`${key} track already in playlist`);
+          recsMap.delete(key);
+        }
+      }
+
+      setRecommendations(recsMap);
     }
   }
 
@@ -124,11 +129,22 @@ export default function Form() {
         await getRecommendations(form.values, 5);
       if (!recs) return;
 
-      // Check recs for tracks that are already in playlist
+      // TODO: Check recs for tracks that are already in playlist, and remove them if so
+      const [numRecs, recsMap] = recs;
+
+      // Loop through recsMap items, checking if already in playlist
+      for (const key of recsMap.keys()) {
+        if (playlist?.get(key) || recommendations.get(key)) {
+          console.log(`${key} track already in playlist or recommended`);
+          recsMap.delete(key);
+        }
+      }
+
+      // TODO: If recsMap 0 or low due to filter restraints, fetch more with new set of artists/tracks/genres?
 
       setRecommendations((prevRecs) => {
         // Init newRecs Map for adding newRecs to prevRecs
-        const newRecs = new Map([...(prevRecs ?? []), ...recs[1]]); // prevRecs as [] if there are no prevRecs
+        const newRecs = new Map([...(prevRecs ?? []), ...recsMap]); // prevRecs as [] if there are no prevRecs
         return newRecs;
       });
     }
