@@ -64,7 +64,7 @@ async function filterFromStore(
 export async function getRecommendations(
   formValues: FormValues,
   targetRecs?: number
-): Promise<[number, TrackObject[]] | null> {
+): Promise<[number, Map<string, TrackObject>] | null> {
   const { source, target, ...filters } = formValues;
 
   // Converts String selection to a number
@@ -107,7 +107,7 @@ export async function getRecommendations(
 
   // If a target is specified when passed to getRecs, use that (e.g. for fetching recommended below playlist)
   // otherwise, use the target from the form filters (e.g. user is searching with 'get recommendations' filter)
-  const recs: TrackObject[] | null = await fetchRecommendations(
+  const recs: Map<string, TrackObject> | null = await fetchRecommendations(
     numericFilters,
     targetRecs ? targetRecs : target
   );
@@ -201,7 +201,7 @@ function matches(
 // Playlist
 // Creates a new playlist on Spotify and then saves cadence playlist to it (2 separate post requests)
 export async function savePlaylist(
-  playlist: TrackObject[] | null,
+  playlist: Map<string, TrackObject> | null,
   playlistData: PlaylistData
 ) {
   const accessToken: string | null = getItemFromLocalStorage("access_token");

@@ -23,96 +23,106 @@ export default function Form() {
     },
   });
   const [numResults, setNumResults] = useState(0);
-  const [playlist, setPlaylist] = useState<TrackObject[] | null>(null);
-  const [mapPlaylist, setMapPlaylist] = useState<Map<
-    string,
-    TrackObject
-  > | null>(null);
+  const [playlist, setPlaylist] = useState<Map<string, TrackObject> | null>(
+    null
+  );
   const [matchingTracks, setMatchingTracks] = useState<Map<
     string,
     TrackObject
   > | null>(null);
-  const [recommendations, setRecommendations] = useState<TrackObject[] | null>(
-    null
-  );
-  const [playlistLen, setPlaylistLen] = useState<number>(0);
+  const [recommendations, setRecommendations] = useState<Map<
+    string,
+    TrackObject
+  > | null>(null);
+  const [targetPlaylistLength, setTargetPlaylistLength] = useState<number>(0);
 
   async function handleSubmit(values: FormValues) {
-    const result: [number, Map<string, TrackObject>] | null =
+    const matchingTracksResult: [number, Map<string, TrackObject>] | null =
       await filterDatabase(values);
-    if (!result) {
+    if (!matchingTracksResult) {
       console.log("Could not find matching tracks");
       return;
     }
 
-    const [totalMatches, matchingTracksMap] = result;
+    const [totalMatches, matchingTracks] = matchingTracksResult;
 
     // Check if tracks are saved in Spotify library
-    const tracks: Map<string, TrackObject> | null = await checkSavedTracks(
-      matchingTracksMap
-    );
-    if (!tracks) return;
+    const syncedSpotifySaveStatusTracks: Map<string, TrackObject> | null =
+      await checkSavedTracks(matchingTracks);
+    if (!syncedSpotifySaveStatusTracks) return;
 
-    const newPlaylistMap = new Map(matchingTracksMap);
-
-    // Sync IDB with Spotify when playlist is generated
-    for (const trackObject of matchingTracksMap.values()) {
-      syncSpotifyAndIdb(trackObject, trackObject.saved!);
+    // For each matching track, sync IDB saved tracks library with the Spotify saved status
+    // E.g. if one track is marked as saved in spotify but not saved in IDB, add it to IDB
+    for (const trackObject of matchingTracks.values()) {
+      syncSpotifyAndIdb(trackObject, trackObject.saved!); // Adds or removes track from IDB depending on Spotify saved status
     }
 
-    // Find tracks user has "pinned" in mapPlaylist
-    // add to newPlaylistMap
-    // in mapPlaylist, does key, value value.pinned == true, if so, add to newPlaylistMap
-    for (const [key, value] of newPlaylistMap.entries()) {
-      if (value.pinned === true) {
-        newPlaylistMap.set(key, value);
+    // Add matching tracks to matchingTracks state
+    setMatchingTracks(matchingTracks);
+    console.log("matching tracks:", matchingTracks);
+
+    // Create newPlaylist which will store the tracks that will be part of the playlist
+    let newPlaylist = new Map();
+    console.log("playlist", playlist);
+    // If there are tracks in the current playlist, find tracks user has "pinned" and add them to the newPlaylist
+    // If value.pinned === true for each value in current playlist, add to newPlaylistMap
+    if (playlist) {
+      for (const [key, value] of Object.entries(playlist)) {
+        if (value.pinned === true) {
+          newPlaylist.set(key, value);
+        }
       }
     }
+    console.log("newPlaylist before adding matching tracks", newPlaylist);
 
-    setPlaylistLen(values.target); // for tracking how many tracks to display to the user
-    // TODO: Probably need a separate "results" state that stores the results, and the playlist state only stores the target number of tracks
-    // Then if the user wants to see more tracks in their playlist and there are more results available to add, add them
-    // This way when a user adds a recommended track, it is added to the actual playlist that is displayed and will be visible to the user
-    // rather than being added to the bottom of the entire results list, and won't be visible to the user.
-    // Also, when the user saves the playlist, we only want to save the actual visible playlist, not all the other results.
-    setNumResults(totalMatches);
-    // setPlaylist(newPlaylist);
-    setMapPlaylist(newPlaylistMap);
+    setTargetPlaylistLength(values.target); // tracks the initial number of matching tracks to add to the playlist
+    setNumResults(totalMatches); // track number of results so we can tell user how many matches there were
+
+    // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
+    if (newPlaylist.size < targetPlaylistLength) {
+      const missingNumber: number = targetPlaylistLength - newPlaylist.size;
+      // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
+      const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
+      const newMap = new Map(tempArray);
+      newPlaylist = new Map([...newPlaylist, ...newMap]);
+    }
+
+    console.log(
+      "new playlist after adding pinned and matching tracks:",
+      newPlaylist
+    );
+
+    setPlaylist(newPlaylist);
 
     // Display 5 recommendations
     // Fetch 100, but display 5, adding new ones every time a recommendation is added
     // Display the next 5 if user clicks refresh
-    const recs: [number, TrackObject[]] | null = await getRecommendations(
-      values,
-      2
-    );
+    const recs: [number, Map<string, TrackObject>] | null =
+      await getRecommendations(values, 2);
     if (recs) {
       // const sampleRecs = shuffleAndSlice(recs[1], 5);
       setRecommendations(recs[1]);
     }
   }
 
-  // Adds a recommendation to the playlist, and checks if this makes recs.len < 5, if so, fetches more recs
+  // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
   async function addRecToPlaylist(track: TrackObject) {
     console.log(
       "Adding track to playlist. Recommendations currently:",
       recommendations
     );
-    setPlaylist((playlist) => [...playlist!, track]);
-    setRecommendations((recommendations) =>
-      recommendations
-        ? recommendations.filter((recTrack) => recTrack !== track)
-        : recommendations
-    );
+    setPlaylist((prevPlaylist) => prevPlaylist.set(track.track.id, track)); // add track to playlist
+    setRecommendations((prevRecs) => prevRecs.delete(track.track.id)); // rm track from recs
 
     // If recs.length < 5, fetch a new rec and add to recs
     // Access form.values directly to use the current form values
-    if (recommendations && recommendations.length <= 5) {
+    if (recommendations && recommendations.size <= 5) {
       console.log("recommendation length < 5:", recommendations);
-      const recs: [number, TrackObject[]] | null = await getRecommendations(
-        form.values, // Pass the current form values here
-        2
-      );
+      const recs: [number, Map<string, TrackObject>] | null =
+        await getRecommendations(
+          form.values, // Pass the current form values here
+          2
+        );
       if (!recs) return;
       setRecommendations((recommendations) => [
         ...recommendations!,
@@ -178,8 +188,8 @@ export default function Form() {
       </form>
       {playlist ? (
         <Playlist
-          playlistLen={playlistLen}
-          setPlaylistLen={setPlaylistLen}
+          targetPlaylistLength={targetPlaylistLength}
+          setTargetPlaylistLength={setTargetPlaylistLength}
           playlist={playlist}
           setPlaylist={setPlaylist}
           recommendations={recommendations}

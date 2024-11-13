@@ -11,20 +11,22 @@ import Recommendations from "./recommendations";
 import TrackRow from "./trackRow";
 
 interface PlaylistProps {
-  playlistLen: number;
-  setPlaylistLen: React.Dispatch<React.SetStateAction<number>>;
-  playlist: TrackObject[] | null;
-  setPlaylist: React.Dispatch<React.SetStateAction<TrackObject[] | null>>;
-  recommendations: TrackObject[] | null;
+  targetPlaylistLength: number;
+  setTargetPlaylistLength: React.Dispatch<React.SetStateAction<number>>;
+  playlist: Map<string, TrackObject> | null;
+  setPlaylist: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  recommendations: Map<string, TrackObject> | null;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<TrackObject[] | null>
+    React.SetStateAction<Map<string, TrackObject> | null>
   >;
   addRecToPlaylist: (track: TrackObject) => void;
 }
 
 export default function Playlist({
-  playlistLen,
-  setPlaylistLen,
+  targetPlaylistLength,
+  setTargetPlaylistLength,
   playlist,
   setPlaylist,
   recommendations,
@@ -50,7 +52,7 @@ export default function Playlist({
 
   async function handleSubmit(
     formValues: PlaylistData,
-    playlist: TrackObject[] | null
+    playlist: Map<string, TrackObject> | null
   ) {
     const savedPlaylist = await savePlaylist(playlist, formValues);
     if (savedPlaylist) {
@@ -65,7 +67,7 @@ export default function Playlist({
   }
 
   const addMoreTracks = () => {
-    setPlaylistLen((prev) => prev + 10); // Show 10 more tracks each time
+    setTargetPlaylistLength((prev) => prev + 10); // Show 10 more tracks each time
   };
 
   function playSampleTrack(trackId: string) {
@@ -151,32 +153,34 @@ export default function Playlist({
     ); // Filter for all but the current track id
   }
 
-  const rows = playlist.slice(0, playlistLen).map((track) => (
-    <Table.Tr key={track.track.id}>
-      <TrackRow
-        track={track}
-        audioRefs={audioRefs}
-        playingTrackId={playingTrackId}
-        playSampleTrack={playSampleTrack}
-        handleSaveClick={handleSaveClick}
-        loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-      />
-      <Table.Td>
-        <Button onClick={() => removeFromPlaylist(track.track.id)}>
-          <IconCircleMinus stroke={2} size={16} />
-        </Button>
-      </Table.Td>
-      <Table.Td>
-        <Button onClick={() => pinToPlaylist(track.track.id)}>
-          {track.pinned === true ? (
-            <IconPinFilled size={16} />
-          ) : (
-            <IconPin stroke={2} size={16} />
-          )}
-        </Button>
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const rows = Array.from(playlist)
+    .slice(0, targetPlaylistLength)
+    .map((track) => (
+      <Table.Tr key={track[1].track.id}>
+        <TrackRow
+          track={track[1]}
+          audioRefs={audioRefs}
+          playingTrackId={playingTrackId}
+          playSampleTrack={playSampleTrack}
+          handleSaveClick={handleSaveClick}
+          loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+        />
+        <Table.Td>
+          <Button onClick={() => removeFromPlaylist(track[1].track.id)}>
+            <IconCircleMinus stroke={2} size={16} />
+          </Button>
+        </Table.Td>
+        <Table.Td>
+          <Button onClick={() => pinToPlaylist(track[1].track.id)}>
+            {track[1].pinned === true ? (
+              <IconPinFilled size={16} />
+            ) : (
+              <IconPin stroke={2} size={16} />
+            )}
+          </Button>
+        </Table.Td>
+      </Table.Tr>
+    ));
 
   return (
     <div className="playlist-container">
@@ -194,7 +198,7 @@ export default function Playlist({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      {playlistLen < playlist.length && (
+      {targetPlaylistLength < playlist.size && (
         <Button onClick={addMoreTracks}>Show More</Button>
       )}
       <Modal.Root

@@ -5,11 +5,13 @@ import { useRef, useState } from "react";
 import TrackRow from "./trackRow";
 
 interface RecommendationsProps {
-  recommendations: TrackObject[];
-  playlist: TrackObject[] | null;
-  setPlaylist: React.Dispatch<React.SetStateAction<TrackObject[] | null>>;
+  recommendations: Map<string, TrackObject>;
+  playlist: Map<string, TrackObject> | null;
+  setPlaylist: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<TrackObject[] | null>
+    React.SetStateAction<Map<string, TrackObject> | null>
   >;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];

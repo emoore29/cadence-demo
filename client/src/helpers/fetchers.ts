@@ -255,11 +255,11 @@ function parseFilters(filters: NumericFilters) {
 }
 
 // Fetches X number of recommended tracks + their features based on user's top tracks and artists
-// Returns TrackObject[] containing recommended songs and their features
+// Returns Map<string, TrackObject> containing recommended songs and their features
 export async function fetchRecommendations(
   filters: NumericFilters,
   target: number
-): Promise<TrackObject[] | null> {
+): Promise<Map<string, TrackObject> | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   const topTracks: string[] | null = await getTop5TrackIds();
   const topArtists: string[] | null = await getTop5ArtistIds();
@@ -268,7 +268,7 @@ export async function fetchRecommendations(
   const trackIds: string = topTracks.slice(0, 1).join(",");
   const artistIds: string = topArtists.slice(0, 4).join(",");
 
-  let recommendations: TrackObject[] = [];
+  let recommendations: Map<string, TrackObject> = new Map();
 
   // Convert filter values to strings for URl params
   const params = new URLSearchParams({
@@ -334,8 +334,8 @@ export async function fetchRecommendations(
   return recommendations;
 }
 
-// Given a TrackObject[], checks if the tracks are currently saved in the user's Spotify library
-// Returns TrackObject[] with saved property added to each TrackObject
+// Given a Map<string, TrackObject>, checks if the tracks are currently saved in the user's Spotify library
+// Returns Map<string, TrackObject> with saved property added to each TrackObject
 export async function checkSavedTracks(
   tracks: Map<string, TrackObject>
 ): Promise<Map<string, TrackObject> | null> {
