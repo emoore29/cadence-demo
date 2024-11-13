@@ -59,46 +59,44 @@ export default function Form() {
 
     // Add matching tracks to matchingTracks state
     setMatchingTracks(matchingTracks);
-    console.log("matching tracks:", matchingTracks);
 
     // Create newPlaylist which will store the tracks that will be part of the playlist
-    let newPlaylist = new Map();
-    console.log("playlist", playlist);
+    let newPlaylist: Map<string, TrackObject> = new Map();
     // If there are tracks in the current playlist, find tracks user has "pinned" and add them to the newPlaylist
     // If value.pinned === true for each value in current playlist, add to newPlaylistMap
     if (playlist) {
-      for (const [key, value] of Object.entries(playlist)) {
+      console.log(
+        "playlist exists, checking for pinned tracks in playlist",
+        playlist
+      );
+      for (const [key, value] of playlist.entries()) {
         if (value.pinned === true) {
           newPlaylist.set(key, value);
         }
       }
     }
-    console.log("newPlaylist before adding matching tracks", newPlaylist);
 
     setTargetPlaylistLength(values.target); // tracks the initial number of matching tracks to add to the playlist
     setNumResults(totalMatches); // track number of results so we can tell user how many matches there were
 
     // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
-    if (newPlaylist.size < targetPlaylistLength) {
-      const missingNumber: number = targetPlaylistLength - newPlaylist.size;
+    if (newPlaylist.size < values.target) {
+      console.log(
+        "not enough pinned tracks to meet target; adding matching tracks to playlist"
+      );
+      const missingNumber: number = values.target - newPlaylist.size;
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
       const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
       const newMap = new Map(tempArray);
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
-    console.log(
-      "new playlist after adding pinned and matching tracks:",
-      newPlaylist
-    );
-
     setPlaylist(newPlaylist);
 
-    // Display 5 recommendations
-    // Fetch 100, but display 5, adding new ones every time a recommendation is added
+    // Fetch 100 recs, but display 5
     // Display the next 5 if user clicks refresh
     const recs: [number, Map<string, TrackObject>] | null =
-      await getRecommendations(values, 2);
+      await getRecommendations(values, 5);
     if (recs) {
       // const sampleRecs = shuffleAndSlice(recs[1], 5);
       setRecommendations(recs[1]);
@@ -107,27 +105,32 @@ export default function Form() {
 
   // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
   async function addRecToPlaylist(track: TrackObject) {
-    console.log(
-      "Adding track to playlist. Recommendations currently:",
-      recommendations
-    );
-    setPlaylist((prevPlaylist) => prevPlaylist.set(track.track.id, track)); // add track to playlist
-    setRecommendations((prevRecs) => prevRecs.delete(track.track.id)); // rm track from recs
+    setPlaylist((prevPlaylist) => {
+      const newPlaylist = new Map(prevPlaylist);
+      newPlaylist.set(track.track.id, track);
+      return newPlaylist;
+    }); // add track to playlist
 
-    // If recs.length < 5, fetch a new rec and add to recs
-    // Access form.values directly to use the current form values
+    setRecommendations((prevRecs) => {
+      const newRecs = new Map(prevRecs);
+      newRecs.delete(track.track.id);
+      return newRecs;
+    }); // rm track from recs
+
+    // If recs.length <= 5, fetch new recs and add to recs
+    // Spotify will return the same recs as before. TODO: Update fetchRecs() to create variety in recs
     if (recommendations && recommendations.size <= 5) {
-      console.log("recommendation length < 5:", recommendations);
       const recs: [number, Map<string, TrackObject>] | null =
-        await getRecommendations(
-          form.values, // Pass the current form values here
-          2
-        );
+        await getRecommendations(form.values, 5);
       if (!recs) return;
-      setRecommendations((recommendations) => [
-        ...recommendations!,
-        ...recs[1],
-      ]);
+
+      // Check recs for tracks that are already in playlist
+
+      setRecommendations((prevRecs) => {
+        // Init newRecs Map for adding newRecs to prevRecs
+        const newRecs = new Map([...(prevRecs ?? []), ...recs[1]]); // prevRecs as [] if there are no prevRecs
+        return newRecs;
+      });
     }
   }
 

@@ -13,7 +13,7 @@ import TrackRow from "./trackRow";
 interface PlaylistProps {
   targetPlaylistLength: number;
   setTargetPlaylistLength: React.Dispatch<React.SetStateAction<number>>;
-  playlist: Map<string, TrackObject> | null;
+  playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<
     React.SetStateAction<Map<string, TrackObject> | null>
   >;
@@ -52,7 +52,7 @@ export default function Playlist({
 
   async function handleSubmit(
     formValues: PlaylistData,
-    playlist: Map<string, TrackObject> | null
+    playlist: Map<string, TrackObject>
   ) {
     const savedPlaylist = await savePlaylist(playlist, formValues);
     if (savedPlaylist) {
@@ -88,37 +88,33 @@ export default function Playlist({
     }
   }
 
+  // Removes a given track from the playlist
   function removeFromPlaylist(trackId: string) {
-    const updatedPlaylist = playlist?.filter(
-      (track) => track.track.id != trackId
-    );
-    updatedPlaylist && setPlaylist(updatedPlaylist);
+    setPlaylist((prevPlaylist) => {
+      const newPlaylist = new Map(prevPlaylist);
+      newPlaylist.delete(trackId);
+      return newPlaylist;
+    });
   }
 
   function pinToPlaylist(trackId: string) {
-    const updatedPlaylist = playlist!.map((track) => {
-      if (track.track.id === trackId) {
-        console.log("found matching track");
-        if (track.pinned && track.pinned === true) {
-          return {
-            ...track,
-            pinned: false,
-          };
-        } else if (!track.pinned) {
-          console.log(
-            "Track pinned status not saved. Returning following object: ",
-            { ...track, pinned: true }
-          );
-          return {
-            ...track,
-            pinned: true,
-          };
-        }
-      }
-      return track;
-    });
+    setPlaylist((prevPlaylist) => {
+      // Clone prev playlist to avoid mutation
+      const newPlaylist = new Map(prevPlaylist);
 
-    setPlaylist(updatedPlaylist);
+      // Retrieve existing track object
+      const trackObject = newPlaylist.get(trackId);
+
+      if (trackObject) {
+        const updatedTrackObject = {
+          ...trackObject,
+          pinned: !trackObject.pinned,
+        };
+        newPlaylist.set(trackId, updatedTrackObject);
+      }
+
+      return newPlaylist;
+    });
   }
 
   // Updates track's saved status in Spotify & IDB
@@ -133,54 +129,67 @@ export default function Playlist({
     );
     if (!updateStatus) console.log("Failed to update track saved status");
 
-    setPlaylist((prevPlaylist) =>
-      prevPlaylist!.map((track) =>
-        track.track.id === trackObj.track.id
-          ? { ...track, saved: updateStatus === "Added" }
-          : track
-      )
-    );
+    setPlaylist((prevPlaylist) => {
+      const newPlaylist = new Map(prevPlaylist);
 
-    setRecommendations((prevRecs) =>
-      prevRecs!.map((track) =>
-        track.track.id === trackObj.track.id
-          ? { ...track, saved: updateStatus === "Added" }
-          : track
-      )
-    );
+      const trackObject = newPlaylist.get(trackObj.track.id);
+
+      if (trackObject) {
+        const updatedTrackObject = {
+          ...trackObject,
+          saved: updateStatus === "Added",
+        };
+        newPlaylist.set(trackObj.track.id, updatedTrackObject);
+      }
+      return newPlaylist;
+    });
+
+    setRecommendations((prevRecs) => {
+      const newRecs = new Map(prevRecs);
+
+      const trackObject = newRecs.get(trackObj.track.id);
+
+      if (trackObject) {
+        const updatedTrackObject = {
+          ...trackObject,
+          saved: updateStatus === "Added",
+        };
+        newRecs.set(trackObj.track.id, updatedTrackObject);
+      }
+      return newRecs;
+    });
+
     setLoadingSaveStatusTrackIds((prevIds) =>
       prevIds.filter((id) => id !== trackObj.track.id)
     ); // Filter for all but the current track id
   }
 
-  const rows = Array.from(playlist)
-    .slice(0, targetPlaylistLength)
-    .map((track) => (
-      <Table.Tr key={track[1].track.id}>
-        <TrackRow
-          track={track[1]}
-          audioRefs={audioRefs}
-          playingTrackId={playingTrackId}
-          playSampleTrack={playSampleTrack}
-          handleSaveClick={handleSaveClick}
-          loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-        />
-        <Table.Td>
-          <Button onClick={() => removeFromPlaylist(track[1].track.id)}>
-            <IconCircleMinus stroke={2} size={16} />
-          </Button>
-        </Table.Td>
-        <Table.Td>
-          <Button onClick={() => pinToPlaylist(track[1].track.id)}>
-            {track[1].pinned === true ? (
-              <IconPinFilled size={16} />
-            ) : (
-              <IconPin stroke={2} size={16} />
-            )}
-          </Button>
-        </Table.Td>
-      </Table.Tr>
-    ));
+  const rows = Array.from(playlist).map((track) => (
+    <Table.Tr key={track[1].track.id}>
+      <TrackRow
+        track={track[1]}
+        audioRefs={audioRefs}
+        playingTrackId={playingTrackId}
+        playSampleTrack={playSampleTrack}
+        handleSaveClick={handleSaveClick}
+        loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+      />
+      <Table.Td>
+        <Button onClick={() => removeFromPlaylist(track[1].track.id)}>
+          <IconCircleMinus stroke={2} size={16} />
+        </Button>
+      </Table.Td>
+      <Table.Td>
+        <Button onClick={() => pinToPlaylist(track[1].track.id)}>
+          {track[1].pinned === true ? (
+            <IconPinFilled size={16} />
+          ) : (
+            <IconPin stroke={2} size={16} />
+          )}
+        </Button>
+      </Table.Td>
+    </Table.Tr>
+  ));
 
   return (
     <div className="playlist-container">

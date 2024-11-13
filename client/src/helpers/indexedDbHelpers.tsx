@@ -157,7 +157,6 @@ export async function getTop5TrackIds(): Promise<string[] | null> {
 
     // Extract track ids from db object
     const top5TrackIds = top5Tracks.map((entry) => entry.track.id);
-    console.log("Top 5 track ids:", top5Tracks);
     return top5TrackIds;
   } catch (error) {
     console.error(`Error retrieving top 5 tracks:`, error);

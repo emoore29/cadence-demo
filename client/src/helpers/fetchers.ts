@@ -265,12 +265,14 @@ export async function fetchRecommendations(
   const topArtists: string[] | null = await getTop5ArtistIds();
   if (!accessToken || !topTracks || !topArtists) return null;
 
+  // Get top artist and track ids for recommendation API
   const trackIds: string = topTracks.slice(0, 1).join(",");
   const artistIds: string = topArtists.slice(0, 4).join(",");
 
+  // Init Map for storing recommendations
   let recommendations: Map<string, TrackObject> = new Map();
 
-  // Convert filter values to strings for URl params
+  // Convert filter values to strings for URL params
   const params = new URLSearchParams({
     ...parseFilters(filters),
     limit: String(target),
@@ -278,8 +280,11 @@ export async function fetchRecommendations(
     seed_tracks: trackIds,
   });
 
+  // Initialise arrays for storing request results
   let recommendedTracks: Track[];
+  let recommendedTrackFeatures: TrackFeatures[];
 
+  // Get recommended tracks based on filters
   try {
     const res = await axios.get<Recommendations>(
       `https://api.spotify.com/v1/recommendations?${params}`,
@@ -297,8 +302,10 @@ export async function fetchRecommendations(
     return null;
   }
 
-  let recommendedTrackFeatures: TrackFeatures[];
+  // Get ids of recommended tracks
   const songIds = recommendedTracks.map((song) => song!.id);
+
+  // Get recommended tracks' features
   try {
     const res = await axios.get<FeaturesLibrary>(
       "https://api.spotify.com/v1/audio-features",
@@ -319,10 +326,11 @@ export async function fetchRecommendations(
     return null;
   }
 
+  // Create TrackObjects from recommendedTracks and recommendedTrackFeatures, and set in recommendations Map
   for (const track of recommendedTracks) {
     const features = recommendedTrackFeatures.find((f) => f.id === track.id);
     if (features) {
-      recommendations.push({
+      recommendations.set(track.id, {
         track: track,
         features: features,
       });
@@ -330,7 +338,6 @@ export async function fetchRecommendations(
       console.warn(`No features found for track ID ${track.id}`);
     }
   }
-  console.log("recommended songs:", recommendations);
   return recommendations;
 }
 

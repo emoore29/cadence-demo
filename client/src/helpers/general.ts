@@ -33,18 +33,13 @@ export async function syncSpotifyAndIdb(track: TrackObject, saved: boolean) {
     | undefined;
 
   // Ensure IDB matches Spotify
-  if ((saved && savedInDb) || (!saved && !savedInDb)) {
-    console.log("IDB matches Spotify");
-  } else {
-    console.log("IDB does not match Spotify");
-    // If song saved in Spotify but not in IDB, add to IDB
-    if (saved && !savedInDb) {
-      await setInStore("library", track);
-      console.log("added to IDB");
-    } else {
-      // If song not saved in Spotify but saved in IDB, rm from IDB
-      await deleteFromStore("library", track.track.id);
-      console.log("removed from IDB");
-    }
+  // If song saved in Spotify but not in IDB, add to IDB
+  if (saved && !savedInDb) {
+    await setInStore("library", track);
+    console.log("added to IDB");
+  } else if (!saved && savedInDb) {
+    // If song not saved in Spotify but saved in IDB, rm from IDB
+    await deleteFromStore("library", track.track.id);
+    console.log("removed from IDB");
   }
 }

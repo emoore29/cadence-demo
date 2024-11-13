@@ -50,23 +50,25 @@ export default function Recommendations({
     }
   };
 
-  const rows = recommendations!.slice(0, 5).map((track) => (
-    <Table.Tr key={track.track.id}>
-      <TrackRow
-        track={track}
-        audioRefs={audioRefs}
-        playingTrackId={playingTrackId}
-        playSampleTrack={playSampleTrack}
-        handleSaveClick={handleSaveClick}
-        loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-      />
-      <Table.Td>
-        <Button onClick={() => addRecToPlaylist(track)}>
-          <IconCirclePlus stroke={2} size={16} />
-        </Button>
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const rows = Array.from(recommendations!)
+    .slice(0, 5) // Only display 5. If one is removed, it automatically adds the next one in the array
+    .map((track) => (
+      <Table.Tr key={track[1].track.id}>
+        <TrackRow
+          track={track[1]}
+          audioRefs={audioRefs}
+          playingTrackId={playingTrackId}
+          playSampleTrack={playSampleTrack}
+          handleSaveClick={handleSaveClick}
+          loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+        />
+        <Table.Td>
+          <Button onClick={() => addRecToPlaylist(track[1])}>
+            <IconCirclePlus stroke={2} size={16} />
+          </Button>
+        </Table.Td>
+      </Table.Tr>
+    ));
 
   function handleRefreshRecs() {
     console.log("Refreshing recommended tracks");

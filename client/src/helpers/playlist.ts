@@ -38,7 +38,6 @@ async function filterFromStore(
 
   try {
     const tracks = await getAllFromStore(storeName);
-    console.log("GetAllFromStore() from IDB returns this:", tracks);
 
     for (const track of tracks) {
       const trackFeatures: TrackFeatures = track.features;
@@ -113,7 +112,7 @@ export async function getRecommendations(
   );
 
   if (recs) {
-    return [recs.length, recs];
+    return [recs.size, recs];
   } else {
     console.error("Fetch recommendations returned null");
     return null;
@@ -201,27 +200,28 @@ function matches(
 // Playlist
 // Creates a new playlist on Spotify and then saves cadence playlist to it (2 separate post requests)
 export async function savePlaylist(
-  playlist: Map<string, TrackObject> | null,
+  playlist: Map<string, TrackObject>,
   playlistData: PlaylistData
 ) {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   const user: string | null = getItemFromLocalStorage("user_data");
-  if (accessToken && user) {
-    const userId = JSON.parse(user).id;
-    const playlistId: string | null = await createPlaylist(
-      accessToken,
-      playlistData,
-      userId
-    );
+  if (!accessToken || !user) return null;
 
-    if (playlistId) {
-      const songUris: string[] = playlist!.map(
-        (song) => `spotify:track:${song.track.id}`
-      );
-      return await addItemsToPlaylist(accessToken, playlistId, songUris);
-    }
-  } else {
-    console.error("Could not retrieve user and/or access token.");
+  const userId = JSON.parse(user).id;
+  const playlistId: string | null = await createPlaylist(
+    accessToken,
+    playlistData,
+    userId
+  );
+
+  // If playlist Id, request to create playlist was successful
+  if (playlistId) {
+    // Create songUris from playlist songs
+    const songUris: string[] = Array.from(playlist).map(
+      (track) => `spotify:track:${track[1].track.id}`
+    );
+    // Request adding songs to playlist
+    return await addItemsToPlaylist(accessToken, playlistId, songUris);
   }
 }
 
