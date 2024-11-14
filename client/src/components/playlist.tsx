@@ -1,14 +1,18 @@
 import { updateSavedStatus } from "@/helpers/fetchers";
-import { showErrorNotif, showSuccessNotif } from "@/helpers/general";
+import {
+  calculatePlaylistTime,
+  showErrorNotif,
+  showSuccessNotif,
+} from "@/helpers/general";
 import { savePlaylist } from "@/helpers/playlist";
 import { PlaylistData, TrackObject } from "@/types/types";
 import {
   Button,
   Checkbox,
+  Group,
   Modal,
   Table,
   TextInput,
-  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
@@ -18,6 +22,10 @@ import Recommendations from "./recommendations";
 import TrackRow from "./trackRow";
 
 interface PlaylistProps {
+  setMatchingTracks: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  matchingTracks: Map<string, TrackObject> | null;
   targetPlaylistLength: number;
   setTargetPlaylistLength: React.Dispatch<React.SetStateAction<number>>;
   playlist: Map<string, TrackObject>;
@@ -32,6 +40,8 @@ interface PlaylistProps {
 }
 
 export default function Playlist({
+  setMatchingTracks,
+  matchingTracks,
   targetPlaylistLength,
   setTargetPlaylistLength,
   playlist,
@@ -198,9 +208,42 @@ export default function Playlist({
     </Table.Tr>
   ));
 
+  // Adds 5 more matches to playlist (and removes from matching tracks)
+  function showMoreResults() {
+    const tempArray = Array.from(matchingTracks).slice(0, 5);
+
+    let moreResults: Map<string, TrackObject> = new Map(tempArray);
+
+    // TODO: Probably shouldn't be updating matchingTracks directly. Should instead update matchingTracks state with setMatchingTracks()
+    for (const key of moreResults.keys()) {
+      matchingTracks?.delete(key);
+    }
+
+    const updatedPlaylist = new Map([...playlist, ...moreResults]);
+    setPlaylist(updatedPlaylist);
+  }
+
+  // Add all matches to playlist (and removes from matching tracks)
+  function showAllResults() {
+    let moreResults: Map<string, TrackObject> = new Map(matchingTracks);
+
+    for (const key of moreResults.keys()) {
+      matchingTracks?.delete(key);
+    }
+
+    const updatedPlaylist = new Map([...playlist, ...moreResults]);
+    setPlaylist(updatedPlaylist);
+    4;
+  }
+
+  const playlistTime = calculatePlaylistTime(playlist);
+
   return (
     <div className="playlist-container">
       <h2>Results</h2>
+      <p>
+        {playlist.size} songs, {playlistTime}
+      </p>
       <Table highlightOnHover horizontalSpacing="xs" verticalSpacing="xs">
         <Table.Thead>
           <Table.Tr>
@@ -214,9 +257,7 @@ export default function Playlist({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      {targetPlaylistLength < playlist.size && (
-        <Button onClick={addMoreTracks}>Show More</Button>
-      )}
+
       <Modal.Root
         opened={opened}
         onClose={() => setOpened(false)}
@@ -259,6 +300,16 @@ export default function Playlist({
         </Modal.Content>
       </Modal.Root>
       <Group justify="flex-end" mt="md">
+        {matchingTracks && matchingTracks.size > 0 && (
+          <Button type="button" onClick={showMoreResults}>
+            Show more results
+          </Button>
+        )}
+        {matchingTracks && matchingTracks.size > 0 && (
+          <Button type="button" onClick={showAllResults}>
+            Show all results ({matchingTracks.size})
+          </Button>
+        )}
         <Button type="button" onClick={() => setOpened(true)}>
           Save as playlist
         </Button>

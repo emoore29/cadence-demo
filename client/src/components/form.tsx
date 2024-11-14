@@ -46,6 +46,8 @@ export default function Form() {
 
     const [totalMatches, matchingTracks] = matchingTracksResult;
 
+    console.log("Original matching tracks size:", matchingTracks.size);
+
     // Check if tracks are saved in Spotify library
     const syncedSpotifySaveStatusTracks: Map<string, TrackObject> | null =
       await checkSavedTracks(matchingTracks);
@@ -56,9 +58,6 @@ export default function Form() {
     for (const trackObject of matchingTracks.values()) {
       syncSpotifyAndIdb(trackObject, trackObject.saved!); // Adds or removes track from IDB depending on Spotify saved status
     }
-
-    // Add matching tracks to matchingTracks state
-    setMatchingTracks(matchingTracks);
 
     // Create newPlaylist which will store the tracks that will be part of the playlist
     let newPlaylist: Map<string, TrackObject> = new Map();
@@ -90,11 +89,24 @@ export default function Form() {
 
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
       const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
+
       const newMap = new Map(tempArray);
+
+      // Remove the matching tracks being added to the newPlaylist from matchingTracks
+      for (const key of newMap.keys()) {
+        matchingTracks.delete(key);
+      }
+
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
+    console.log(
+      "After removing duplicates and adding matches to playlist: matching tracks size:",
+      matchingTracks.size
+    );
+
     setPlaylist(newPlaylist);
+    setMatchingTracks(matchingTracks);
 
     // Fetch 100 recs, but display 5
     // Display the next 5 if user clicks refresh
@@ -112,7 +124,6 @@ export default function Form() {
           recsMap.delete(key);
         }
       }
-
       setRecommendations(recsMap);
     }
   }
@@ -212,10 +223,11 @@ export default function Form() {
         <Group justify="flex-end" mt="md">
           <Button type="submit">Submit</Button>
         </Group>
-        {numResults ? <p>There were {numResults} results.</p> : ""}
       </form>
       {playlist ? (
         <Playlist
+          setMatchingTracks={setMatchingTracks}
+          matchingTracks={matchingTracks}
           targetPlaylistLength={targetPlaylistLength}
           setTargetPlaylistLength={setTargetPlaylistLength}
           playlist={playlist}

@@ -43,3 +43,57 @@ export async function syncSpotifyAndIdb(track: TrackObject, saved: boolean) {
     console.log("removed from IDB");
   }
 }
+
+export function calculatePlaylistTime(
+  playlist: Map<string, TrackObject>
+): string {
+  let totalTimeMs = 0;
+  for (const value of playlist.values()) {
+    const trackTime = value.track.duration_ms;
+    totalTimeMs += trackTime;
+  }
+
+  // Convert ms to h/m/s
+  return msToTime(totalTimeMs);
+}
+
+function msToTime(ms: number): string {
+  let seconds;
+  let remainderSeconds;
+  let minutes;
+  let remainderMinutes;
+  let hours;
+
+  // Divide by 1000 to get num seconds (discard the extra)
+  seconds = Math.floor(ms / 1000); // ignore remainder ms
+
+  // If seconds <= 60
+  // Divide by 60 to get num minutes ()
+  if (seconds >= 60) {
+    minutes = Math.floor(seconds / 60);
+    remainderSeconds = seconds % 60;
+  }
+
+  // If mins > 60, divide mins by 60 to get num hours
+  if (minutes && minutes >= 60) {
+    hours = Math.floor(minutes / 60);
+    remainderMinutes = minutes % 60;
+  }
+
+  let totalTime: string;
+  if (hours) {
+    totalTime =
+      hours.toString() +
+      " hr " +
+      remainderMinutes?.toString() +
+      " min " +
+      remainderSeconds?.toString() +
+      " sec";
+  } else if (minutes) {
+    totalTime =
+      minutes.toString() + " min " + remainderSeconds?.toString() + " sec";
+  } else {
+    totalTime = seconds.toString() + " sec";
+  }
+  return totalTime;
+}
