@@ -2,7 +2,14 @@ import { updateSavedStatus } from "@/helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "@/helpers/general";
 import { savePlaylist } from "@/helpers/playlist";
 import { PlaylistData, TrackObject } from "@/types/types";
-import { Button, Checkbox, Modal, Table, TextInput } from "@mantine/core";
+import {
+  Button,
+  Checkbox,
+  Modal,
+  Table,
+  TextInput,
+  Group,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconCircleMinus, IconPin, IconPinFilled } from "@tabler/icons-react";
@@ -251,9 +258,11 @@ export default function Playlist({
           </Modal.Body>
         </Modal.Content>
       </Modal.Root>
-      <Button type="button" onClick={() => setOpened(true)}>
-        Save as playlist
-      </Button>
+      <Group justify="flex-end" mt="md">
+        <Button type="button" onClick={() => setOpened(true)}>
+          Save as playlist
+        </Button>
+      </Group>
 
       {recommendations && (
         <Recommendations

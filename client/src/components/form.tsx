@@ -79,6 +79,15 @@ export default function Form() {
     // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
     if (newPlaylist.size < values.target) {
       const missingNumber: number = values.target - newPlaylist.size;
+
+      // Remove any tracks from matchingTracks that are already in the playlist (pinned)
+      for (const key of matchingTracks.keys()) {
+        if (playlist?.get(key)) {
+          console.log(`${key} track already in playlist`);
+          matchingTracks.delete(key);
+        }
+      }
+
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
       const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
       const newMap = new Map(tempArray);
