@@ -1,6 +1,20 @@
+body {
+  height: 100vh;
+  margin: 0;
+  background: #6b243f;
+  color: rgba(255, 255, 255, 0.8);
+}
+
 #root {
-  padding: 0 30px;
+  padding: 0 100px;
   box-sizing: border-box;
+  background: radial-gradient(
+      farthest-side at bottom left,
+      #5c1c37,
+      transparent
+    ),
+    radial-gradient(farthest-corner at bottom right, #8f3c3c, transparent 400px),
+    radial-gradient(farthest-side at 70%, #8b3851, transparent 500px);
 }
 
 .container {
@@ -26,6 +40,7 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 50px;
 }
 
 #user-btn {
@@ -70,7 +85,7 @@ h1 {
 
 .main {
   display: flex;
-  gap: 20px;
+  gap: 50px;
 }
 
 .bpm {
@@ -92,22 +107,15 @@ h1 {
   flex-direction: column;
 }
 
-.mantine-Select-option {
-  color: black;
-}
-
 .mantine-Table-th,
 .mantine-Table-td {
   padding: 5px;
 }
 
-.playPauseButton,
+/* .playPauseButton,
 .saveTrackBtn {
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+  color: black;
+} */
 
 .centerContent {
   display: flex;
@@ -119,4 +127,14 @@ h1 {
 td,
 tr {
   height: 100%;
+}
+
+.trackLink {
+  color: white;
+  font-weight: 600;
+}
+
+.trackArtist,
+.trackAlbum {
+  color: rgba(255, 255, 255, 0.8);
 }

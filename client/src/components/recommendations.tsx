@@ -63,7 +63,10 @@ export default function Recommendations({
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
         />
         <Table.Td>
-          <Button onClick={() => addRecToPlaylist(track[1])}>
+          <Button
+            style={{ backgroundColor: "transparent" }}
+            onClick={() => addRecToPlaylist(track[1])}
+          >
             <IconCirclePlus stroke={2} size={16} />
           </Button>
         </Table.Td>
@@ -77,7 +80,11 @@ export default function Recommendations({
   return (
     <>
       <h2>Recommended</h2>
-      <Table highlightOnHover>
+      <Table
+        highlightOnHoverColor="rgba(255,255,255,0.1)"
+        withRowBorders={false}
+        highlightOnHover
+      >
         <Table.Thead>
           <Table.Tr>
             <Table.Th style={{ width: "5%" }}>Preview</Table.Th>

@@ -17,6 +17,7 @@ import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { User } from "./types/types";
 import { Loader } from "@mantine/core";
+import { Button } from "@mantine/core";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
@@ -98,9 +99,9 @@ function App() {
             data. You have {libSize} saved tracks. This may take a minute...
           </p>
           {!loadingData ? (
-            <button onClick={storeMyData}>
+            <Button onClick={storeMyData}>
               Store my Spotify data in the database!
-            </button>
+            </Button>
           ) : (
             <Loader color="teal" type="dots" />
           )}

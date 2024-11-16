@@ -83,10 +83,6 @@ export default function Playlist({
     }
   }
 
-  const addMoreTracks = () => {
-    setTargetPlaylistLength((prev) => prev + 10); // Show 10 more tracks each time
-  };
-
   function playSampleTrack(trackId: string) {
     const audioElement = audioRefs.current[trackId];
     if (!audioElement) return; // Early return if no audio element found
@@ -192,12 +188,18 @@ export default function Playlist({
         loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
       />
       <Table.Td>
-        <Button onClick={() => removeFromPlaylist(track[1].track.id)}>
+        <Button
+          style={{ backgroundColor: "transparent", padding: 0 }}
+          onClick={() => removeFromPlaylist(track[1].track.id)}
+        >
           <IconCircleMinus stroke={2} size={16} />
         </Button>
       </Table.Td>
       <Table.Td>
-        <Button onClick={() => pinToPlaylist(track[1].track.id)}>
+        <Button
+          style={{ backgroundColor: "transparent", padding: 0 }}
+          onClick={() => pinToPlaylist(track[1].track.id)}
+        >
           {track[1].pinned === true ? (
             <IconPinFilled size={16} />
           ) : (
@@ -210,30 +212,38 @@ export default function Playlist({
 
   // Adds 5 more matches to playlist (and removes from matching tracks)
   function showMoreResults() {
+    if (!matchingTracks) return null;
     const tempArray = Array.from(matchingTracks).slice(0, 5);
 
     let moreResults: Map<string, TrackObject> = new Map(tempArray);
 
-    // TODO: Probably shouldn't be updating matchingTracks directly. Should instead update matchingTracks state with setMatchingTracks()
+    let updatedMatchingTracks: Map<string, TrackObject> = new Map(
+      matchingTracks
+    );
     for (const key of moreResults.keys()) {
-      matchingTracks?.delete(key);
+      updatedMatchingTracks?.delete(key);
     }
 
     const updatedPlaylist = new Map([...playlist, ...moreResults]);
     setPlaylist(updatedPlaylist);
+    setMatchingTracks(updatedMatchingTracks);
   }
 
   // Add all matches to playlist (and removes from matching tracks)
   function showAllResults() {
     let moreResults: Map<string, TrackObject> = new Map(matchingTracks);
 
+    let updatedMatchingTracks: Map<string, TrackObject> = new Map(
+      matchingTracks
+    );
     for (const key of moreResults.keys()) {
-      matchingTracks?.delete(key);
+      updatedMatchingTracks?.delete(key);
     }
 
     const updatedPlaylist = new Map([...playlist, ...moreResults]);
     setPlaylist(updatedPlaylist);
     4;
+    setMatchingTracks(updatedMatchingTracks);
   }
 
   const playlistTime = calculatePlaylistTime(playlist);
@@ -244,15 +254,21 @@ export default function Playlist({
       <p>
         {playlist.size} songs, {playlistTime}
       </p>
-      <Table highlightOnHover horizontalSpacing="xs" verticalSpacing="xs">
+      <Table
+        highlightOnHoverColor="rgba(255,255,255,0.1)"
+        withRowBorders={false}
+        highlightOnHover
+        horizontalSpacing="xs"
+        verticalSpacing="xs"
+      >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th style={{ width: "5%" }}>Preview</Table.Th>
-            <Table.Th style={{ width: "40%" }}>Title</Table.Th>
-            <Table.Th style={{ width: "40%" }}>Album</Table.Th>
-            <Table.Th style={{ width: "5%" }}></Table.Th>
-            <Table.Th style={{ width: "5%" }}>Remove</Table.Th>
-            <Table.Th style={{ width: "5%" }}>Pin</Table.Th>
+            <Table.Th></Table.Th>
+            <Table.Th style={{ width: "50%" }}>Title</Table.Th>
+            <Table.Th style={{ width: "50%" }}>Album</Table.Th>
+            <Table.Th></Table.Th>
+            <Table.Th></Table.Th>
+            <Table.Th></Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>

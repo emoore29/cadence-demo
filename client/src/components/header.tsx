@@ -4,6 +4,7 @@ import { Menu, Text } from "@mantine/core";
 import { User } from "../types/types";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
+import { IconMetronome } from "@tabler/icons-react";
 
 interface HeaderProps {
   user: User | null;
@@ -72,6 +73,8 @@ export default function Header({
 
   return (
     <div className="header">
+      <IconMetronome size={32} stroke={2} />
+
       <h1>cadence</h1>
 
       {user ? (

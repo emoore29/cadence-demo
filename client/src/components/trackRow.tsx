@@ -1,5 +1,5 @@
 import { TrackObject } from "@/types/types";
-import { Table, Tooltip, Loader } from "@mantine/core";
+import { Table, Tooltip, Loader, Button } from "@mantine/core";
 import {
   IconHeart,
   IconHeartFilled,
@@ -40,8 +40,9 @@ export default function TrackRow(props: TrackRowProps) {
               <source src={track.track.preview_url} type="audio/mpeg" />
               Your browser does not support the audio element.
             </audio>
-            <button
+            <Button
               type="button"
+              style={{ backgroundColor: "transparent", padding: 0 }}
               className="playPauseButton"
               onClick={() => playSampleTrack(track.track.id)}
             >
@@ -50,7 +51,7 @@ export default function TrackRow(props: TrackRowProps) {
               ) : (
                 <IconPlayerPlayFilled size={16} />
               )}
-            </button>
+            </Button>
           </>
         )}
       </Table.Td>
@@ -88,7 +89,7 @@ export default function TrackRow(props: TrackRowProps) {
               }}
             >
               <a
-                className="track-name"
+                className="trackLink"
                 href={track.track.external_urls.spotify}
                 style={{
                   whiteSpace: "nowrap", // Prevent wrapping
@@ -100,7 +101,7 @@ export default function TrackRow(props: TrackRowProps) {
               </a>
 
               <a
-                className="track-artist"
+                className="trackArtist"
                 href={track.track.artists[0].external_urls.spotify}
               >
                 {track.track.artists[0].name}
@@ -110,13 +111,17 @@ export default function TrackRow(props: TrackRowProps) {
         </Table.Td>
       </Tooltip.Floating>
       <Table.Td>
-        <a href={track.track.album.external_urls.spotify}>
+        <a
+          className="trackAlbum"
+          href={track.track.album.external_urls.spotify}
+        >
           {track.track.album.name}
         </a>
       </Table.Td>
       <Table.Td>
-        <button
+        <Button
           type="button"
+          style={{ backgroundColor: "transparent", padding: 0 }}
           className="saveTrackBtn"
           disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
           onClick={() => handleSaveClick(track, track.saved!)}
@@ -128,7 +133,7 @@ export default function TrackRow(props: TrackRowProps) {
           ) : (
             <IconHeart stroke={2} size={16} />
           )}
-        </button>
+        </Button>
       </Table.Td>
     </>
   );

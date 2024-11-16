@@ -2,12 +2,21 @@ import { checkSavedTracks } from "@/helpers/fetchers";
 import { syncSpotifyAndIdb } from "@/helpers/general";
 import { filterDatabase, getRecommendations } from "@/helpers/playlist";
 import { FormValues, Track, TrackObject } from "@/types/types";
-import { Button, Group, NumberInput, Select } from "@mantine/core";
+import {
+  Button,
+  Group,
+  NumberInput,
+  Select,
+  useMantineTheme,
+  Radio,
+  Tooltip,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import Playlist from "./playlist";
 
 export default function Form() {
+  const theme = useMantineTheme();
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -18,7 +27,7 @@ export default function Form() {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "My Saved Songs",
+      source: "1",
       target: 10,
     },
   });
@@ -174,14 +183,31 @@ export default function Form() {
     <div className="main">
       <form className="playlist-form" onSubmit={form.onSubmit(handleSubmit)}>
         <h2>Filters</h2>
-        <Select
+        <Radio.Group
+          name="source"
+          label="Source"
+          {...form.getInputProps("source")}
+        >
+          <Group mt="xs">
+            <Tooltip.Floating
+              multiline
+              w={200}
+              label={"Filters from your Spotify Saved Tracks."}
+            >
+              <Radio value={"1"} label="My Saved Songs" />
+            </Tooltip.Floating>
+            <Radio value={"2"} label="My Top Tracks" />
+            <Radio value={"3"} label="Recommendations" />
+          </Group>
+        </Radio.Group>
+        {/* <Select
           variant="filled"
           key={form.key("source")}
           {...form.getInputProps("source")}
           label={"Source"}
           data={["My Saved Songs", "My Top Tracks", "Get Recommendations"]}
           allowDeselect={false}
-        />
+        /> */}
         <NumberInput
           label="Target number of tracks"
           key={form.key("target")}
@@ -195,6 +221,8 @@ export default function Form() {
             description=">=30"
             placeholder="Input placeholder"
             {...form.getInputProps("minTempo")}
+            stepHoldDelay={500}
+            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
           />
           <NumberInput
             label="Max BPM"
@@ -202,6 +230,8 @@ export default function Form() {
             description="<=300"
             placeholder="Input placeholder"
             {...form.getInputProps("maxTempo")}
+            stepHoldDelay={500}
+            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
           />
         </div>
         {[
@@ -212,7 +242,6 @@ export default function Form() {
           "Acousticness",
         ].map((filter: string) => (
           <Select
-            variant="filled"
             key={form.key(`target` + filter)}
             {...form.getInputProps(`target` + filter)}
             label={filter}

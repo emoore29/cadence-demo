@@ -17,11 +17,11 @@ export async function filterDatabase(
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
-    case "My Saved Songs":
+    case "1":
       return await filterFromStore("library", formValues);
-    case "My Top Tracks":
+    case "2":
       return await filterFromStore("topTracks", formValues);
-    case "Get Recommendations":
+    case "3":
       return await getRecommendations(formValues);
     default:
       return null;
