@@ -1,8 +1,9 @@
 import { TrackObject } from "@/types/types";
-import { Button, Table } from "@mantine/core";
+import { Button, Table, Group } from "@mantine/core";
 import { IconCirclePlus } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import TrackRow from "./trackRow";
+import { getRecommendations } from "@/helpers/playlist";
 
 interface RecommendationsProps {
   recommendations: Map<string, TrackObject>;
@@ -16,6 +17,7 @@ interface RecommendationsProps {
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
   addRecToPlaylist: (track: TrackObject) => void;
+  handleRefreshRecs: () => void;
 }
 
 export default function Recommendations({
@@ -26,6 +28,7 @@ export default function Recommendations({
   handleSaveClick,
   loadingSaveStatusTrackIds,
   addRecToPlaylist,
+  handleRefreshRecs,
 }: RecommendationsProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>("");
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -73,10 +76,6 @@ export default function Recommendations({
       </Table.Tr>
     ));
 
-  function handleRefreshRecs() {
-    console.log("Refreshing recommended tracks");
-  }
-
   return (
     <>
       <h2>Suggestions</h2>
@@ -96,7 +95,16 @@ export default function Recommendations({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      <Button onClick={handleRefreshRecs}>Refresh</Button>
+
+      <Group justify="flex-end" mt="md">
+        <Button
+          variant="outline"
+          color="rgba(255, 255, 255, 0.8)"
+          onClick={handleRefreshRecs}
+        >
+          Refresh
+        </Button>
+      </Group>
     </>
   );
 }

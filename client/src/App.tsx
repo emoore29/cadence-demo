@@ -1,3 +1,4 @@
+import { Button, Loader } from "@mantine/core";
 import { useEffect, useState } from "react";
 import "./App.css";
 import Form from "./components/form";
@@ -16,8 +17,6 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { User } from "./types/types";
-import { Loader } from "@mantine/core";
-import { Button } from "@mantine/core";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
@@ -107,7 +106,7 @@ function App() {
           )}
         </>
       )}
-      <Form />
+      <Form user={user} />
     </div>
   );
 }

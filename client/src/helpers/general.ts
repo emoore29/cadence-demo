@@ -83,12 +83,7 @@ function msToTime(ms: number): string {
   let totalTime: string;
   if (hours) {
     totalTime =
-      hours.toString() +
-      " hr " +
-      remainderMinutes?.toString() +
-      " min " +
-      remainderSeconds?.toString() +
-      " sec";
+      hours.toString() + " hr " + remainderMinutes?.toString() + " min ";
   } else if (minutes) {
     totalTime =
       minutes.toString() + " min " + remainderSeconds?.toString() + " sec";

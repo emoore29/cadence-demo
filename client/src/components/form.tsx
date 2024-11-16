@@ -1,21 +1,25 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
 import { syncSpotifyAndIdb } from "@/helpers/general";
 import { filterDatabase, getRecommendations } from "@/helpers/playlist";
-import { FormValues, Track, TrackObject } from "@/types/types";
+import { FormValues, TrackObject, User } from "@/types/types";
 import {
   Button,
   Group,
   NumberInput,
-  Select,
-  useMantineTheme,
   Radio,
+  Select,
   Tooltip,
+  useMantineTheme,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
 import Playlist from "./playlist";
 
-export default function Form() {
+interface FormProps {
+  user: User | null;
+}
+
+export default function Form({ user }: FormProps) {
   const theme = useMantineTheme();
   const form = useForm({
     mode: "uncontrolled",
@@ -46,16 +50,12 @@ export default function Form() {
   const [targetPlaylistLength, setTargetPlaylistLength] = useState<number>(0);
 
   async function handleSubmit(values: FormValues) {
-    const matchingTracksResult: [number, Map<string, TrackObject>] | null =
+    const matchingTracks: Map<string, TrackObject> | null =
       await filterDatabase(values);
-    if (!matchingTracksResult) {
+    if (!matchingTracks) {
       console.log("Could not find matching tracks");
       return;
     }
-
-    const [totalMatches, matchingTracks] = matchingTracksResult;
-
-    console.log("Original matching tracks size:", matchingTracks.size);
 
     // Check if tracks are saved in Spotify library
     const syncedSpotifySaveStatusTracks: Map<string, TrackObject> | null =
@@ -82,7 +82,7 @@ export default function Form() {
     }
 
     setTargetPlaylistLength(values.target); // tracks the initial number of matching tracks to add to the playlist
-    setNumResults(totalMatches); // track number of results so we can tell user how many matches there were
+    setNumResults(matchingTracks.size); // track number of results so we can tell user how many matches there were
 
     // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
     if (newPlaylist.size < values.target) {
@@ -109,31 +109,52 @@ export default function Form() {
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
-    console.log(
-      "After removing duplicates and adding matches to playlist: matching tracks size:",
-      matchingTracks.size
-    );
-
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
-    // Fetch 100 recs, but display 5
-    // Display the next 5 if user clicks refresh
-    const recs: [number, Map<string, TrackObject>] | null =
-      await getRecommendations(values, 5);
+    // Fetch 100 recs (only the first five will be displayed in the Recommendations component)
+    const recs: Map<string, TrackObject> | null = await getRecommendations(
+      values,
+      100
+    );
     if (recs) {
-      // const sampleRecs = shuffleAndSlice(recs[1], 5);
-
-      const [numRecs, recsMap] = recs;
-
-      // Loop through recsMap items, checking if already in playlist
-      for (const key of recsMap.keys()) {
+      // Loop through recs items, checking if already in playlist
+      for (const key of recs.keys()) {
         if (playlist?.get(key)) {
           console.log(`${key} track already in playlist`);
-          recsMap.delete(key);
+          recs.delete(key);
         }
       }
-      setRecommendations(recsMap);
+      setRecommendations(recs);
+    }
+  }
+
+  async function handleRefreshRecs() {
+    let updatedRecs = new Map(recommendations); // Copy current state to avoid mutating
+    const tempArray = Array.from(updatedRecs).slice(4, -1); // Remove first 5 tracks from current recs
+    updatedRecs = new Map(tempArray); // Add newly sliced recs to map
+
+    let newlyFetchedRecs: Map<string, TrackObject> | null; // Initialise Map to store newly fetched recs
+
+    // Fetch new recs if updatedRecs <=5
+    if (updatedRecs.size <= 5) {
+      console.log("Fetching 100 more recs");
+      // fetch and add new recs
+      newlyFetchedRecs = await getRecommendations(form.values, 100);
+      if (!newlyFetchedRecs) return;
+
+      // Loop through recs items, removing tracks that are already in playlist
+      for (const key of newlyFetchedRecs.keys()) {
+        if (playlist?.get(key)) {
+          newlyFetchedRecs.delete(key);
+        }
+      }
+      // TODO: If newly fetched recs <= 5, try new seeds and get more
+      const finalisedRecs = new Map([...updatedRecs, ...newlyFetchedRecs]);
+
+      setRecommendations(finalisedRecs);
+    } else {
+      setRecommendations(updatedRecs);
     }
   }
 
@@ -154,18 +175,17 @@ export default function Form() {
     // If recs.length <= 5, fetch new recs and add to recs
     // Spotify will return the same recs as before. TODO: Update fetchRecs() to create variety in recs
     if (recommendations && recommendations.size <= 5) {
-      const recs: [number, Map<string, TrackObject>] | null =
-        await getRecommendations(form.values, 5);
+      const recs: Map<string, TrackObject> | null = await getRecommendations(
+        form.values,
+        5
+      );
       if (!recs) return;
 
-      // TODO: Check recs for tracks that are already in playlist, and remove them if so
-      const [numRecs, recsMap] = recs;
-
       // Loop through recsMap items, checking if already in playlist
-      for (const key of recsMap.keys()) {
+      for (const key of recs.keys()) {
         if (playlist?.get(key) || recommendations.get(key)) {
           console.log(`${key} track already in playlist or recommended`);
-          recsMap.delete(key);
+          recs.delete(key);
         }
       }
 
@@ -173,7 +193,7 @@ export default function Form() {
 
       setRecommendations((prevRecs) => {
         // Init newRecs Map for adding newRecs to prevRecs
-        const newRecs = new Map([...(prevRecs ?? []), ...recsMap]); // prevRecs as [] if there are no prevRecs
+        const newRecs = new Map([...(prevRecs ?? []), ...recs]); // prevRecs as [] if there are no prevRecs
         return newRecs;
       });
     }
@@ -194,31 +214,24 @@ export default function Form() {
               w={200}
               label={"Filters from your Spotify Saved Tracks."}
             >
-              <Radio value={"1"} label="My Saved Songs" />
+              <Radio value={"1"} disabled={!user} label="My Saved Songs" />
             </Tooltip.Floating>
-            <Radio value={"2"} label="My Top Tracks" />
+            <Radio value={"2"} disabled={!user} label="My Top Tracks" />
             <Radio value={"3"} label="Recommendations" />
           </Group>
         </Radio.Group>
-        {/* <Select
-          variant="filled"
-          key={form.key("source")}
-          {...form.getInputProps("source")}
-          label={"Source"}
-          data={["My Saved Songs", "My Top Tracks", "Get Recommendations"]}
-          allowDeselect={false}
-        /> */}
         <NumberInput
           label="Target number of tracks"
           key={form.key("target")}
           placeholder="20"
           {...form.getInputProps("target")}
+          stepHoldDelay={500}
+          stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
         />
         <div className="bpm">
           <NumberInput
             label="Min BPM"
             key={form.key("minTempo")}
-            description=">=30"
             placeholder="Input placeholder"
             {...form.getInputProps("minTempo")}
             stepHoldDelay={500}
@@ -227,7 +240,6 @@ export default function Form() {
           <NumberInput
             label="Max BPM"
             key={form.key("maxTempo")}
-            description="<=300"
             placeholder="Input placeholder"
             {...form.getInputProps("maxTempo")}
             stepHoldDelay={500}
@@ -250,7 +262,13 @@ export default function Form() {
           />
         ))}
         <Group justify="flex-end" mt="md">
-          <Button type="submit">Submit</Button>
+          <Button
+            color="rgba(255, 255, 255, 0.8)"
+            variant="outline"
+            type="submit"
+          >
+            Submit
+          </Button>
         </Group>
       </form>
       {playlist ? (
@@ -264,6 +282,7 @@ export default function Form() {
           recommendations={recommendations}
           setRecommendations={setRecommendations}
           addRecToPlaylist={addRecToPlaylist}
+          handleRefreshRecs={handleRefreshRecs}
         />
       ) : (
         "Please submit your preferences to generate a playlist."

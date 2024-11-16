@@ -13,7 +13,7 @@ import { showErrorNotif } from "./general";
 
 export async function filterDatabase(
   formValues: FormValues
-): Promise<[number, Map<string, TrackObject>] | null> {
+): Promise<Map<string, TrackObject> | null> {
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
@@ -33,7 +33,7 @@ export async function filterDatabase(
 async function filterFromStore(
   storeName: StoreName,
   formValues: FormValues
-): Promise<[number, Map<string, TrackObject>] | null> {
+): Promise<Map<string, TrackObject> | null> {
   const matchingTracks = new Map<string, TrackObject>();
 
   try {
@@ -46,8 +46,8 @@ async function filterFromStore(
         matchingTracks.set(track.track.id, track);
       }
     }
-    const totalMatches = matchingTracks.size;
-    return [totalMatches, matchingTracks];
+
+    return matchingTracks;
   } catch (error) {
     showErrorNotif(
       "Error",
@@ -63,7 +63,7 @@ async function filterFromStore(
 export async function getRecommendations(
   formValues: FormValues,
   targetRecs?: number
-): Promise<[number, Map<string, TrackObject>] | null> {
+): Promise<Map<string, TrackObject> | null> {
   const { source, target, ...filters } = formValues;
 
   // Converts String selection to a number
@@ -112,7 +112,7 @@ export async function getRecommendations(
   );
 
   if (recs) {
-    return [recs.size, recs];
+    return recs;
   } else {
     console.error("Fetch recommendations returned null");
     return null;

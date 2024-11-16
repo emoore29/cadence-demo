@@ -37,6 +37,7 @@ interface PlaylistProps {
     React.SetStateAction<Map<string, TrackObject> | null>
   >;
   addRecToPlaylist: (track: TrackObject) => void;
+  handleRefreshRecs: () => void;
 }
 
 export default function Playlist({
@@ -49,6 +50,7 @@ export default function Playlist({
   recommendations,
   setRecommendations,
   addRecToPlaylist,
+  handleRefreshRecs,
 }: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -317,16 +319,31 @@ export default function Playlist({
       </Modal.Root>
       <Group justify="flex-end" mt="md">
         {matchingTracks && matchingTracks.size > 0 && (
-          <Button type="button" onClick={showMoreResults}>
+          <Button
+            color="rgba(255, 255, 255, 0.8)"
+            variant="outline"
+            type="button"
+            onClick={showMoreResults}
+          >
             Show more results
           </Button>
         )}
         {matchingTracks && matchingTracks.size > 0 && (
-          <Button type="button" onClick={showAllResults}>
+          <Button
+            color="rgba(255, 255, 255, 0.8)"
+            variant="outline"
+            type="button"
+            onClick={showAllResults}
+          >
             Show all results ({matchingTracks.size})
           </Button>
         )}
-        <Button type="button" onClick={() => setOpened(true)}>
+        <Button
+          color="rgba(255, 255, 255, 0.8)"
+          variant="outline"
+          type="button"
+          onClick={() => setOpened(true)}
+        >
           Save as playlist
         </Button>
       </Group>
@@ -340,6 +357,7 @@ export default function Playlist({
           handleSaveClick={handleSaveClick}
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
           addRecToPlaylist={addRecToPlaylist}
+          handleRefreshRecs={handleRefreshRecs}
         />
       )}
     </div>
