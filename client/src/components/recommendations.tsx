@@ -64,7 +64,7 @@ export default function Recommendations({
         />
         <Table.Td>
           <Button
-            style={{ backgroundColor: "transparent" }}
+            style={{ backgroundColor: "transparent", padding: 0 }}
             onClick={() => addRecToPlaylist(track[1])}
           >
             <IconCirclePlus stroke={2} size={16} />
@@ -79,7 +79,7 @@ export default function Recommendations({
 
   return (
     <>
-      <h2>Recommended</h2>
+      <h2>Suggestions</h2>
       <Table
         highlightOnHoverColor="rgba(255,255,255,0.1)"
         withRowBorders={false}
@@ -87,11 +87,11 @@ export default function Recommendations({
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th style={{ width: "5%" }}>Preview</Table.Th>
-            <Table.Th style={{ width: "40%" }}>Title</Table.Th>
-            <Table.Th style={{ width: "40%" }}>Album</Table.Th>
-            <Table.Th style={{ width: "5%" }}></Table.Th>
-            <Table.Th style={{ width: "5%" }}>Add</Table.Th>
+            <Table.Th></Table.Th>
+            <Table.Th style={{ width: "50%" }}>Title</Table.Th>
+            <Table.Th style={{ width: "50%" }}>Album</Table.Th>
+            <Table.Th></Table.Th>
+            <Table.Th></Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
