@@ -201,7 +201,7 @@ export default function Form({ user }: FormProps) {
 
   return (
     <div className="main">
-      <form className="playlist-form" onSubmit={form.onSubmit(handleSubmit)}>
+      <form className="playlistForm" onSubmit={form.onSubmit(handleSubmit)}>
         <h2>Filters</h2>
         <Radio.Group
           name="source"
