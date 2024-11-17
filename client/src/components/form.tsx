@@ -4,12 +4,12 @@ import { filterDatabase, getRecommendations } from "@/helpers/playlist";
 import { FormValues, TrackObject, User } from "@/types/types";
 import {
   Button,
+  CheckIcon,
   Group,
   NumberInput,
   Radio,
   Select,
   Tooltip,
-  useMantineTheme,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -20,7 +20,6 @@ interface FormProps {
 }
 
 export default function Form({ user }: FormProps) {
-  const theme = useMantineTheme();
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -31,7 +30,7 @@ export default function Form({ user }: FormProps) {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "1",
+      source: "4",
       target: 10,
     },
   });
@@ -208,16 +207,33 @@ export default function Form({ user }: FormProps) {
           label="Source"
           {...form.getInputProps("source")}
         >
-          <Group mt="xs">
+          <Group>
             <Tooltip.Floating
               multiline
               w={200}
               label={"Filters from your Spotify Saved Tracks."}
             >
-              <Radio value={"1"} disabled={!user} label="My Saved Songs" />
+              <Radio
+                className="sourceFilterRadio"
+                value={"1"}
+                icon={CheckIcon}
+                disabled={!user}
+                label="My Saved Songs"
+              />
             </Tooltip.Floating>
-            <Radio value={"2"} disabled={!user} label="My Top Tracks" />
-            <Radio value={"3"} label="Recommendations" />
+            <Radio
+              value={"2"}
+              disabled={!user}
+              icon={CheckIcon}
+              label="My Top Tracks"
+            />
+            <Radio
+              value={"3"}
+              disabled={!user}
+              icon={CheckIcon}
+              label="Recommendations based on listening habits"
+            />
+            <Radio value={"4"} icon={CheckIcon} label="Custom" />
           </Group>
         </Radio.Group>
         <NumberInput

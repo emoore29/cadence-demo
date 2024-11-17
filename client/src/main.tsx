@@ -15,11 +15,38 @@ const theme = createTheme({
       h1: { fontSize: rem(36) },
     },
   },
+  colors: {
+    dark: [
+      "#f9f0f3",
+      "#ecdfe3",
+      "#dbbbc5",
+      "#cb94a6",
+      "#bd748c",
+      "#b5607b",
+      "#7c324a",
+      "#9c4661",
+      "#8c3d56",
+      "#7c324a",
+    ],
+    darkPink: [
+      "#f9f0f3",
+      "#ecdfe3",
+      "#dbbbc5",
+      "#cb94a6",
+      "#bd748c",
+      "#b5607b",
+      "#7c324a",
+      "#9c4661",
+      "#8c3d56",
+      "#7c324a",
+    ],
+  },
+  primaryColor: "darkPink",
 });
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MantineProvider theme={theme}>
+    <MantineProvider defaultColorScheme="dark" theme={theme}>
       <Notifications />
       <ModalsProvider>
         <App />

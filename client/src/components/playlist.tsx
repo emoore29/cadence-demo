@@ -191,7 +191,7 @@ export default function Playlist({
       />
       <Table.Td>
         <Button
-          style={{ backgroundColor: "transparent", padding: 0 }}
+          className="trackActionButton"
           onClick={() => removeFromPlaylist(track[1].track.id)}
         >
           <IconCircleMinus stroke={2} size={16} />
@@ -199,7 +199,7 @@ export default function Playlist({
       </Table.Td>
       <Table.Td>
         <Button
-          style={{ backgroundColor: "transparent", padding: 0 }}
+          className="trackActionButton"
           onClick={() => pinToPlaylist(track[1].track.id)}
         >
           {track[1].pinned === true ? (
@@ -251,13 +251,13 @@ export default function Playlist({
   const playlistTime = calculatePlaylistTime(playlist);
 
   return (
-    <div className="playlist-container">
+    <div className="playlistContainer">
       <h2>Results</h2>
       <p>
         {playlist.size} songs, {playlistTime}
       </p>
       <Table
-        highlightOnHoverColor="rgba(255,255,255,0.1)"
+        highlightOnHoverColor="rgba(0,0,0,0.1)"
         withRowBorders={false}
         highlightOnHover
         horizontalSpacing="xs"

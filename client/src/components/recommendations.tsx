@@ -54,7 +54,7 @@ export default function Recommendations({
   };
 
   const rows = Array.from(recommendations!)
-    .slice(0, 5) // Only display 5. If one is removed, it automatically adds the next one in the array
+    .slice(0, 3) // Only display 5. If one is removed, it automatically adds the next one in the array
     .map((track) => (
       <Table.Tr key={track[1].track.id}>
         <TrackRow
@@ -67,7 +67,7 @@ export default function Recommendations({
         />
         <Table.Td>
           <Button
-            style={{ backgroundColor: "transparent", padding: 0 }}
+            className="trackActionButton"
             onClick={() => addRecToPlaylist(track[1])}
           >
             <IconCirclePlus stroke={2} size={16} />
@@ -80,7 +80,7 @@ export default function Recommendations({
     <>
       <h2>Suggestions</h2>
       <Table
-        highlightOnHoverColor="rgba(255,255,255,0.1)"
+        highlightOnHoverColor="rgba(0,0,0,0.1)"
         withRowBorders={false}
         highlightOnHover
       >

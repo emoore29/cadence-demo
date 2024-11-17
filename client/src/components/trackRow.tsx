@@ -42,8 +42,7 @@ export default function TrackRow(props: TrackRowProps) {
             </audio>
             <Button
               type="button"
-              style={{ backgroundColor: "transparent", padding: 0 }}
-              className="playPauseButton"
+              className="trackActionButton"
               onClick={() => playSampleTrack(track.track.id)}
             >
               {playingTrackId === track.track.id ? (
@@ -121,8 +120,7 @@ export default function TrackRow(props: TrackRowProps) {
       <Table.Td>
         <Button
           type="button"
-          style={{ backgroundColor: "transparent", padding: 0 }}
-          className="saveTrackBtn"
+          className="trackActionButton"
           disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
           onClick={() => handleSaveClick(track, track.saved!)}
         >

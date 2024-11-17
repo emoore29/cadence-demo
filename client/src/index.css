@@ -9,12 +9,16 @@ body {
   padding: 0 100px;
   box-sizing: border-box;
   background: radial-gradient(
-      farthest-side at bottom left,
-      #5c1c37,
-      transparent
+      circle farthest-side at bottom left,
+      #5c1c37 400px,
+      #6b243f
     ),
-    radial-gradient(farthest-corner at bottom right, #8f3c3c, transparent 400px),
-    radial-gradient(farthest-side at 70%, #8b3851, transparent 500px);
+    radial-gradient(
+      circle 600px farthest-corner at bottom right,
+      #8f3c3c 400px,
+      #6b243f 400px
+    ),
+    radial-gradient(circle farthest-corner at 15% 20%, #35171f #6b243f);
 }
 
 .container {
@@ -34,6 +38,11 @@ a:hover {
 
 h1 {
   font-size: 2em;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.2em;
 }
 
 .header {
@@ -61,7 +70,7 @@ h1 {
 }
 
 .user-img:hover {
-  border-color: #d2d2d2a3; /* Change border color on hover */
+  border-color: rgba(0, 0, 0, 0.2); /* Change border color on hover */
 }
 
 #user-menu {
@@ -72,15 +81,16 @@ h1 {
 .playlistForm {
   display: flex;
   flex-direction: column;
-  min-width: 300px;
-  background-color: #0000003b;
+  width: 300px;
+  background-color: rgba(0, 0, 0, 0.2);
   padding: 20px;
   border-radius: 20px;
   height: fit-content;
 }
 
-.playlist-container {
+.playlistContainer {
   width: 100%;
+  padding: 20px 0;
 }
 
 .playlist {
@@ -141,4 +151,38 @@ tr {
 .trackArtist,
 .trackAlbum {
   color: rgba(255, 255, 255, 0.8);
+}
+
+.trackActionButton {
+  background-color: transparent;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mantine-Radio-label[data-disabled] {
+  color: rgba(180, 180, 180, 0.6);
+}
+
+.mantine-Radio-radio[disabled] {
+  background-color: rgba(180, 180, 180, 0.6);
+  border: none;
+}
+
+.mantine-Radio-radio {
+  background-color: rgba(180, 180, 180, 0);
+  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.2);
+}
+
+.mantine-Input-input {
+  background-color: rgba(180, 180, 180, 0);
+  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.2);
+}
+
+.mantine-NumberInput-control:hover {
+  background-color: #6b243f;
+}
+
+.mantine-NumberInput-control {
+  border-left: calc(0.0625rem * var(--mantine-scale)) solid
+    rgba(255, 255, 255, 0.2);
 }

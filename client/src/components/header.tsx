@@ -96,7 +96,12 @@ export default function Header({
           </Menu.Dropdown>
         </Menu>
       ) : (
-        <a href="http://localhost:3000/login">login</a>
+        <a
+          href="http://localhost:3000/login"
+          style={{ color: "rgba(255,255,255,1)" }}
+        >
+          Sign in
+        </a>
       )}
     </div>
   );

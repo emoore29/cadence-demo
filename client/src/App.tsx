@@ -85,12 +85,6 @@ function App() {
         setLibSize={setLibSize}
         setLibraryStored={setLibraryStored}
       />
-      {!user && (
-        <p>
-          Welcome to Cadence! To use the full functionality of Cadence, please
-          log in.
-        </p>
-      )}
       {user && !libraryStored && (
         <>
           <p>

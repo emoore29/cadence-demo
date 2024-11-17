@@ -13,7 +13,7 @@ import { showErrorNotif } from "./general";
 
 export async function filterDatabase(
   formValues: FormValues
-): Promise<Map<string, TrackObject> | null> {
+): Promise<Map<string, TrackObject> | null | void> {
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
@@ -23,6 +23,8 @@ export async function filterDatabase(
       return await filterFromStore("topTracks", formValues);
     case "3":
       return await getRecommendations(formValues);
+    case "4":
+      return console.log("Getting custom recommendations");
     default:
       return null;
   }
