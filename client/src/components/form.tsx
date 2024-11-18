@@ -3,7 +3,9 @@ import { syncSpotifyAndIdb } from "@/helpers/general";
 import { filterDatabase, getRecommendations } from "@/helpers/playlist";
 import { FormValues, TrackObject, User } from "@/types/types";
 import {
+  Accordion,
   Button,
+  Checkbox,
   CheckIcon,
   Group,
   NumberInput,
@@ -12,14 +14,18 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { useState } from "react";
+import LoadingPlaylist from "./loadingPlaylist";
 import Playlist from "./playlist";
 
 interface FormProps {
   user: User | null;
+  storeMyData: () => void;
+  libraryStored: boolean;
 }
 
-export default function Form({ user }: FormProps) {
+export default function Form({ user, storeMyData, libraryStored }: FormProps) {
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -30,7 +36,7 @@ export default function Form({ user }: FormProps) {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "4",
+      source: "1",
       target: 10,
     },
   });
@@ -47,10 +53,16 @@ export default function Form({ user }: FormProps) {
     TrackObject
   > | null>(null);
   const [targetPlaylistLength, setTargetPlaylistLength] = useState<number>(0);
+  const [loadingPlaylist, setLoadingPlaylist] = useState<boolean>(false);
+  const [anyTempo, setAnyTempo] = useState<boolean>(true);
 
-  async function handleSubmit(values: FormValues) {
+  async function handleSubmit(values: FormValues, anyTempo: boolean) {
+    setLoadingPlaylist(true);
+
+    // Clear playlist (except for pinned)
+
     const matchingTracks: Map<string, TrackObject> | null =
-      await filterDatabase(values);
+      await filterDatabase(values, anyTempo);
     if (!matchingTracks) {
       console.log("Could not find matching tracks");
       return;
@@ -90,8 +102,9 @@ export default function Form({ user }: FormProps) {
       // Remove any tracks from matchingTracks that are already in the playlist (pinned)
       for (const key of matchingTracks.keys()) {
         if (playlist?.get(key)) {
-          console.log(`${key} track already in playlist`);
-          matchingTracks.delete(key);
+          if (playlist.get(key)?.pinned) {
+            matchingTracks.delete(key);
+          }
         }
       }
 
@@ -108,12 +121,14 @@ export default function Form({ user }: FormProps) {
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
+    setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
     // Fetch 100 recs (only the first five will be displayed in the Recommendations component)
     const recs: Map<string, TrackObject> | null = await getRecommendations(
       values,
+      anyTempo,
       100
     );
     if (recs) {
@@ -139,7 +154,7 @@ export default function Form({ user }: FormProps) {
     if (updatedRecs.size <= 5) {
       console.log("Fetching 100 more recs");
       // fetch and add new recs
-      newlyFetchedRecs = await getRecommendations(form.values, 100);
+      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
       if (!newlyFetchedRecs) return;
 
       // Loop through recs items, removing tracks that are already in playlist
@@ -176,6 +191,7 @@ export default function Form({ user }: FormProps) {
     if (recommendations && recommendations.size <= 5) {
       const recs: Map<string, TrackObject> | null = await getRecommendations(
         form.values,
+        anyTempo,
         5
       );
       if (!recs) return;
@@ -200,83 +216,148 @@ export default function Form({ user }: FormProps) {
 
   return (
     <div className="main">
-      <form className="playlistForm" onSubmit={form.onSubmit(handleSubmit)}>
+      <form
+        className="playlistForm"
+        onSubmit={form.onSubmit((values) => handleSubmit(values, anyTempo))}
+      >
         <h2>Filters</h2>
-        <Radio.Group
-          name="source"
-          label="Source"
-          {...form.getInputProps("source")}
-        >
-          <Group>
-            <Tooltip.Floating
-              multiline
-              w={200}
-              label={"Filters from your Spotify Saved Tracks."}
-            >
-              <Radio
-                className="sourceFilterRadio"
-                value={"1"}
-                icon={CheckIcon}
-                disabled={!user}
-                label="My Saved Songs"
+        <Accordion defaultValue="Tracks Source">
+          <Accordion.Item value="Tracks Source">
+            <Accordion.Control>Tracks Source</Accordion.Control>
+            <Accordion.Panel>
+              <Radio.Group
+                name="source"
+                label="Source"
+                {...form.getInputProps("source")}
+              >
+                <Group
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    textAlign: "left",
+                  }}
+                >
+                  <Radio value={"1"} icon={CheckIcon} label="Custom" />
+                  {!libraryStored ? (
+                    <Button onClick={storeMyData} style={{ maxWidth: "100%" }}>
+                      Fetch Spotify data to access personalised playlist
+                      features.
+                    </Button>
+                  ) : (
+                    <>
+                      <Tooltip.Floating
+                        multiline
+                        w={200}
+                        label={"Filters from your Spotify Saved Tracks."}
+                      >
+                        <Radio
+                          className="sourceFilterRadio"
+                          value={"2"}
+                          icon={CheckIcon}
+                          // disabled={!user || !libraryStored}
+                          label="Saved Songs"
+                        />
+                      </Tooltip.Floating>
+                      <Radio
+                        value={"3"}
+                        // disabled={!user || !libraryStored}
+                        icon={CheckIcon}
+                        label="Top Tracks"
+                      />
+                      <Radio
+                        value={"4"}
+                        // disabled={!user || !libraryStored}
+                        icon={CheckIcon}
+                        label="Recommendations"
+                      />
+                    </>
+                  )}
+                </Group>
+              </Radio.Group>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value="Target Length">
+            <Accordion.Control>Target Length</Accordion.Control>
+            <Accordion.Panel>
+              <NumberInput
+                label="Target number of tracks"
+                key={form.key("target")}
+                placeholder="20"
+                {...form.getInputProps("target")}
+                stepHoldDelay={500}
+                stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
               />
-            </Tooltip.Floating>
-            <Radio
-              value={"2"}
-              disabled={!user}
-              icon={CheckIcon}
-              label="My Top Tracks"
-            />
-            <Radio
-              value={"3"}
-              disabled={!user}
-              icon={CheckIcon}
-              label="Recommendations based on listening habits"
-            />
-            <Radio value={"4"} icon={CheckIcon} label="Custom" />
-          </Group>
-        </Radio.Group>
-        <NumberInput
-          label="Target number of tracks"
-          key={form.key("target")}
-          placeholder="20"
-          {...form.getInputProps("target")}
-          stepHoldDelay={500}
-          stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-        />
-        <div className="bpm">
-          <NumberInput
-            label="Min BPM"
-            key={form.key("minTempo")}
-            placeholder="Input placeholder"
-            {...form.getInputProps("minTempo")}
-            stepHoldDelay={500}
-            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-          />
-          <NumberInput
-            label="Max BPM"
-            key={form.key("maxTempo")}
-            placeholder="Input placeholder"
-            {...form.getInputProps("maxTempo")}
-            stepHoldDelay={500}
-            stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-          />
-        </div>
-        {[
-          "Valence",
-          "Danceability",
-          "Energy",
-          "Instrumentalness",
-          "Acousticness",
-        ].map((filter: string) => (
-          <Select
-            key={form.key(`target` + filter)}
-            {...form.getInputProps(`target` + filter)}
-            label={filter}
-            data={["Any", "Low", "Medium", "High"]}
-            allowDeselect={false}
-          />
-        ))}
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value="BPM">
+            <Accordion.Control>Tempo</Accordion.Control>
+            <Accordion.Panel>
+              <Checkbox
+                checked={anyTempo}
+                label="Any"
+                onChange={(event) => {
+                  const isChecked = event.currentTarget.checked;
+                  setAnyTempo(isChecked);
+                }}
+              />
+              <div className="bpm">
+                <NumberInput
+                  label="Min Tempo"
+                  key={form.key("minTempo")}
+                  placeholder="Input placeholder"
+                  disabled={anyTempo}
+                  {...form.getInputProps("minTempo")}
+                  stepHoldDelay={500}
+                  stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
+                />
+                <NumberInput
+                  label="Max Tempo"
+                  key={form.key("maxTempo")}
+                  placeholder="Input placeholder"
+                  disabled={anyTempo}
+                  {...form.getInputProps("maxTempo")}
+                  stepHoldDelay={500}
+                  stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
+                />
+              </div>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value="Advanced">
+            <Accordion.Control>Advanced</Accordion.Control>
+
+            <Accordion.Panel>
+              <Tooltip
+                multiline
+                w={220}
+                label="Advanced filters are subjective and may limit results more than desired."
+                events={{ hover: true, focus: true, touch: false }}
+                position="right"
+              >
+                <IconInfoCircle
+                  style={{ color: "rgba(255,255,255,0.6)" }}
+                  size={22}
+                  stroke={2}
+                />
+              </Tooltip>
+              {[
+                "Valence",
+                "Danceability",
+                "Energy",
+                "Instrumentalness",
+                "Acousticness",
+              ].map((filter: string) => (
+                <Select
+                  key={form.key(`target` + filter)}
+                  {...form.getInputProps(`target` + filter)}
+                  label={filter}
+                  data={["Any", "Low", "Medium", "High"]}
+                  allowDeselect={false}
+                />
+              ))}
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
         <Group justify="flex-end" mt="md">
           <Button
             color="rgba(255, 255, 255, 0.8)"
@@ -287,7 +368,8 @@ export default function Form({ user }: FormProps) {
           </Button>
         </Group>
       </form>
-      {playlist ? (
+      {loadingPlaylist && <LoadingPlaylist />}
+      {!loadingPlaylist && playlist && (
         <Playlist
           setMatchingTracks={setMatchingTracks}
           matchingTracks={matchingTracks}
@@ -299,10 +381,12 @@ export default function Form({ user }: FormProps) {
           setRecommendations={setRecommendations}
           addRecToPlaylist={addRecToPlaylist}
           handleRefreshRecs={handleRefreshRecs}
+          loadingPlaylist={loadingPlaylist}
         />
-      ) : (
-        "Please submit your preferences to generate a playlist."
       )}
+      {!loadingPlaylist &&
+        !playlist &&
+        "Please submit your preferences to generate a playlist."}
     </div>
   );
 }

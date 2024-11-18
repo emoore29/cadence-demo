@@ -197,8 +197,8 @@ export interface TopTracks {
 }
 
 export interface FormValues {
-  minTempo: number | undefined;
-  maxTempo: number | undefined;
+  minTempo: number;
+  maxTempo: number;
   targetValence: string;
   targetDanceability: string;
   targetEnergy: string;

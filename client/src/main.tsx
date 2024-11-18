@@ -20,7 +20,7 @@ const theme = createTheme({
       "#f9f0f3",
       "#ecdfe3",
       "#dbbbc5",
-      "#cb94a6",
+      "#b2647e",
       "#bd748c",
       "#b5607b",
       "#7c324a",

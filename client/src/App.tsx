@@ -100,7 +100,11 @@ function App() {
           )}
         </>
       )}
-      <Form user={user} />
+      <Form
+        user={user}
+        storeMyData={storeMyData}
+        libraryStored={libraryStored}
+      />
     </div>
   );
 }

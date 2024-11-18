@@ -117,6 +117,7 @@ export default function TrackRow(props: TrackRowProps) {
           {track.track.album.name}
         </a>
       </Table.Td>
+      <Table.Td>Track Length</Table.Td>
       <Table.Td>
         <Button
           type="button"

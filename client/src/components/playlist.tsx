@@ -13,6 +13,7 @@ import {
   Modal,
   Table,
   TextInput,
+  Skeleton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
@@ -38,6 +39,7 @@ interface PlaylistProps {
   >;
   addRecToPlaylist: (track: TrackObject) => void;
   handleRefreshRecs: () => void;
+  loadingPlaylist: boolean;
 }
 
 export default function Playlist({
@@ -51,6 +53,7 @@ export default function Playlist({
   setRecommendations,
   addRecToPlaylist,
   handleRefreshRecs,
+  loadingPlaylist,
 }: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -266,8 +269,9 @@ export default function Playlist({
         <Table.Thead>
           <Table.Tr>
             <Table.Th></Table.Th>
-            <Table.Th style={{ width: "50%" }}>Title</Table.Th>
-            <Table.Th style={{ width: "50%" }}>Album</Table.Th>
+            <Table.Th style={{ width: "45%" }}>Title</Table.Th>
+            <Table.Th style={{ width: "45%" }}>Album</Table.Th>
+            <Table.Th>Length</Table.Th>
             <Table.Th></Table.Th>
             <Table.Th></Table.Th>
             <Table.Th></Table.Th>
@@ -325,7 +329,7 @@ export default function Playlist({
             type="button"
             onClick={showMoreResults}
           >
-            Show more results
+            Show more results (+5)
           </Button>
         )}
         {matchingTracks && matchingTracks.size > 0 && (
@@ -335,7 +339,7 @@ export default function Playlist({
             type="button"
             onClick={showAllResults}
           >
-            Show all results ({matchingTracks.size})
+            Show all results (+{matchingTracks.size})
           </Button>
         )}
         <Button

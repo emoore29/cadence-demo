@@ -1,3 +1,7 @@
+:root {
+  --subtle-border: rgba(255, 255, 255, 0.1);
+}
+
 body {
   height: 100vh;
   margin: 0;
@@ -43,6 +47,7 @@ h1 {
 h2 {
   margin-top: 0;
   font-size: 1.2em;
+  padding: 0 10px;
 }
 
 .header {
@@ -138,10 +143,10 @@ h2 {
   vertical-align: middle;
 }
 
-td,
+/* td,
 tr {
   height: 100%;
-}
+} */
 
 .trackLink {
   color: white;
@@ -160,22 +165,21 @@ tr {
 }
 
 .mantine-Radio-label[data-disabled] {
-  color: rgba(180, 180, 180, 0.6);
+  color: rgba(219, 219, 219, 0.6);
 }
 
 .mantine-Radio-radio[disabled] {
-  background-color: rgba(180, 180, 180, 0.6);
-  border: none;
+  background-color: rgb(139, 139, 139, 0);
 }
 
 .mantine-Radio-radio {
   background-color: rgba(180, 180, 180, 0);
-  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.2);
+  border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
 }
 
 .mantine-Input-input {
   background-color: rgba(180, 180, 180, 0);
-  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.2);
+  border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
 }
 
 .mantine-NumberInput-control:hover {
@@ -183,6 +187,23 @@ tr {
 }
 
 .mantine-NumberInput-control {
-  border-left: calc(0.0625rem * var(--mantine-scale)) solid
-    rgba(255, 255, 255, 0.2);
+  border-left: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
+}
+
+.mantine-Accordion-control {
+  padding: 10px;
+}
+
+.mantine-Accordion-label {
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.mantine-Accordion-content {
+  padding: 10px 10px 20px 10px;
+}
+
+.mantine-Accordion-item {
+  border-bottom: 1px solid var(--subtle-border);
 }

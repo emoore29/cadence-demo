@@ -12,19 +12,24 @@ import { getItemFromLocalStorage } from "./localStorage";
 import { showErrorNotif } from "./general";
 
 export async function filterDatabase(
-  formValues: FormValues
+  formValues: FormValues,
+  anyTempo: boolean
 ): Promise<Map<string, TrackObject> | null | void> {
   const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
 
   switch (store) {
     case "1":
-      return await filterFromStore("library", formValues);
-    case "2":
-      return await filterFromStore("topTracks", formValues);
-    case "3":
-      return await getRecommendations(formValues);
-    case "4":
       return console.log("Getting custom recommendations");
+
+    case "2":
+      return await filterFromStore("library", formValues, anyTempo);
+
+    case "3":
+      return await filterFromStore("topTracks", formValues, anyTempo);
+
+    case "4":
+      return await getRecommendations(formValues, anyTempo);
+
     default:
       return null;
   }
@@ -34,7 +39,8 @@ export async function filterDatabase(
 // Returns array of matching tracks
 async function filterFromStore(
   storeName: StoreName,
-  formValues: FormValues
+  formValues: FormValues,
+  anyTempo: boolean
 ): Promise<Map<string, TrackObject> | null> {
   const matchingTracks = new Map<string, TrackObject>();
 
@@ -43,7 +49,7 @@ async function filterFromStore(
 
     for (const track of tracks) {
       const trackFeatures: TrackFeatures = track.features;
-      if (matches(trackFeatures, formValues)) {
+      if (matches(trackFeatures, formValues, anyTempo)) {
         // If track features match, add to map with id as key
         matchingTracks.set(track.track.id, track);
       }
@@ -61,29 +67,16 @@ async function filterFromStore(
 }
 
 // Gets recommendations from Spotify based on filters
+// Used for user "Get Recommendations"/"Custom" search, or used to populate Suggestions table
 // Returns 5 recommended songs
 export async function getRecommendations(
   formValues: FormValues,
+  anyTempo: boolean,
   targetRecs?: number
 ): Promise<Map<string, TrackObject> | null> {
   const { source, target, ...filters } = formValues;
 
-  // Converts String selection to a number
-  function convertToNumber(level: string): number | null {
-    switch (level) {
-      case "Any":
-        return null;
-      case "Low":
-        return 0.333;
-      case "Medium":
-        return 0.666;
-      case "High":
-        return 1;
-      default:
-        return null;
-    }
-  }
-
+  // Convert String selections (Any, Low, Med, High) to target numbers
   const targetValence: number | null = convertToNumber(filters.targetValence);
   const targetDanceability: number | null = convertToNumber(
     filters.targetDanceability
@@ -96,9 +89,10 @@ export async function getRecommendations(
     filters.targetAcousticness
   );
 
+  // Create object with numeric filters to pass to fetchRecommendations
   const numericFilters = {
-    ...(filters.minTempo !== null && { minTempo: filters.minTempo }),
-    ...(filters.maxTempo !== null && { maxTempo: filters.maxTempo }),
+    ...(!anyTempo && { minTempo: filters.minTempo }),
+    ...(!anyTempo && { maxTempo: filters.maxTempo }),
     ...(targetValence !== null && { targetValence }),
     ...(targetDanceability !== null && { targetDanceability }),
     ...(targetEnergy !== null && { targetEnergy }),
@@ -112,34 +106,45 @@ export async function getRecommendations(
     numericFilters,
     targetRecs ? targetRecs : target
   );
+  if (!recs) return null;
+  return recs;
+}
 
-  if (recs) {
-    return recs;
-  } else {
-    console.error("Fetch recommendations returned null");
-    return null;
+function convertToNumber(level: string): number | null {
+  switch (level) {
+    case "Any":
+      return null;
+    case "Low":
+      return 0.333;
+    case "Medium":
+      return 0.666;
+    case "High":
+      return 1;
+    default:
+      return null;
   }
 }
 
 // Shuffles the matched songs and returns an array of a given size
-export function shuffleAndSlice(
-  matchingTracks: TrackObject[],
-  size: number
-): TrackObject[] {
-  // Shuffles matches and returns a playlist the size requested
-  for (let i: number = matchingTracks.length - 1; i > 0; i--) {
-    const j: number = Math.floor(Math.random() * (i + 1));
-    const temp = matchingTracks[i];
-    matchingTracks[i] = matchingTracks[j];
-    matchingTracks[j] = temp;
-  }
-  return matchingTracks.slice(0, size);
-}
+// export function shuffleAndSlice(
+//   matchingTracks: TrackObject[],
+//   size: number
+// ): TrackObject[] {
+//   // Shuffles matches and returns a playlist the size requested
+//   for (let i: number = matchingTracks.length - 1; i > 0; i--) {
+//     const j: number = Math.floor(Math.random() * (i + 1));
+//     const temp = matchingTracks[i];
+//     matchingTracks[i] = matchingTracks[j];
+//     matchingTracks[j] = temp;
+//   }
+//   return matchingTracks.slice(0, size);
+// }
 
 // Checks if a given track's features match values requested by the user
 function matches(
   trackFeatures: TrackFeatures,
-  formValues: FormValues
+  formValues: FormValues,
+  anyTempo: boolean
 ): boolean {
   const {
     minTempo,
@@ -152,8 +157,7 @@ function matches(
   } = formValues;
 
   if (
-    minTempo != null &&
-    maxTempo != null &&
+    !anyTempo &&
     (trackFeatures.tempo <= minTempo || trackFeatures.tempo >= maxTempo)
   ) {
     return false;

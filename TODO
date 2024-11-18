@@ -1,15 +1,14 @@
-Add "any" option for BPM
-Add track time to table
-Change pause to play when sample track reaches end of sample
-Add loading indicators between searches
-Add loading indicator when fetching more recs and recs < 5
-Add disabled indicators over saved/top track filters for if user isn't logged in
-Add tooltips for filters and advanced section to indicate they will limit results
-Add Spotify icon in footer
-Add refetch recs if no recs are returned from Spotify or indicator that none were returned
-Add pin all / unpin all buttons
-Add custom recommendation filters for artists/tracks/genres
-Add svg circle loop around sample play buttons
+Disable BPM inputs when Any is checked
+Track time to table
+Change pause to play when sample track reaches end of sample & add circle progress svg
+Style skeletons for loading playlist & recommendations
+Sign in prompt over disabled source radio buttons & style grey color
+Tooltips for filters and advanced section to indicate they will limit results
+Spotify icon somewhere
+Refetch recs if no recs are returned from Spotify or indicator that none were returned
+Pin all / unpin all buttons
+Custom recommendation filters for artists/tracks/genres
 Move song order in playlist
 Right click to generate playlist from a track or artist
 Replace target tracks with target time??
+Fix "already in playlist" for non-pinned items
