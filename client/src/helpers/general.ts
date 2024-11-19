@@ -54,10 +54,10 @@ export function calculatePlaylistTime(
   }
 
   // Convert ms to h/m/s
-  return msToTime(totalTimeMs);
+  return msToPlaylistTime(totalTimeMs);
 }
 
-function msToTime(ms: number): string {
+function msToPlaylistTime(ms: number): string {
   let seconds;
   let remainderSeconds;
   let minutes;
@@ -89,6 +89,60 @@ function msToTime(ms: number): string {
       minutes.toString() + " min " + remainderSeconds?.toString() + " sec";
   } else {
     totalTime = seconds.toString() + " sec";
+  }
+  return totalTime;
+}
+
+export function msToTrackTime(ms: number): string {
+  let seconds;
+  let remainderSeconds;
+  let minutes;
+  let remainderMinutes;
+  let hours;
+
+  // Divide by 1000 to get num seconds (discard the extra)
+  seconds = Math.floor(ms / 1000); // ignore remainder ms
+
+  // If seconds <= 60
+  // Divide by 60 to get num minutes ()
+  if (seconds >= 60) {
+    minutes = Math.floor(seconds / 60);
+    remainderSeconds = seconds % 60;
+  }
+
+  // If mins > 60, divide mins by 60 to get num hours
+  if (minutes && minutes >= 60) {
+    hours = Math.floor(minutes / 60);
+    remainderMinutes = minutes % 60;
+  }
+
+  let totalTime: string;
+  if (hours) {
+    if (hours < 10) {
+      hours = "0" + hours;
+    }
+    if (remainderMinutes && remainderMinutes < 10) {
+      remainderMinutes = "0" + remainderMinutes;
+    }
+    if (remainderSeconds && remainderSeconds < 10) {
+      remainderSeconds = "0" + remainderSeconds;
+    }
+    totalTime =
+      hours.toString() +
+      ":" +
+      remainderMinutes?.toString() +
+      ":" +
+      remainderSeconds?.toString();
+  } else if (minutes) {
+    if (remainderSeconds && remainderSeconds < 10) {
+      remainderSeconds = "0" + remainderSeconds;
+    }
+    totalTime = minutes.toString() + ":" + remainderSeconds?.toString();
+  } else {
+    if (seconds < 10) {
+      seconds = "0" + seconds;
+    }
+    totalTime = "00" + seconds.toString();
   }
   return totalTime;
 }

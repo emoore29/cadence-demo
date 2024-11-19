@@ -96,7 +96,7 @@ function App() {
               Store my Spotify data in the database!
             </Button>
           ) : (
-            <Loader color="teal" type="dots" />
+            <Loader color="white" type="dots" />
           )}
         </>
       )}

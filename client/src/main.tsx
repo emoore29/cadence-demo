@@ -22,8 +22,8 @@ const theme = createTheme({
       "#dbbbc5",
       "#b2647e",
       "#bd748c",
-      "#b5607b",
-      "#7c324a",
+      "#b5607b", //b5607b
+      "#7c324a", //7c324a
       "#9c4661",
       "#8c3d56",
       "#7c324a",

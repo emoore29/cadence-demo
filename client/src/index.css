@@ -47,6 +47,10 @@ h1 {
 h2 {
   margin-top: 0;
   font-size: 1.2em;
+  padding: 0 0;
+}
+
+h2#filters {
   padding: 0 10px;
 }
 
@@ -164,6 +168,10 @@ tr {
   color: rgba(255, 255, 255, 0.8);
 }
 
+.trackActionButton:hover {
+  background-color: transparent;
+}
+
 .mantine-Radio-label[data-disabled] {
   color: rgba(219, 219, 219, 0.6);
 }
@@ -174,12 +182,17 @@ tr {
 
 .mantine-Radio-radio {
   background-color: rgba(180, 180, 180, 0);
-  border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
+  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.4);
 }
 
 .mantine-Input-input {
   background-color: rgba(180, 180, 180, 0);
   border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
+}
+
+.mantine-Checkbox-input {
+  background-color: rgba(180, 180, 180, 0);
+  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.4);
 }
 
 .mantine-NumberInput-control:hover {
@@ -206,4 +219,10 @@ tr {
 
 .mantine-Accordion-item {
   border-bottom: 1px solid var(--subtle-border);
+}
+
+.mantine-Popover-dropdown,
+.mantine-Menu-dropdown {
+  background-color: rgb(110, 45, 66);
+  border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
 }

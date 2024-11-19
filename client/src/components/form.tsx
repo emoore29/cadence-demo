@@ -220,7 +220,7 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
         className="playlistForm"
         onSubmit={form.onSubmit((values) => handleSubmit(values, anyTempo))}
       >
-        <h2>Filters</h2>
+        <h2 id="filters">Filters</h2>
         <Accordion defaultValue="Tracks Source">
           <Accordion.Item value="Tracks Source">
             <Accordion.Control>Tracks Source</Accordion.Control>
@@ -359,13 +359,7 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
           </Accordion.Item>
         </Accordion>
         <Group justify="flex-end" mt="md">
-          <Button
-            color="rgba(255, 255, 255, 0.8)"
-            variant="outline"
-            type="submit"
-          >
-            Submit
-          </Button>
+          <Button type="submit">Submit</Button>
         </Group>
       </form>
       {loadingPlaylist && <LoadingPlaylist />}

@@ -3,8 +3,8 @@ import { Table, Skeleton } from "@mantine/core";
 export default function LoadingPlaylist() {
   const skeletonArray = Array.from({ length: 8 }, (value, index) => index);
 
-  const loadingRows = skeletonArray.map(() => (
-    <Table.Tr>
+  const loadingRows = skeletonArray.map((item) => (
+    <Table.Tr key={item}>
       <Table.Td></Table.Td>
       <Table.Td>
         <Skeleton height={10} radius="xl" width="50%" />

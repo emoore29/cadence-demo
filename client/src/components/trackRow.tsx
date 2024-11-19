@@ -7,6 +7,7 @@ import {
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
 import React from "react";
+import { msToTrackTime } from "@/helpers/general";
 
 type TrackRowProps = {
   track: TrackObject;
@@ -117,7 +118,7 @@ export default function TrackRow(props: TrackRowProps) {
           {track.track.album.name}
         </a>
       </Table.Td>
-      <Table.Td>Track Length</Table.Td>
+      <Table.Td>{msToTrackTime(track.track.duration_ms)}</Table.Td>
       <Table.Td>
         <Button
           type="button"
@@ -126,7 +127,7 @@ export default function TrackRow(props: TrackRowProps) {
           onClick={() => handleSaveClick(track, track.saved!)}
         >
           {loadingSaveStatusTrackIds.includes(track.track.id) ? (
-            <Loader size={16} />
+            <Loader color="white" size={16} />
           ) : track.saved === true ? (
             <IconHeartFilled size={16} />
           ) : (

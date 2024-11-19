@@ -342,12 +342,7 @@ export default function Playlist({
             Show all results (+{matchingTracks.size})
           </Button>
         )}
-        <Button
-          color="rgba(255, 255, 255, 0.8)"
-          variant="outline"
-          type="button"
-          onClick={() => setOpened(true)}
-        >
+        <Button type="button" onClick={() => setOpened(true)}>
           Save as playlist
         </Button>
       </Group>

@@ -97,13 +97,7 @@ export default function Recommendations({
       </Table>
 
       <Group justify="flex-end" mt="md">
-        <Button
-          variant="outline"
-          color="rgba(255, 255, 255, 0.8)"
-          onClick={handleRefreshRecs}
-        >
-          Refresh
-        </Button>
+        <Button onClick={handleRefreshRecs}>Refresh</Button>
       </Group>
     </>
   );
