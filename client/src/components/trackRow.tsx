@@ -8,6 +8,8 @@ import {
 } from "@tabler/icons-react";
 import React from "react";
 import { msToTrackTime } from "@/helpers/general";
+import LikeIcon from "@/icons/LikeIcon";
+import LikedIcon from "@/icons/LikedIcon";
 
 type TrackRowProps = {
   track: TrackObject;
@@ -129,9 +131,9 @@ export default function TrackRow(props: TrackRowProps) {
           {loadingSaveStatusTrackIds.includes(track.track.id) ? (
             <Loader color="white" size={16} />
           ) : track.saved === true ? (
-            <IconHeartFilled size={16} />
+            <LikedIcon size={16} />
           ) : (
-            <IconHeart stroke={2} size={16} />
+            <LikeIcon size={16} />
           )}
         </Button>
       </Table.Td>

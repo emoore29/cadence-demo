@@ -58,91 +58,33 @@ export function calculatePlaylistTime(
 }
 
 function msToPlaylistTime(ms: number): string {
-  let seconds;
-  let remainderSeconds;
-  let minutes;
-  let remainderMinutes;
-  let hours;
+  // Convert ms to seconds, rounding
+  let totalSeconds = Math.round(ms / 1000);
 
-  // Divide by 1000 to get num seconds (discard the extra)
-  seconds = Math.floor(ms / 1000); // ignore remainder ms
+  // Calculate hours, minutes, and seconds
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
 
-  // If seconds <= 60
-  // Divide by 60 to get num minutes ()
-  if (seconds >= 60) {
-    minutes = Math.floor(seconds / 60);
-    remainderSeconds = seconds % 60;
-  }
-
-  // If mins > 60, divide mins by 60 to get num hours
-  if (minutes && minutes >= 60) {
-    hours = Math.floor(minutes / 60);
-    remainderMinutes = minutes % 60;
-  }
-
-  let totalTime: string;
-  if (hours) {
-    totalTime =
-      hours.toString() + " hr " + remainderMinutes?.toString() + " min ";
-  } else if (minutes) {
-    totalTime =
-      minutes.toString() + " min " + remainderSeconds?.toString() + " sec";
-  } else {
-    totalTime = seconds.toString() + " sec";
-  }
-  return totalTime;
+  return hours > 0
+    ? `${hours.toString()} hr ${minutes.toString()} min`
+    : `${minutes.toString()} min ${seconds.toString()} sec`;
 }
 
 export function msToTrackTime(ms: number): string {
-  let seconds;
-  let remainderSeconds;
-  let minutes;
-  let remainderMinutes;
-  let hours;
+  // Convert ms to seconds, rounding
+  let totalSeconds = Math.round(ms / 1000);
 
-  // Divide by 1000 to get num seconds (discard the extra)
-  seconds = Math.floor(ms / 1000); // ignore remainder ms
+  // Calculate hours, minutes, and seconds
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
 
-  // If seconds <= 60
-  // Divide by 60 to get num minutes ()
-  if (seconds >= 60) {
-    minutes = Math.floor(seconds / 60);
-    remainderSeconds = seconds % 60;
-  }
-
-  // If mins > 60, divide mins by 60 to get num hours
-  if (minutes && minutes >= 60) {
-    hours = Math.floor(minutes / 60);
-    remainderMinutes = minutes % 60;
-  }
-
-  let totalTime: string;
-  if (hours) {
-    if (hours < 10) {
-      hours = "0" + hours;
-    }
-    if (remainderMinutes && remainderMinutes < 10) {
-      remainderMinutes = "0" + remainderMinutes;
-    }
-    if (remainderSeconds && remainderSeconds < 10) {
-      remainderSeconds = "0" + remainderSeconds;
-    }
-    totalTime =
-      hours.toString() +
-      ":" +
-      remainderMinutes?.toString() +
-      ":" +
-      remainderSeconds?.toString();
-  } else if (minutes) {
-    if (remainderSeconds && remainderSeconds < 10) {
-      remainderSeconds = "0" + remainderSeconds;
-    }
-    totalTime = minutes.toString() + ":" + remainderSeconds?.toString();
-  } else {
-    if (seconds < 10) {
-      seconds = "0" + seconds;
-    }
-    totalTime = "00" + seconds.toString();
-  }
-  return totalTime;
+  return hours > 0
+    ? `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    : `${minutes.toString()}:${seconds.toString().padStart(2, "0")}`;
 }

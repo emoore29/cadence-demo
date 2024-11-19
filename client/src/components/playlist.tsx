@@ -17,7 +17,12 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconCircleMinus, IconPin, IconPinFilled } from "@tabler/icons-react";
+import {
+  IconCircleMinus,
+  IconPin,
+  IconPinFilled,
+  IconClock,
+} from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
 import TrackRow from "./trackRow";
@@ -136,7 +141,7 @@ export default function Playlist({
   }
 
   // Updates track's saved status in Spotify & IDB
-  // Updates saved status accordingly in playlist
+  // Updates saved indicator accordingly in playlist
   // Adds loading icon while awaiting Spotify API reqs
   async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
     setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]); // Add trackid to loading list
@@ -147,6 +152,7 @@ export default function Playlist({
     );
     if (!updateStatus) console.log("Failed to update track saved status");
 
+    // On successful saved status update request, update track saved status in playlist/recommendations
     setPlaylist((prevPlaylist) => {
       const newPlaylist = new Map(prevPlaylist);
 
@@ -180,6 +186,11 @@ export default function Playlist({
     setLoadingSaveStatusTrackIds((prevIds) =>
       prevIds.filter((id) => id !== trackObj.track.id)
     ); // Filter for all but the current track id
+
+    // Once saved status has been updated, display toast that indicates success
+    saved
+      ? showSuccessNotif("", "Removed from Liked Songs")
+      : showSuccessNotif("", "Added to Liked Songs");
   }
 
   const rows = Array.from(playlist).map((track) => (
@@ -271,7 +282,9 @@ export default function Playlist({
             <Table.Th></Table.Th>
             <Table.Th style={{ width: "45%" }}>Title</Table.Th>
             <Table.Th style={{ width: "45%" }}>Album</Table.Th>
-            <Table.Th>Length</Table.Th>
+            <Table.Th>
+              <IconClock size={18} stroke={2} />
+            </Table.Th>
             <Table.Th></Table.Th>
             <Table.Th></Table.Th>
             <Table.Th></Table.Th>
@@ -323,23 +336,13 @@ export default function Playlist({
       </Modal.Root>
       <Group justify="flex-end" mt="md">
         {matchingTracks && matchingTracks.size > 0 && (
-          <Button
-            color="rgba(255, 255, 255, 0.8)"
-            variant="outline"
-            type="button"
-            onClick={showMoreResults}
-          >
-            Show more results (+5)
+          <Button type="button" onClick={showMoreResults}>
+            Show more (+5)
           </Button>
         )}
         {matchingTracks && matchingTracks.size > 0 && (
-          <Button
-            color="rgba(255, 255, 255, 0.8)"
-            variant="outline"
-            type="button"
-            onClick={showAllResults}
-          >
-            Show all results (+{matchingTracks.size})
+          <Button type="button" onClick={showAllResults}>
+            Show all (+{matchingTracks.size})
           </Button>
         )}
         <Button type="button" onClick={() => setOpened(true)}>
