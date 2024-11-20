@@ -132,6 +132,10 @@ h2#filters {
   flex-direction: column;
 }
 
+.emptyPinned {
+  width: 18px;
+}
+
 .mantine-Table-th,
 .mantine-Table-td {
   padding: 5px;
@@ -142,11 +146,6 @@ h2#filters {
   height: 40px;
   max-height: 40px;
 }
-
-/* .playPauseButton,
-.saveTrackBtn {
-  color: black;
-} */
 
 .centerContent {
   display: flex;
@@ -183,6 +182,34 @@ tr:hover .trackPreview {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+tr:hover .likeBtn,
+tr:hover .trackActionsMenu {
+  display: block;
+}
+
+.likeBtn,
+.trackActionsMenu {
+  display: none;
+  width: 25px;
+}
+
+.trackActionsMenu.opened {
+  display: block;
+}
+
+.trackTime {
+  text-align: right;
+}
+
+.trackActionsMenu {
+  padding: 0;
+  background-color: transparent;
+}
+
+.trackActionsMenu:hover {
+  background-color: transparent;
 }
 
 .activeTrackPreview {

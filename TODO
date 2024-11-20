@@ -1,3 +1,4 @@
+Add volume slider to manage preview volume?
 Responsive design + mobile/no mouse accessibility for hover features
 Add reset button to reset filters to default
 Style skeletons for loading playlist & recommendations
@@ -10,3 +11,5 @@ Custom recommendation filters for artists/tracks/genres
 Move song order in playlist??
 Right click to generate playlist from a track or artist??
 Replace target tracks with target time??
+Use trigger click hover for toggle menus so hover on desktop but click on mobile (for tooltips?)
+Double check sync with IDB for a saved track doesn't go through if the request to spotify doesn't go through

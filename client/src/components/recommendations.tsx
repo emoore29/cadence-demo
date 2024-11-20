@@ -1,8 +1,9 @@
 import { TrackObject } from "@/types/types";
 import { Button, Group, Table } from "@mantine/core";
-import { IconCirclePlus } from "@tabler/icons-react";
+import { IconClock } from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
 import TrackRow from "./trackRow";
+import TableHead from "./tableHead";
 
 interface RecommendationsProps {
   recommendations: Map<string, TrackObject>;
@@ -10,7 +11,7 @@ interface RecommendationsProps {
   loadingSaveStatusTrackIds: string[];
   addRecToPlaylist: (track: TrackObject) => void;
   handleRefreshRecs: () => void;
-  playSampleTrack: (trackId: string) => void;
+  playTrackPreview: (trackId: string) => void;
   playingTrackId: string;
   audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   circleOffsets: Record<string, number>;
@@ -22,7 +23,7 @@ export default function Recommendations({
   loadingSaveStatusTrackIds,
   addRecToPlaylist,
   handleRefreshRecs,
-  playSampleTrack,
+  playTrackPreview,
   playingTrackId,
   audioRefs,
   circleOffsets,
@@ -37,7 +38,7 @@ export default function Recommendations({
           track={track[1]}
           audioRefs={audioRefs}
           playingTrackId={playingTrackId}
-          playSampleTrack={playSampleTrack}
+          playTrackPreview={playTrackPreview}
           handleSaveClick={handleSaveClick}
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
           strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
@@ -61,14 +62,7 @@ export default function Recommendations({
         withRowBorders={false}
         highlightOnHover
       >
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th style={{ width: "50%" }}>Title</Table.Th>
-            <Table.Th style={{ width: "50%" }}>Album</Table.Th>
-            <Table.Th></Table.Th>
-            <Table.Th></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
+        <TableHead />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
 

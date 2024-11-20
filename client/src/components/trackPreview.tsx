@@ -12,7 +12,7 @@ interface TrackPreviewProps {
   track: TrackObject;
   playingTrackId: string | null;
   strokeDashoffset: number;
-  playSampleTrack: (id: string) => void;
+  playTrackPreview: (id: string) => void;
 }
 
 export default function TrackPreview({
@@ -20,7 +20,7 @@ export default function TrackPreview({
   track,
   playingTrackId,
   strokeDashoffset,
-  playSampleTrack,
+  playTrackPreview,
 }: TrackPreviewProps) {
   return (
     <div
@@ -45,13 +45,13 @@ export default function TrackPreview({
           <PreviewCircle
             trackId={track.track.id}
             playingTrackId={playingTrackId}
-            size={22}
+            size={28}
             offset={strokeDashoffset}
           />
           <Button
             type="button"
             className="trackActionButton"
-            onClick={() => playSampleTrack(track.track.id)}
+            onClick={() => playTrackPreview(track.track.id)}
           >
             {playingTrackId === track.track.id ? (
               <IconPlayerPauseFilled size={16} />

@@ -10,20 +10,17 @@ import {
   Button,
   Checkbox,
   Group,
+  Menu,
   Modal,
   Table,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
-import {
-  IconCircleMinus,
-  IconClock,
-  IconPin,
-  IconPinFilled,
-} from "@tabler/icons-react";
+import { IconDots, IconPinFilled } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
+import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
 
 interface PlaylistProps {
@@ -55,14 +52,16 @@ export default function Playlist({
 }: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+  const trackMenuRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [loadingSaveStatusTrackIds, setLoadingSaveStatusTrackIds] = useState<
     string[]
   >([]);
-  const [opened, setOpened] = useState(false);
+  const [openSavePlaylist, setOpenSavePlaylist] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
   const [circleOffsets, setCircleOffsets] = useState<Record<string, number>>(
     {}
   ); // Stores time left on each track in playlist
+  const [openTrackMenuId, setOpenTrackMenuId] = useState<string>();
 
   if (!playlist) return <div>No playlist available</div>;
   const form = useForm({
@@ -84,15 +83,17 @@ export default function Playlist({
         "Playlist saved",
         "Your playlist was successfully saved."
       );
-      setOpened(false);
+      setOpenSavePlaylist(false);
     } else {
       showErrorNotif("Error", "Your playlist could not be saved.");
     }
   }
 
-  function playSampleTrack(trackId: string) {
+  function playTrackPreview(trackId: string) {
     const audioElement = audioRefs.current[trackId];
+
     if (!audioElement) return; // Early return if no audio element found
+    audioElement.volume = 0.3; // Set vol
 
     // Attach timeupdate event to update circle preview (if one doesn't already exist)
     if (!audioElement.ontimeupdate) {
@@ -140,7 +141,7 @@ export default function Playlist({
 
   // Calculates dimensions of circle as duration changes
   function calculateOffset(timeLeft: number): number {
-    const circumference = 2 * Math.PI * 5;
+    const circumference = 2 * Math.PI * 18;
     let trackDuration = 29.712653;
     // Calculate percentage of time left, offset dasharray by that amount.
     const strokeDashoffset = (timeLeft / trackDuration) * circumference;
@@ -235,35 +236,59 @@ export default function Playlist({
       : showSuccessNotif("", "Added to Liked Songs");
   }
 
+  function handleTrackMenuClick(trackId: string) {
+    setOpenTrackMenuId((prev) => (prev === trackId ? "" : trackId));
+  }
+
   const rows = Array.from(playlist).map((track) => (
     <Table.Tr key={track[1].track.id}>
       <TrackRow
         track={track[1]}
         audioRefs={audioRefs}
         playingTrackId={playingTrackId}
-        playSampleTrack={playSampleTrack}
+        playTrackPreview={playTrackPreview}
         handleSaveClick={handleSaveClick}
         loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
         strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5} // Default offset to circumference of circle if not set in state
       />
       <Table.Td>
-        <Button
-          className="trackActionButton"
-          onClick={() => removeFromPlaylist(track[1].track.id)}
+        <Menu
+          opened={track[1].track.id === openTrackMenuId}
+          onClose={() => setOpenTrackMenuId("")}
+          position="bottom-end"
+          offset={1}
+          shadow="md"
+          width={200}
         >
-          <IconCircleMinus stroke={2} size={16} />
-        </Button>
+          <Menu.Target>
+            <Button
+              ref={(el) => (trackMenuRefs.current[track[1].track.id] = el)}
+              className={`trackActionsMenu ${
+                track[1].track.id === openTrackMenuId ? "opened" : ""
+              }`}
+              onClick={() => handleTrackMenuClick(track[1].track.id)}
+            >
+              <IconDots stroke={2} size={16} />
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item onClick={() => removeFromPlaylist(track[1].track.id)}>
+              <Button className="trackActionButton">Remove</Button>
+            </Menu.Item>
+            <Menu.Item onClick={() => pinToPlaylist(track[1].track.id)}>
+              <Button className="trackActionButton">
+                {track[1].pinned ? "Unpin" : "Pin"}
+              </Button>
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
       </Table.Td>
       <Table.Td>
         <Button
           className="trackActionButton"
           onClick={() => pinToPlaylist(track[1].track.id)}
         >
-          {track[1].pinned === true ? (
-            <IconPinFilled size={16} />
-          ) : (
-            <IconPin stroke={2} size={16} />
-          )}
+          {track[1].pinned === true && <IconPinFilled size={16} />}
         </Button>
       </Table.Td>
     </Table.Tr>
@@ -320,24 +345,12 @@ export default function Playlist({
         horizontalSpacing="xs"
         verticalSpacing="xs"
       >
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th style={{ width: "45%" }}>Title</Table.Th>
-            <Table.Th style={{ width: "45%" }}>Album</Table.Th>
-            <Table.Th>
-              <IconClock size={18} stroke={2} />
-            </Table.Th>
-            <Table.Th></Table.Th>
-            <Table.Th></Table.Th>
-            <Table.Th></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
+        <TableHead />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-
       <Modal.Root
-        opened={opened}
-        onClose={() => setOpened(false)}
+        opened={openSavePlaylist}
+        onClose={() => setOpenSavePlaylist(false)}
         fullScreen={isMobile}
         centered
       >
@@ -387,7 +400,7 @@ export default function Playlist({
             Show all (+{matchingTracks.size})
           </Button>
         )}
-        <Button type="button" onClick={() => setOpened(true)}>
+        <Button type="button" onClick={() => setOpenSavePlaylist(true)}>
           Save as playlist
         </Button>
       </Group>
@@ -399,7 +412,7 @@ export default function Playlist({
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
           addRecToPlaylist={addRecToPlaylist}
           handleRefreshRecs={handleRefreshRecs}
-          playSampleTrack={playSampleTrack}
+          playTrackPreview={playTrackPreview}
           playingTrackId={playingTrackId}
           audioRefs={audioRefs}
           circleOffsets={circleOffsets}

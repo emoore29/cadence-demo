@@ -15,7 +15,7 @@ type TrackRowProps = {
   track: TrackObject;
   audioRefs: React.MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   playingTrackId: string | null;
-  playSampleTrack: (id: string) => void;
+  playTrackPreview: (id: string) => void;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
   strokeDashoffset: number;
@@ -25,7 +25,7 @@ export default function TrackRow({
   track,
   audioRefs,
   playingTrackId,
-  playSampleTrack,
+  playTrackPreview,
   handleSaveClick,
   loadingSaveStatusTrackIds,
   strokeDashoffset,
@@ -60,7 +60,7 @@ export default function TrackRow({
               track={track}
               playingTrackId={playingTrackId}
               strokeDashoffset={strokeDashoffset}
-              playSampleTrack={playSampleTrack}
+              playTrackPreview={playTrackPreview}
             />
 
             <img
@@ -97,11 +97,10 @@ export default function TrackRow({
           {track.track.album.name}
         </a>
       </Table.Td>
-      <Table.Td>{msToTrackTime(track.track.duration_ms)}</Table.Td>
       <Table.Td>
         <Button
           type="button"
-          className="trackActionButton"
+          className="trackActionButton likeBtn"
           disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
           onClick={() => handleSaveClick(track, track.saved!)}
         >
@@ -113,6 +112,9 @@ export default function TrackRow({
             <LikeIcon size={16} />
           )}
         </Button>
+      </Table.Td>
+      <Table.Td className="trackTime">
+        {msToTrackTime(track.track.duration_ms)}
       </Table.Td>
     </>
   );
