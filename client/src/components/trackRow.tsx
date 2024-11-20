@@ -1,15 +1,15 @@
+import { msToTrackTime } from "@/helpers/general";
+import LikeIcon from "@/icons/LikeIcon";
+import LikedIcon from "@/icons/LikedIcon";
+import PreviewCircle from "@/icons/PreviewCircle";
 import { TrackObject } from "@/types/types";
-import { Table, Tooltip, Loader, Button } from "@mantine/core";
+import { Button, Loader, Table, Tooltip } from "@mantine/core";
 import {
-  IconHeart,
-  IconHeartFilled,
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
 import React from "react";
-import { msToTrackTime } from "@/helpers/general";
-import LikeIcon from "@/icons/LikeIcon";
-import LikedIcon from "@/icons/LikedIcon";
+import TrackPreview from "./trackPreview";
 
 type TrackRowProps = {
   track: TrackObject;
@@ -18,46 +18,21 @@ type TrackRowProps = {
   playSampleTrack: (id: string) => void;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
+  strokeDashoffset: number;
 };
 
-export default function TrackRow(props: TrackRowProps) {
-  const {
-    track,
-    audioRefs,
-    playingTrackId,
-    playSampleTrack,
-    handleSaveClick,
-    loadingSaveStatusTrackIds,
-  } = props;
-
+export default function TrackRow({
+  track,
+  audioRefs,
+  playingTrackId,
+  playSampleTrack,
+  handleSaveClick,
+  loadingSaveStatusTrackIds,
+  strokeDashoffset,
+}: TrackRowProps) {
   return (
     <>
-      <Table.Td className="centerContent">
-        {track.track.preview_url && (
-          <>
-            <audio
-              ref={(el) => (audioRefs.current[track.track.id] = el)}
-              id={`audio-${track.track.id}`}
-            >
-              <source src={track.track.preview_url} type="audio/ogg" />
-              <source src={track.track.preview_url} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
-            <Button
-              type="button"
-              className="trackActionButton"
-              onClick={() => playSampleTrack(track.track.id)}
-            >
-              {playingTrackId === track.track.id ? (
-                <IconPlayerPauseFilled size={16} />
-              ) : (
-                <IconPlayerPlayFilled size={16} />
-              )}
-            </Button>
-          </>
-        )}
-      </Table.Td>
-      <Tooltip.Floating
+      {/* <Tooltip.Floating
         multiline
         w={200}
         label={
@@ -76,42 +51,44 @@ export default function TrackRow(props: TrackRowProps) {
             {`Time signature: ${track.features.time_signature.toFixed(1)}`}
           </>
         }
-      >
-        <Table.Td>
-          <div className="track-display">
+      > */}
+      <Table.Td>
+        <div className="trackDisplay">
+          <div className="artAndPreview">
+            <TrackPreview
+              audioRefs={audioRefs}
+              track={track}
+              playingTrackId={playingTrackId}
+              strokeDashoffset={strokeDashoffset}
+              playSampleTrack={playSampleTrack}
+            />
+
             <img
               src={track.track.album.images[0].url}
-              alt={track.track.album.name}
-              className="album-img"
+              alt={`${track.track.album.name} album art`}
+              className="albumArt"
             />
-            <div
-              className="title-and-artist"
-              style={{
-                maxWidth: 300, // Limit cell width
-              }}
-            >
-              <a
-                className="trackLink"
-                href={track.track.external_urls.spotify}
-                style={{
-                  whiteSpace: "nowrap", // Prevent wrapping
-                  overflow: "hidden", // Hide overflow
-                  textOverflow: "ellipsis", // Add "..." at end of overflowed text
-                }}
-              >
-                {track.track.name}
-              </a>
-
-              <a
-                className="trackArtist"
-                href={track.track.artists[0].external_urls.spotify}
-              >
-                {track.track.artists[0].name}
-              </a>
-            </div>
           </div>
-        </Table.Td>
-      </Tooltip.Floating>
+
+          <div
+            className="titleAndArtist"
+            style={{
+              maxWidth: 300, // Limit cell width
+            }}
+          >
+            <a className="trackLink" href={track.track.external_urls.spotify}>
+              {track.track.name}
+            </a>
+            <a
+              className="trackArtist"
+              href={track.track.artists[0].external_urls.spotify}
+            >
+              {track.track.artists[0].name}
+            </a>
+          </div>
+        </div>
+      </Table.Td>
+      {/* </Tooltip.Floating> */}
       <Table.Td>
         <a
           className="trackAlbum"

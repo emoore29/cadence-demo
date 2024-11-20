@@ -115,17 +115,19 @@ h2#filters {
   display: flex;
 }
 
-.album-img {
+.albumArt {
   width: 40px;
+  height: 40px;
   border-radius: 10%;
 }
 
-.track-display {
+.trackDisplay {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.title-and-artist {
+.titleAndArtist {
   display: flex;
   flex-direction: column;
 }
@@ -133,6 +135,12 @@ h2#filters {
 .mantine-Table-th,
 .mantine-Table-td {
   padding: 5px;
+  max-height: 40px;
+}
+
+.mantine-Table-tr {
+  height: 40px;
+  max-height: 40px;
 }
 
 /* .playPauseButton,
@@ -147,11 +155,6 @@ h2#filters {
   vertical-align: middle;
 }
 
-/* td,
-tr {
-  height: 100%;
-} */
-
 .trackLink {
   color: white;
   font-weight: 600;
@@ -160,6 +163,59 @@ tr {
 .trackArtist,
 .trackAlbum {
   color: rgba(255, 255, 255, 0.8);
+}
+
+/* Prevent text from overflowing or wrapping td */
+.trackLink,
+.trackArtist,
+.trackAlbum {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+tr:hover .trackPreview {
+  border-radius: 10%;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.activeTrackPreview {
+  border-radius: 10%;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.trackPreview {
+  display: none;
+}
+
+.previewCircle {
+  position: absolute;
+  transform: rotate(-90deg);
+}
+
+.artAndPreview {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.playButtonCircle {
+  width: 50px;
+  height: 50px;
+  color: white;
 }
 
 .trackActionButton {

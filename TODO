@@ -1,14 +1,12 @@
-Disable BPM inputs when Any is checked
-Track time to table
-Change pause to play when sample track reaches end of sample & add circle progress svg
+Responsive design + mobile/no mouse accessibility for hover features
+Add reset button to reset filters to default
 Style skeletons for loading playlist & recommendations
-Sign in prompt over disabled source radio buttons & style grey color
-Tooltips for filters and advanced section to indicate they will limit results
+Fix signin prompt/load data prompts & styling
+Additional tooltips for filters to explain what they do?
 Spotify icon somewhere
 Refetch recs if no recs are returned from Spotify or indicator that none were returned
 Pin all / unpin all buttons
 Custom recommendation filters for artists/tracks/genres
-Move song order in playlist
-Right click to generate playlist from a track or artist
+Move song order in playlist??
+Right click to generate playlist from a track or artist??
 Replace target tracks with target time??
-Fix "already in playlist" for non-pinned items

@@ -1,57 +1,33 @@
 import { TrackObject } from "@/types/types";
-import { Button, Table, Group } from "@mantine/core";
+import { Button, Group, Table } from "@mantine/core";
 import { IconCirclePlus } from "@tabler/icons-react";
-import { useRef, useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import TrackRow from "./trackRow";
-import { getRecommendations } from "@/helpers/playlist";
 
 interface RecommendationsProps {
   recommendations: Map<string, TrackObject>;
-  playlist: Map<string, TrackObject> | null;
-  setPlaylist: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
-  setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
   addRecToPlaylist: (track: TrackObject) => void;
   handleRefreshRecs: () => void;
+  playSampleTrack: (trackId: string) => void;
+  playingTrackId: string;
+  audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
+  circleOffsets: Record<string, number>;
 }
 
 export default function Recommendations({
   recommendations,
-  playlist,
-  setPlaylist,
-  setRecommendations,
   handleSaveClick,
   loadingSaveStatusTrackIds,
   addRecToPlaylist,
   handleRefreshRecs,
+  playSampleTrack,
+  playingTrackId,
+  audioRefs,
+  circleOffsets,
 }: RecommendationsProps) {
-  const [playingTrackId, setPlayingTrackId] = useState<string>("");
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-
   if (!recommendations) return <div>No recommendations available</div>;
-
-  const playSampleTrack = (trackId: string) => {
-    const audioElement = audioRefs.current[trackId];
-    if (!audioElement) return; // Early return if no audio element found
-
-    if (audioElement.paused) {
-      // Pause any other playing audio
-      if (playingTrackId && playingTrackId !== trackId) {
-        audioRefs.current[playingTrackId]?.pause();
-      }
-
-      audioElement.play();
-      setPlayingTrackId(trackId);
-    } else {
-      audioElement.pause();
-      setPlayingTrackId("");
-    }
-  };
 
   const rows = Array.from(recommendations!)
     .slice(0, 3) // Only display 5. If one is removed, it automatically adds the next one in the array
@@ -64,13 +40,14 @@ export default function Recommendations({
           playSampleTrack={playSampleTrack}
           handleSaveClick={handleSaveClick}
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+          strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
         />
         <Table.Td>
           <Button
             className="trackActionButton"
             onClick={() => addRecToPlaylist(track[1])}
           >
-            <IconCirclePlus stroke={2} size={16} />
+            Add
           </Button>
         </Table.Td>
       </Table.Tr>
@@ -86,7 +63,6 @@ export default function Recommendations({
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th></Table.Th>
             <Table.Th style={{ width: "50%" }}>Title</Table.Th>
             <Table.Th style={{ width: "50%" }}>Album</Table.Th>
             <Table.Th></Table.Th>

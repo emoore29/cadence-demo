@@ -13,15 +13,14 @@ import {
   Modal,
   Table,
   TextInput,
-  Skeleton,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
 import {
   IconCircleMinus,
+  IconClock,
   IconPin,
   IconPinFilled,
-  IconClock,
 } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import Recommendations from "./recommendations";
@@ -32,8 +31,6 @@ interface PlaylistProps {
     React.SetStateAction<Map<string, TrackObject> | null>
   >;
   matchingTracks: Map<string, TrackObject> | null;
-  targetPlaylistLength: number;
-  setTargetPlaylistLength: React.Dispatch<React.SetStateAction<number>>;
   playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<
     React.SetStateAction<Map<string, TrackObject> | null>
@@ -44,21 +41,17 @@ interface PlaylistProps {
   >;
   addRecToPlaylist: (track: TrackObject) => void;
   handleRefreshRecs: () => void;
-  loadingPlaylist: boolean;
 }
 
 export default function Playlist({
   setMatchingTracks,
   matchingTracks,
-  targetPlaylistLength,
-  setTargetPlaylistLength,
   playlist,
   setPlaylist,
   recommendations,
   setRecommendations,
   addRecToPlaylist,
   handleRefreshRecs,
-  loadingPlaylist,
 }: PlaylistProps) {
   const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
@@ -67,6 +60,10 @@ export default function Playlist({
   >([]);
   const [opened, setOpened] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
+  const [circleOffsets, setCircleOffsets] = useState<Record<string, number>>(
+    {}
+  ); // Stores time left on each track in playlist
+
   if (!playlist) return <div>No playlist available</div>;
   const form = useForm({
     mode: "uncontrolled",
@@ -97,18 +94,57 @@ export default function Playlist({
     const audioElement = audioRefs.current[trackId];
     if (!audioElement) return; // Early return if no audio element found
 
+    // Attach timeupdate event to update circle preview (if one doesn't already exist)
+    if (!audioElement.ontimeupdate) {
+      audioElement.ontimeupdate = () => {
+        // Calculate remaining time in track audio preview
+        const remaining = audioElement.duration - audioElement.currentTime;
+        const offset = calculateOffset(remaining);
+
+        // Calculate offset from `remaining` and add to circleOffsets
+        setCircleOffsets((prev) => ({
+          ...prev,
+          [trackId]: offset,
+        }));
+      };
+    }
+
+    // Attach onended event handler to reset play/pause when track ends
+    if (!audioElement.onended) {
+      audioElement.onended = () => {
+        setPlayingTrackId(""); // remove track id from "playing track" state to reset play btn
+      };
+    }
+
+    // Handle pause/play of tracks
     if (audioElement.paused) {
-      // Pause any other playing audio
+      // Pause any other track that is playing
       if (playingTrackId && playingTrackId !== trackId) {
         audioRefs.current[playingTrackId]?.pause();
       }
 
-      audioElement.play();
+      // Recalculate offset for new track being played
+      setCircleOffsets((prev) => ({
+        ...prev,
+        [trackId]: calculateOffset(
+          audioElement.duration - audioElement.currentTime
+        ),
+      }));
       setPlayingTrackId(trackId);
+      audioElement.play();
     } else {
-      audioElement.pause();
       setPlayingTrackId("");
+      audioElement.pause();
     }
+  }
+
+  // Calculates dimensions of circle as duration changes
+  function calculateOffset(timeLeft: number): number {
+    const circumference = 2 * Math.PI * 5;
+    let trackDuration = 29.712653;
+    // Calculate percentage of time left, offset dasharray by that amount.
+    const strokeDashoffset = (timeLeft / trackDuration) * circumference;
+    return strokeDashoffset;
   }
 
   // Removes a given track from the playlist
@@ -150,7 +186,13 @@ export default function Playlist({
       trackObj,
       saved
     );
-    if (!updateStatus) console.log("Failed to update track saved status");
+    if (!updateStatus) {
+      console.log("Failed to update track saved status");
+      setLoadingSaveStatusTrackIds((prevIds) =>
+        prevIds.filter((id) => id !== trackObj.track.id)
+      );
+      return;
+    }
 
     // On successful saved status update request, update track saved status in playlist/recommendations
     setPlaylist((prevPlaylist) => {
@@ -202,6 +244,7 @@ export default function Playlist({
         playSampleTrack={playSampleTrack}
         handleSaveClick={handleSaveClick}
         loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+        strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5} // Default offset to circumference of circle if not set in state
       />
       <Table.Td>
         <Button
@@ -279,7 +322,6 @@ export default function Playlist({
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th></Table.Th>
             <Table.Th style={{ width: "45%" }}>Title</Table.Th>
             <Table.Th style={{ width: "45%" }}>Album</Table.Th>
             <Table.Th>
@@ -335,7 +377,7 @@ export default function Playlist({
         </Modal.Content>
       </Modal.Root>
       <Group justify="flex-end" mt="md">
-        {matchingTracks && matchingTracks.size > 0 && (
+        {matchingTracks && matchingTracks.size > 5 && (
           <Button type="button" onClick={showMoreResults}>
             Show more (+5)
           </Button>
@@ -353,13 +395,14 @@ export default function Playlist({
       {recommendations && (
         <Recommendations
           recommendations={recommendations}
-          playlist={playlist}
-          setPlaylist={setPlaylist}
-          setRecommendations={setRecommendations}
           handleSaveClick={handleSaveClick}
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
           addRecToPlaylist={addRecToPlaylist}
           handleRefreshRecs={handleRefreshRecs}
+          playSampleTrack={playSampleTrack}
+          playingTrackId={playingTrackId}
+          audioRefs={audioRefs}
+          circleOffsets={circleOffsets}
         />
       )}
     </div>

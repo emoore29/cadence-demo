@@ -54,7 +54,7 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
   > | null>(null);
   const [targetPlaylistLength, setTargetPlaylistLength] = useState<number>(0);
   const [loadingPlaylist, setLoadingPlaylist] = useState<boolean>(false);
-  const [anyTempo, setAnyTempo] = useState<boolean>(true);
+  const [anyTempo, setAnyTempo] = useState<boolean>(false);
 
   async function handleSubmit(values: FormValues, anyTempo: boolean) {
     setLoadingPlaylist(true);
