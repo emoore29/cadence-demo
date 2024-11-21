@@ -62,7 +62,7 @@ export default function Recommendations({
         withRowBorders={false}
         highlightOnHover
       >
-        <TableHead />
+        <TableHead type="recommended" />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
 

@@ -181,8 +181,10 @@ export default function Playlist({
   // Updates saved indicator accordingly in playlist
   // Adds loading icon while awaiting Spotify API reqs
   async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
-    setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]); // Add trackid to loading list
+    // Add trackId to loading list
+    setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]);
 
+    // Update saved status in Spotify & IDB
     const updateStatus: string | null = await updateSavedStatus(
       trackObj,
       saved
@@ -345,7 +347,7 @@ export default function Playlist({
         horizontalSpacing="xs"
         verticalSpacing="xs"
       >
-        <TableHead />
+        <TableHead type="playlist" />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
       <Modal.Root

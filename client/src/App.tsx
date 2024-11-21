@@ -17,6 +17,8 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { User } from "./types/types";
+import Playlist from "./components/playlist";
+import Recommendations from "./components/recommendations";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
@@ -41,7 +43,7 @@ function App() {
       handleLogin(setLibSize, setUser);
     }
 
-    // Set data in state if user has already logged in
+    // Set user, libSize, lib stored, etc in state if user has already logged in
     // Check for token expiry with handleTokens()
     const user: string | null = getItemFromLocalStorage("user_data");
     if (user) {

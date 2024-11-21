@@ -26,7 +26,14 @@ export function showWarnNotif(title: string, message: string) {
   });
 }
 
-export async function syncSpotifyAndIdb(track: TrackObject, saved: boolean) {
+// After verifying a track's Spotify saved status, sync with IDB library of saved tracks
+// If a user updates their saved tracks outside of Cadence,
+// this ensures when a track is shown to the user the saved status displayed is accurate
+// and keeps IDB up to date
+export async function syncSpotifyAndIdb(
+  track: TrackObject,
+  saved: boolean | undefined
+) {
   // Although getFromStore may return Track or Artist, we know it always returns a TrackObject from the "library"
   const savedInDb = (await getFromStore("library", track.track.id)) as
     | TrackObject

@@ -1,13 +1,8 @@
 import { msToTrackTime } from "@/helpers/general";
 import LikeIcon from "@/icons/LikeIcon";
 import LikedIcon from "@/icons/LikedIcon";
-import PreviewCircle from "@/icons/PreviewCircle";
 import { TrackObject } from "@/types/types";
-import { Button, Loader, Table, Tooltip } from "@mantine/core";
-import {
-  IconPlayerPauseFilled,
-  IconPlayerPlayFilled,
-} from "@tabler/icons-react";
+import { Button, Loader, Table } from "@mantine/core";
 import React from "react";
 import TrackPreview from "./trackPreview";
 

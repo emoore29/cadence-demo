@@ -121,15 +121,22 @@ h2#filters {
   border-radius: 10%;
 }
 
-.trackDisplay {
+.trackDisplay,
+.trackDisplaySkeleton {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.titleAndArtist {
+.titleAndArtist,
+.titleAndArtistSkeleton {
   display: flex;
   flex-direction: column;
+  width: 100%;
+}
+
+.titleAndArtistSkeleton {
+  gap: 5px;
 }
 
 .emptyPinned {
@@ -201,6 +208,10 @@ tr:hover .trackActionsMenu {
 
 .trackTime {
   text-align: right;
+}
+
+.trackTimeSkeleton {
+  margin-left: auto;
 }
 
 .trackActionsMenu {

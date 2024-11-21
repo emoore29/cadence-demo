@@ -57,10 +57,10 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
 
   async function handleSubmit(values: FormValues, anyTempo: boolean) {
+    // Mark playlist as loading so that loadingPlaylist component is displayed
     setLoadingPlaylist(true);
 
-    // Clear playlist (except for pinned)
-
+    // Search for matching tracks
     const matchingTracks: Map<string, TrackObject> | null =
       await filterDatabase(values, anyTempo);
     if (!matchingTracks) {
@@ -68,15 +68,15 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
       return;
     }
 
-    // Check if tracks are saved in Spotify library
+    // Check if matching tracks are saved in Spotify library
     const syncedSpotifySaveStatusTracks: Map<string, TrackObject> | null =
       await checkSavedTracks(matchingTracks);
     if (!syncedSpotifySaveStatusTracks) return;
 
     // For each matching track, sync IDB saved tracks library with the Spotify saved status
-    // E.g. if one track is marked as saved in spotify but not saved in IDB, add it to IDB
+    // E.g. if one track is marked as unsaved in spotify but is saved in IDB, remove it from IDB
     for (const trackObject of matchingTracks.values()) {
-      syncSpotifyAndIdb(trackObject, trackObject.saved!); // Adds or removes track from IDB depending on Spotify saved status
+      syncSpotifyAndIdb(trackObject, trackObject.saved); // Adds or removes track from IDB depending on Spotify saved status
     }
 
     // Create newPlaylist which will store the tracks that will be part of the playlist
@@ -99,11 +99,25 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
     if (newPlaylist.size < values.target) {
       const missingNumber: number = values.target - newPlaylist.size;
 
-      // Remove any tracks from matchingTracks that are already in the playlist (pinned)
+      // Remove any tracks from matchingTracks that are already pinned in the playlist
       for (const key of matchingTracks.keys()) {
         if (playlist?.get(key)) {
           if (playlist.get(key)?.pinned) {
             matchingTracks.delete(key);
+          }
+        }
+      }
+
+      // If the user is searching based on Saved Songs, remove any tracks from matchingTracks that are marked as unsaved
+      // (They would have originally been found in library, but if they were unsaved in Spotify, IDB is synced as above but the track also needs to be removed from the playlist)
+      if (values.source === "2") {
+        console.log("values.source === 2");
+        for (const key of matchingTracks.keys()) {
+          if (playlist?.get(key)) {
+            if (!playlist.get(key)?.saved) {
+              console.log("track marked as not saved in spotify, removing");
+              matchingTracks.delete(key);
+            }
           }
         }
       }
@@ -121,7 +135,7 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
-    setLoadingPlaylist(false);
+    // setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
@@ -219,6 +233,7 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
       <form
         className="playlistForm"
         onSubmit={form.onSubmit((values) => handleSubmit(values, anyTempo))}
+        onReset={form.onReset}
       >
         <h2 id="filters">Filters</h2>
         <Accordion defaultValue="Tracks Source">
@@ -325,7 +340,6 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
           </Accordion.Item>
           <Accordion.Item value="Advanced">
             <Accordion.Control>Advanced</Accordion.Control>
-
             <Accordion.Panel>
               <Tooltip
                 multiline
@@ -359,6 +373,9 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
           </Accordion.Item>
         </Accordion>
         <Group justify="flex-end" mt="md">
+          <Button type="reset" onClick={() => setAnyTempo(false)}>
+            Reset
+          </Button>
           <Button type="submit">Submit</Button>
         </Group>
       </form>
@@ -367,15 +384,12 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
         <Playlist
           setMatchingTracks={setMatchingTracks}
           matchingTracks={matchingTracks}
-          targetPlaylistLength={targetPlaylistLength}
-          setTargetPlaylistLength={setTargetPlaylistLength}
           playlist={playlist}
           setPlaylist={setPlaylist}
           recommendations={recommendations}
           setRecommendations={setRecommendations}
           addRecToPlaylist={addRecToPlaylist}
           handleRefreshRecs={handleRefreshRecs}
-          loadingPlaylist={loadingPlaylist}
         />
       )}
       {!loadingPlaylist &&

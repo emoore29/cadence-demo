@@ -1,7 +1,11 @@
 import { Table } from "@mantine/core";
 import { IconClock } from "@tabler/icons-react";
 
-export default function TableHead() {
+interface TableHeadProps {
+  type: string;
+}
+
+export default function TableHead({ type }: TableHeadProps) {
   return (
     <Table.Thead>
       <Table.Tr>
@@ -13,8 +17,17 @@ export default function TableHead() {
         >
           <IconClock size={18} stroke={2} />
         </Table.Th>
-        <Table.Th style={{ minWidth: "35px", width: "35px" }}></Table.Th>
-        <Table.Th style={{ minWidth: "35px", width: "35px" }}></Table.Th>
+        {type === "playlist" && (
+          // Columns for dropdown menu & pinned
+          <>
+            <Table.Th style={{ minWidth: "35px", width: "35px" }}></Table.Th>
+            <Table.Th style={{ minWidth: "35px", width: "35px" }}></Table.Th>
+          </>
+        )}
+        {type === "recommended" && (
+          // Column for "Add" button
+          <Table.Th style={{ minWidth: "35px", width: "35px" }}></Table.Th>
+        )}
       </Table.Tr>
     </Table.Thead>
   );

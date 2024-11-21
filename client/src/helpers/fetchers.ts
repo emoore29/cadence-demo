@@ -342,7 +342,7 @@ export async function fetchRecommendations(
 }
 
 // Given a Map<string, TrackObject>, checks if the tracks are currently saved in the user's Spotify library
-// Returns Map<string, TrackObject> with saved property added to each TrackObject
+// Returns Map<string, TrackObject> with saved property added to each TrackObject that reflects its Spotify saved status
 export async function checkSavedTracks(
   tracks: Map<string, TrackObject>
 ): Promise<Map<string, TrackObject> | null> {
@@ -398,11 +398,10 @@ export async function updateSavedStatus(
   trackObj: TrackObject,
   saved: boolean
 ): Promise<string | null> {
-  // TODO: Update IDB as well as Spotify
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
 
-  // If track is recorded as saved in Cadence
+  // Check if track is saved in IDB
   // Note: if user has deleted it via Spotify,
   // and it is still recorded as saved in Cadence,
   // this will still send a delete request to Spotify.
