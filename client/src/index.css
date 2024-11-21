@@ -87,7 +87,7 @@ h2#filters {
   flex-direction: column;
 }
 
-.playlistForm {
+.form {
   display: flex;
   flex-direction: column;
   width: 300px;
@@ -97,8 +97,13 @@ h2#filters {
   height: fit-content;
 }
 
-.playlist {
+.playlistForm {
   width: 100%;
+  margin-bottom: 50px;
+}
+
+.playlistContainer {
+  margin-bottom: 50px;
 }
 
 .main {
@@ -108,6 +113,15 @@ h2#filters {
 
 .playlistAndRecsContainer {
   width: 100%;
+}
+
+.albumArtSkeleton {
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .skeletonTable {
@@ -148,7 +162,7 @@ h2#filters {
 
 .mantine-Table-th,
 .mantine-Table-td {
-  padding: 5px;
+  padding: 5px 0;
   max-height: 40px;
 }
 
@@ -194,15 +208,8 @@ tr:hover .trackPreview {
   align-items: center;
 }
 
-tr:hover .likeBtn,
-tr:hover .trackActionsMenu {
+tr:hover .trackActionButton {
   display: block;
-}
-
-.likeBtn,
-.trackActionsMenu {
-  display: none;
-  width: 25px;
 }
 
 .trackActionsMenu.opened {
@@ -259,13 +266,28 @@ tr:hover .trackActionsMenu {
   color: white;
 }
 
+.testBlockBtn {
+  display: block;
+}
+
 .trackActionButton {
+  display: none;
   background-color: transparent;
   padding: 0;
   color: rgba(255, 255, 255, 0.8);
+  margin: auto;
 }
 
-.trackActionButton:hover {
+.alwaysVisibleTrackActionButton {
+  display: block;
+  background-color: transparent;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.8);
+  margin: auto;
+}
+
+.trackActionButton:hover,
+.alwaysVisibleTrackActionButton:hover {
   background-color: transparent;
 }
 
@@ -322,4 +344,8 @@ tr:hover .trackActionsMenu {
 .mantine-Menu-dropdown {
   background-color: rgb(110, 45, 66);
   border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
+}
+
+.mantine-Menu-item:hover {
+  background-color: var(--mantine-color-darkPink-9);
 }

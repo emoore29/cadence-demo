@@ -23,7 +23,7 @@ export default function LoadingPlaylist({
       {/* Album art, track name, artist */}
       <Table.Td>
         <div className="trackDisplaySkeleton">
-          <Skeleton height={"40px"} width={"40px"} radius={"10%"} />
+          <Skeleton className="albumArtSkeleton" radius={"10%"} />
           <div className="titleAndArtistSkeleton">
             <Skeleton
               height={8}

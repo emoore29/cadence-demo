@@ -152,7 +152,7 @@ export default function Form({
 
   return (
     <form
-      className="playlistForm"
+      className="form"
       onSubmit={form.onSubmit((values) => handleSubmit(values, anyTempo))}
       onReset={form.onReset}
     >

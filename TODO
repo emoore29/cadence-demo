@@ -1,6 +1,5 @@
 Add volume slider to manage preview volume?
 Responsive design + mobile/no mouse accessibility for hover features
-Style skeletons for loading playlist & recommendations
 Fix signin prompt/load data prompts & styling
 Additional tooltips for filters to explain what they do?
 Spotify icon somewhere
@@ -18,3 +17,4 @@ Double check sync with IDB for a saved track doesn't go through if the request t
 -- If not, fetch last several songs - check then if there is still no overlap between IDB and latest fetched songs, continue refetching data.
 
 Bug test - recs empty after adding them all to playlist and then clicking submit to create new playlist?
+Organise styling with Mantine theme object

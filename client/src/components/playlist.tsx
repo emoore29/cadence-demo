@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
-import { IconDots, IconPinFilled } from "@tabler/icons-react";
+import { IconDots, IconPin, IconPinFilled, IconX } from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
 import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
@@ -127,6 +127,25 @@ export default function Playlist({
         strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5} // Default offset to circumference of circle if not set in state
       />
       <Table.Td>
+        {track[1].pinned === true ? (
+          <Button
+            className="alwaysVisibleTrackActionButton"
+            onClick={() => pinToPlaylist(track[1].track.id)}
+          >
+            <IconPinFilled size={16} />
+          </Button>
+        ) : (
+          <Button
+            className="trackActionButton"
+            onClick={() => pinToPlaylist(track[1].track.id)}
+          >
+            <IconPin size={16} />
+          </Button>
+        )}
+      </Table.Td>
+      <Table.Td>
+        {/* 
+        Menu for mobile
         <Menu
           opened={track[1].track.id === openTrackMenuId}
           onClose={() => setOpenTrackMenuId("")}
@@ -147,23 +166,25 @@ export default function Playlist({
             </Button>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item onClick={() => removeFromPlaylist(track[1].track.id)}>
-              <Button className="trackActionButton">Remove</Button>
+            <Menu.Item
+              color="rgba(255,255,255,0.8)"
+              onClick={() => removeFromPlaylist(track[1].track.id)}
+            >
+              Remove
             </Menu.Item>
-            <Menu.Item onClick={() => pinToPlaylist(track[1].track.id)}>
-              <Button className="trackActionButton">
-                {track[1].pinned ? "Unpin" : "Pin"}
-              </Button>
+            <Menu.Item
+              color="rgba(255,255,255,0.8)"
+              onClick={() => pinToPlaylist(track[1].track.id)}
+            >
+              {track[1].pinned ? "Unpin" : "Pin"}
             </Menu.Item>
           </Menu.Dropdown>
-        </Menu>
-      </Table.Td>
-      <Table.Td>
+        </Menu> */}
         <Button
-          className="trackActionButton"
-          onClick={() => pinToPlaylist(track[1].track.id)}
+          className="displayOnTrackHover trackActionButton"
+          onClick={() => removeFromPlaylist(track[1].track.id)}
         >
-          {track[1].pinned === true && <IconPinFilled size={16} />}
+          <IconX stroke={2} size={16} />
         </Button>
       </Table.Td>
     </Table.Tr>
@@ -214,13 +235,14 @@ export default function Playlist({
   const playlistTime = calculatePlaylistTime(playlist);
 
   return (
-    <div>
+    <div className="playlistContainer">
       <p>
         {playlist.size} songs, {playlistTime}
       </p>
       <Table
         highlightOnHoverColor="rgba(0,0,0,0.1)"
         withRowBorders={false}
+        withColumnBorders={false}
         highlightOnHover
         horizontalSpacing="xs"
         verticalSpacing="xs"
@@ -242,7 +264,7 @@ export default function Playlist({
           </Modal.Header>
           <Modal.Body>
             <form
-              className="playlist"
+              className="playlistForm"
               onSubmit={form.onSubmit((values) =>
                 handleSubmit(values, playlist)
               )}
