@@ -63,7 +63,8 @@ export default function Playlist({
     },
   });
 
-  if (!playlist) return <div>No playlist available</div>;
+  if (!playlist)
+    return <div>Please enter your preferences to generate a playlist.</div>;
 
   async function handleSubmit(
     formValues: PlaylistData,
@@ -182,7 +183,10 @@ export default function Playlist({
       updatedMatchingTracks?.delete(key);
     }
 
-    const updatedPlaylist = new Map([...playlist, ...moreResults]);
+    const updatedPlaylist: Map<string, TrackObject> = new Map([
+      ...playlist!,
+      ...moreResults,
+    ]);
     setPlaylist(updatedPlaylist);
     setMatchingTracks(updatedMatchingTracks);
   }
@@ -198,7 +202,10 @@ export default function Playlist({
       updatedMatchingTracks?.delete(key);
     }
 
-    const updatedPlaylist = new Map([...playlist, ...moreResults]);
+    const updatedPlaylist: Map<string, TrackObject> = new Map([
+      ...playlist!,
+      ...moreResults,
+    ]);
     setPlaylist(updatedPlaylist);
     4;
     setMatchingTracks(updatedMatchingTracks);
@@ -207,8 +214,7 @@ export default function Playlist({
   const playlistTime = calculatePlaylistTime(playlist);
 
   return (
-    <div className="playlistContainer">
-      <h2>Results</h2>
+    <div>
       <p>
         {playlist.size} songs, {playlistTime}
       </p>

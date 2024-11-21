@@ -24,6 +24,7 @@ import { updateSavedStatus } from "./helpers/fetchers";
 import { showSuccessNotif } from "./helpers/general";
 import { getRecommendations } from "./helpers/playlist";
 import { useForm } from "@mantine/form";
+import LoadingPlaylist from "./components/loadingPlaylist";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
@@ -42,6 +43,7 @@ function App() {
     TrackObject
   > | null>(null);
   const [loadingPlaylist, setLoadingPlaylist] = useState<boolean>(false);
+  const [loadingRecs, setLoadingRecs] = useState<boolean>(false);
   const [loadingSaveStatusTrackIds, setLoadingSaveStatusTrackIds] = useState<
     string[]
   >([]);
@@ -66,6 +68,7 @@ function App() {
   });
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
 
+  // Sets up IDB on initial page load
   useEffect(() => {
     const setupDb = async () => {
       try {
@@ -77,6 +80,8 @@ function App() {
     setupDb();
   }, []);
 
+  // Handles initial page load:
+  // Handles initial login, retrieving saved user data from local storage, and sets up access token refresh interval
   useEffect(() => {
     // Store tokens, user data and library size on login
     if (loginOccurred()) {
@@ -101,6 +106,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Gets user's Spotify library, top tracks, top artists and stores in IDB
   async function storeMyData(): Promise<void> {
     setLoadingData(true);
 
@@ -180,7 +186,7 @@ function App() {
       : showSuccessNotif("", "Added to Liked Songs");
   }
 
-  // Calculates dimensions of circle as duration changes
+  // Calculates dimensions of track preview circle as duration changes
   function calculateOffset(timeLeft: number): number {
     const circumference = 2 * Math.PI * 18;
     let trackDuration = 29.712653;
@@ -189,6 +195,7 @@ function App() {
     return strokeDashoffset;
   }
 
+  // Handles user click on play preview button
   function playTrackPreview(trackId: string) {
     const audioElement = audioRefs.current[trackId];
 
@@ -262,47 +269,61 @@ function App() {
           )}
         </>
       )}
-      <Form
-        storeMyData={storeMyData}
-        libraryStored={libraryStored}
-        playlist={playlist}
-        setPlaylist={setPlaylist}
-        matchingTracks={matchingTracks}
-        setMatchingTracks={setMatchingTracks}
-        setRecommendations={setRecommendations}
-        setLoadingPlaylist={setLoadingPlaylist}
-        form={form}
-        anyTempo={anyTempo}
-        setAnyTempo={setAnyTempo}
-      />
-
-      <Playlist
-        setMatchingTracks={setMatchingTracks}
-        matchingTracks={matchingTracks}
-        playlist={playlist}
-        setPlaylist={setPlaylist}
-        handleSaveClick={handleSaveClick}
-        loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-        playTrackPreview={playTrackPreview}
-        playingTrackId={playingTrackId}
-        audioRefs={audioRefs}
-        circleOffsets={circleOffsets}
-      />
-
-      <Recommendations
-        playlist={playlist}
-        setPlaylist={setPlaylist}
-        recommendations={recommendations}
-        setRecommendations={setRecommendations}
-        handleSaveClick={handleSaveClick}
-        loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-        playTrackPreview={playTrackPreview}
-        playingTrackId={playingTrackId}
-        audioRefs={audioRefs}
-        circleOffsets={circleOffsets}
-        form={form}
-        anyTempo={anyTempo}
-      />
+      <div className="main">
+        <Form
+          storeMyData={storeMyData}
+          libraryStored={libraryStored}
+          playlist={playlist}
+          setPlaylist={setPlaylist}
+          matchingTracks={matchingTracks}
+          setMatchingTracks={setMatchingTracks}
+          setRecommendations={setRecommendations}
+          setLoadingPlaylist={setLoadingPlaylist}
+          setLoadingRecs={setLoadingRecs}
+          form={form}
+          anyTempo={anyTempo}
+          setAnyTempo={setAnyTempo}
+        />
+        <div className="playlistAndRecsContainer">
+          <h2>Results</h2>
+          {loadingPlaylist ? (
+            <LoadingPlaylist targetTracks={5} />
+          ) : (
+            <Playlist
+              setMatchingTracks={setMatchingTracks}
+              matchingTracks={matchingTracks}
+              playlist={playlist}
+              setPlaylist={setPlaylist}
+              handleSaveClick={handleSaveClick}
+              loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+              playTrackPreview={playTrackPreview}
+              playingTrackId={playingTrackId}
+              audioRefs={audioRefs}
+              circleOffsets={circleOffsets}
+            />
+          )}
+          <h2>Suggestions</h2>
+          {loadingRecs ? (
+            <LoadingPlaylist targetTracks={3} />
+          ) : (
+            <Recommendations
+              setLoadingRecs={setLoadingRecs}
+              playlist={playlist}
+              setPlaylist={setPlaylist}
+              recommendations={recommendations}
+              setRecommendations={setRecommendations}
+              handleSaveClick={handleSaveClick}
+              loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+              playTrackPreview={playTrackPreview}
+              playingTrackId={playingTrackId}
+              audioRefs={audioRefs}
+              circleOffsets={circleOffsets}
+              form={form}
+              anyTempo={anyTempo}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

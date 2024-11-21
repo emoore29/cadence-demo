@@ -97,11 +97,6 @@ h2#filters {
   height: fit-content;
 }
 
-.playlistContainer {
-  width: 100%;
-  padding: 20px 0;
-}
-
 .playlist {
   width: 100%;
 }
@@ -109,6 +104,14 @@ h2#filters {
 .main {
   display: flex;
   gap: 50px;
+}
+
+.playlistAndRecsContainer {
+  width: 100%;
+}
+
+.skeletonTable {
+  margin-bottom: 50px;
 }
 
 .bpm {

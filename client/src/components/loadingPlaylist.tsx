@@ -1,13 +1,18 @@
 import { Table, Skeleton } from "@mantine/core";
 import TableHead from "./tableHead";
 
-// interface LoadingPlaylistProps {
-//   targetTracks: number;
-// }
+interface LoadingPlaylistProps {
+  targetTracks: number;
+}
 
 // Skeleton playlist to display while real playlist is still being generated
-export default function LoadingPlaylist() {
-  const skeletonArray = Array.from({ length: 5 }, (value, index) => index);
+export default function LoadingPlaylist({
+  targetTracks,
+}: LoadingPlaylistProps) {
+  const skeletonArray = Array.from(
+    { length: targetTracks },
+    (value, index) => index
+  );
 
   function getRandomWidth(min: number, max: number): number {
     return Math.random() * (max - min) + min;
@@ -53,6 +58,7 @@ export default function LoadingPlaylist() {
 
   return (
     <Table
+      className="skeletonTable"
       highlightOnHoverColor="rgba(0,0,0,0.1)"
       withRowBorders={false}
       highlightOnHover

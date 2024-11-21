@@ -16,3 +16,5 @@ Double check sync with IDB for a saved track doesn't go through if the request t
 \*\*Check if tracks have been saved in Spotify since user last loaded their library
 -- Check if the latest track in library with "date added" matches the latest "date added" track in Spotify
 -- If not, fetch last several songs - check then if there is still no overlap between IDB and latest fetched songs, continue refetching data.
+
+Bug test - recs empty after adding them all to playlist and then clicking submit to create new playlist?

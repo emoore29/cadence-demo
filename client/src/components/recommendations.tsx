@@ -15,6 +15,7 @@ interface RecommendationsProps {
   setRecommendations: React.Dispatch<
     React.SetStateAction<Map<string, TrackObject> | null>
   >;
+  setLoadingRecs: React.Dispatch<React.SetStateAction<boolean>>;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
   playTrackPreview: (trackId: string) => void;
@@ -32,6 +33,7 @@ export default function Recommendations({
   setRecommendations,
   handleSaveClick,
   loadingSaveStatusTrackIds,
+  setLoadingRecs,
   playTrackPreview,
   playingTrackId,
   audioRefs,
@@ -39,7 +41,7 @@ export default function Recommendations({
   form,
   anyTempo,
 }: RecommendationsProps) {
-  if (!recommendations) return <div>No recommendations available</div>;
+  if (!recommendations) return <div></div>;
 
   // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
   async function addRecToPlaylist(track: TrackObject) {
@@ -93,6 +95,7 @@ export default function Recommendations({
     // Fetch new recs if updatedRecs <=5
     if (updatedRecs.size <= 5) {
       console.log("Fetching 100 more recs");
+      setLoadingRecs(true);
       // fetch and add new recs
       newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
       if (!newlyFetchedRecs) return;
@@ -107,6 +110,7 @@ export default function Recommendations({
       const finalisedRecs = new Map([...updatedRecs, ...newlyFetchedRecs]);
 
       setRecommendations(finalisedRecs);
+      setLoadingRecs(false);
     } else {
       setRecommendations(updatedRecs);
     }
@@ -138,7 +142,6 @@ export default function Recommendations({
 
   return (
     <>
-      <h2>Suggestions</h2>
       <Table
         highlightOnHoverColor="rgba(0,0,0,0.1)"
         withRowBorders={false}
