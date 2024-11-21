@@ -1,4 +1,3 @@
-import { updateSavedStatus } from "@/helpers/fetchers";
 import {
   calculatePlaylistTime,
   showErrorNotif,
@@ -18,8 +17,7 @@ import {
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconDots, IconPinFilled } from "@tabler/icons-react";
-import { useRef, useState } from "react";
-import Recommendations from "./recommendations";
+import { MutableRefObject, useRef, useState } from "react";
 import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
 
@@ -28,16 +26,16 @@ interface PlaylistProps {
     React.SetStateAction<Map<string, TrackObject> | null>
   >;
   matchingTracks: Map<string, TrackObject> | null;
-  playlist: Map<string, TrackObject>;
+  playlist: Map<string, TrackObject> | null;
   setPlaylist: React.Dispatch<
     React.SetStateAction<Map<string, TrackObject> | null>
   >;
-  recommendations: Map<string, TrackObject> | null;
-  setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
-  addRecToPlaylist: (track: TrackObject) => void;
-  handleRefreshRecs: () => void;
+  handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
+  loadingSaveStatusTrackIds: string[];
+  playTrackPreview: (trackId: string) => void;
+  playingTrackId: string;
+  audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
+  circleOffsets: Record<string, number>;
 }
 
 export default function Playlist({
@@ -45,25 +43,17 @@ export default function Playlist({
   matchingTracks,
   playlist,
   setPlaylist,
-  recommendations,
-  setRecommendations,
-  addRecToPlaylist,
-  handleRefreshRecs,
+  handleSaveClick,
+  loadingSaveStatusTrackIds,
+  playTrackPreview,
+  playingTrackId,
+  audioRefs,
+  circleOffsets,
 }: PlaylistProps) {
-  const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
-  const trackMenuRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-  const [loadingSaveStatusTrackIds, setLoadingSaveStatusTrackIds] = useState<
-    string[]
-  >([]);
   const [openSavePlaylist, setOpenSavePlaylist] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 50em)");
-  const [circleOffsets, setCircleOffsets] = useState<Record<string, number>>(
-    {}
-  ); // Stores time left on each track in playlist
   const [openTrackMenuId, setOpenTrackMenuId] = useState<string>();
-
-  if (!playlist) return <div>No playlist available</div>;
+  const isMobile = useMediaQuery("(max-width: 50em)");
+  const trackMenuRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -72,6 +62,8 @@ export default function Playlist({
       public: true,
     },
   });
+
+  if (!playlist) return <div>No playlist available</div>;
 
   async function handleSubmit(
     formValues: PlaylistData,
@@ -87,65 +79,6 @@ export default function Playlist({
     } else {
       showErrorNotif("Error", "Your playlist could not be saved.");
     }
-  }
-
-  function playTrackPreview(trackId: string) {
-    const audioElement = audioRefs.current[trackId];
-
-    if (!audioElement) return; // Early return if no audio element found
-    audioElement.volume = 0.3; // Set vol
-
-    // Attach timeupdate event to update circle preview (if one doesn't already exist)
-    if (!audioElement.ontimeupdate) {
-      audioElement.ontimeupdate = () => {
-        // Calculate remaining time in track audio preview
-        const remaining = audioElement.duration - audioElement.currentTime;
-        const offset = calculateOffset(remaining);
-
-        // Calculate offset from `remaining` and add to circleOffsets
-        setCircleOffsets((prev) => ({
-          ...prev,
-          [trackId]: offset,
-        }));
-      };
-    }
-
-    // Attach onended event handler to reset play/pause when track ends
-    if (!audioElement.onended) {
-      audioElement.onended = () => {
-        setPlayingTrackId(""); // remove track id from "playing track" state to reset play btn
-      };
-    }
-
-    // Handle pause/play of tracks
-    if (audioElement.paused) {
-      // Pause any other track that is playing
-      if (playingTrackId && playingTrackId !== trackId) {
-        audioRefs.current[playingTrackId]?.pause();
-      }
-
-      // Recalculate offset for new track being played
-      setCircleOffsets((prev) => ({
-        ...prev,
-        [trackId]: calculateOffset(
-          audioElement.duration - audioElement.currentTime
-        ),
-      }));
-      setPlayingTrackId(trackId);
-      audioElement.play();
-    } else {
-      setPlayingTrackId("");
-      audioElement.pause();
-    }
-  }
-
-  // Calculates dimensions of circle as duration changes
-  function calculateOffset(timeLeft: number): number {
-    const circumference = 2 * Math.PI * 18;
-    let trackDuration = 29.712653;
-    // Calculate percentage of time left, offset dasharray by that amount.
-    const strokeDashoffset = (timeLeft / trackDuration) * circumference;
-    return strokeDashoffset;
   }
 
   // Removes a given track from the playlist
@@ -175,67 +108,6 @@ export default function Playlist({
 
       return newPlaylist;
     });
-  }
-
-  // Updates track's saved status in Spotify & IDB
-  // Updates saved indicator accordingly in playlist
-  // Adds loading icon while awaiting Spotify API reqs
-  async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
-    // Add trackId to loading list
-    setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]);
-
-    // Update saved status in Spotify & IDB
-    const updateStatus: string | null = await updateSavedStatus(
-      trackObj,
-      saved
-    );
-    if (!updateStatus) {
-      console.log("Failed to update track saved status");
-      setLoadingSaveStatusTrackIds((prevIds) =>
-        prevIds.filter((id) => id !== trackObj.track.id)
-      );
-      return;
-    }
-
-    // On successful saved status update request, update track saved status in playlist/recommendations
-    setPlaylist((prevPlaylist) => {
-      const newPlaylist = new Map(prevPlaylist);
-
-      const trackObject = newPlaylist.get(trackObj.track.id);
-
-      if (trackObject) {
-        const updatedTrackObject = {
-          ...trackObject,
-          saved: updateStatus === "Added",
-        };
-        newPlaylist.set(trackObj.track.id, updatedTrackObject);
-      }
-      return newPlaylist;
-    });
-
-    setRecommendations((prevRecs) => {
-      const newRecs = new Map(prevRecs);
-
-      const trackObject = newRecs.get(trackObj.track.id);
-
-      if (trackObject) {
-        const updatedTrackObject = {
-          ...trackObject,
-          saved: updateStatus === "Added",
-        };
-        newRecs.set(trackObj.track.id, updatedTrackObject);
-      }
-      return newRecs;
-    });
-
-    setLoadingSaveStatusTrackIds((prevIds) =>
-      prevIds.filter((id) => id !== trackObj.track.id)
-    ); // Filter for all but the current track id
-
-    // Once saved status has been updated, display toast that indicates success
-    saved
-      ? showSuccessNotif("", "Removed from Liked Songs")
-      : showSuccessNotif("", "Added to Liked Songs");
   }
 
   function handleTrackMenuClick(trackId: string) {
@@ -406,20 +278,6 @@ export default function Playlist({
           Save as playlist
         </Button>
       </Group>
-
-      {recommendations && (
-        <Recommendations
-          recommendations={recommendations}
-          handleSaveClick={handleSaveClick}
-          loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-          addRecToPlaylist={addRecToPlaylist}
-          handleRefreshRecs={handleRefreshRecs}
-          playTrackPreview={playTrackPreview}
-          playingTrackId={playingTrackId}
-          audioRefs={audioRefs}
-          circleOffsets={circleOffsets}
-        />
-      )}
     </div>
   );
 }

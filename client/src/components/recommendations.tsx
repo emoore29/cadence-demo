@@ -1,34 +1,116 @@
-import { TrackObject } from "@/types/types";
+import { TrackObject, FormValues } from "@/types/types";
 import { Button, Group, Table } from "@mantine/core";
-import { IconClock } from "@tabler/icons-react";
-import { MutableRefObject, useRef, useState } from "react";
-import TrackRow from "./trackRow";
+import { MutableRefObject } from "react";
 import TableHead from "./tableHead";
+import TrackRow from "./trackRow";
+import { UseFormReturnType } from "@mantine/form";
+import { getRecommendations } from "@/helpers/playlist";
 
 interface RecommendationsProps {
-  recommendations: Map<string, TrackObject>;
+  playlist: Map<string, TrackObject> | null;
+  setPlaylist: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  recommendations: Map<string, TrackObject> | null;
+  setRecommendations: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
   handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
-  addRecToPlaylist: (track: TrackObject) => void;
-  handleRefreshRecs: () => void;
   playTrackPreview: (trackId: string) => void;
   playingTrackId: string;
   audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   circleOffsets: Record<string, number>;
+  form: UseFormReturnType<FormValues>;
+  anyTempo: boolean;
 }
 
 export default function Recommendations({
+  playlist,
+  setPlaylist,
   recommendations,
+  setRecommendations,
   handleSaveClick,
   loadingSaveStatusTrackIds,
-  addRecToPlaylist,
-  handleRefreshRecs,
   playTrackPreview,
   playingTrackId,
   audioRefs,
   circleOffsets,
+  form,
+  anyTempo,
 }: RecommendationsProps) {
   if (!recommendations) return <div>No recommendations available</div>;
+
+  // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
+  async function addRecToPlaylist(track: TrackObject) {
+    setPlaylist((prevPlaylist) => {
+      const newPlaylist = new Map(prevPlaylist);
+      newPlaylist.set(track.track.id, track);
+      return newPlaylist;
+    }); // add track to playlist
+
+    setRecommendations((prevRecs) => {
+      const newRecs = new Map(prevRecs);
+      newRecs.delete(track.track.id);
+      return newRecs;
+    }); // rm track from recs
+
+    // If recs.length <= 5, fetch new recs and add to recs
+    // Spotify will return the same recs as before. TODO: Update fetchRecs() to create variety in recs
+    if (recommendations && recommendations.size <= 5) {
+      const recs: Map<string, TrackObject> | null = await getRecommendations(
+        form.values,
+        anyTempo,
+        5
+      );
+      if (!recs) return;
+
+      // Loop through recsMap items, checking if already in playlist
+      for (const key of recs.keys()) {
+        if (playlist?.get(key) || recommendations.get(key)) {
+          console.log(`${key} track already in playlist or recommended`);
+          recs.delete(key);
+        }
+      }
+
+      // TODO: If recsMap 0 or low due to filter restraints, fetch more with new set of artists/tracks/genres?
+
+      setRecommendations((prevRecs) => {
+        // Init newRecs Map for adding newRecs to prevRecs
+        const newRecs = new Map([...(prevRecs ?? []), ...recs]); // prevRecs as [] if there are no prevRecs
+        return newRecs;
+      });
+    }
+  }
+
+  async function handleRefreshRecs() {
+    let updatedRecs = new Map(recommendations); // Copy current state to avoid mutating
+    const tempArray = Array.from(updatedRecs).slice(4, -1); // Remove first 5 tracks from current recs
+    updatedRecs = new Map(tempArray); // Add newly sliced recs to map
+
+    let newlyFetchedRecs: Map<string, TrackObject> | null; // Initialise Map to store newly fetched recs
+
+    // Fetch new recs if updatedRecs <=5
+    if (updatedRecs.size <= 5) {
+      console.log("Fetching 100 more recs");
+      // fetch and add new recs
+      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
+      if (!newlyFetchedRecs) return;
+
+      // Loop through recs items, removing tracks that are already in playlist
+      for (const key of newlyFetchedRecs.keys()) {
+        if (playlist?.get(key)) {
+          newlyFetchedRecs.delete(key);
+        }
+      }
+      // TODO: If newly fetched recs <= 5, try new seeds and get more
+      const finalisedRecs = new Map([...updatedRecs, ...newlyFetchedRecs]);
+
+      setRecommendations(finalisedRecs);
+    } else {
+      setRecommendations(updatedRecs);
+    }
+  }
 
   const rows = Array.from(recommendations!)
     .slice(0, 3) // Only display 5. If one is removed, it automatically adds the next one in the array
@@ -65,7 +147,6 @@ export default function Recommendations({
         <TableHead type="recommended" />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-
       <Group justify="flex-end" mt="md">
         <Button onClick={handleRefreshRecs}>Refresh</Button>
       </Group>

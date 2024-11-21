@@ -13,49 +13,41 @@ import {
   Select,
   Tooltip,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
+import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
-import { useState } from "react";
-import LoadingPlaylist from "./loadingPlaylist";
-import Playlist from "./playlist";
 
 interface FormProps {
-  user: User | null;
   storeMyData: () => void;
   libraryStored: boolean;
+  playlist: Map<string, TrackObject> | null;
+  setPlaylist: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  matchingTracks: Map<string, TrackObject> | null;
+  setMatchingTracks: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  setRecommendations: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  setLoadingPlaylist: React.Dispatch<React.SetStateAction<boolean>>;
+  form: UseFormReturnType<FormValues>;
+  anyTempo: boolean;
+  setAnyTempo: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function Form({ user, storeMyData, libraryStored }: FormProps) {
-  const form = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      minTempo: 165,
-      maxTempo: 180,
-      targetValence: "Any",
-      targetDanceability: "Any",
-      targetEnergy: "Any",
-      targetInstrumentalness: "Any",
-      targetAcousticness: "Any",
-      source: "1",
-      target: 10,
-    },
-  });
-  const [numResults, setNumResults] = useState(0);
-  const [playlist, setPlaylist] = useState<Map<string, TrackObject> | null>(
-    null
-  );
-  const [matchingTracks, setMatchingTracks] = useState<Map<
-    string,
-    TrackObject
-  > | null>(null);
-  const [recommendations, setRecommendations] = useState<Map<
-    string,
-    TrackObject
-  > | null>(null);
-  const [targetPlaylistLength, setTargetPlaylistLength] = useState<number>(0);
-  const [loadingPlaylist, setLoadingPlaylist] = useState<boolean>(false);
-  const [anyTempo, setAnyTempo] = useState<boolean>(false);
-
+export default function Form({
+  storeMyData,
+  libraryStored,
+  playlist,
+  setPlaylist,
+  setMatchingTracks,
+  setRecommendations,
+  setLoadingPlaylist,
+  form,
+  anyTempo,
+  setAnyTempo,
+}: FormProps) {
   async function handleSubmit(values: FormValues, anyTempo: boolean) {
     // Mark playlist as loading so that loadingPlaylist component is displayed
     setLoadingPlaylist(true);
@@ -91,9 +83,6 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
         }
       }
     }
-
-    setTargetPlaylistLength(values.target); // tracks the initial number of matching tracks to add to the playlist
-    setNumResults(matchingTracks.size); // track number of results so we can tell user how many matches there were
 
     // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
     if (newPlaylist.size < values.target) {
@@ -135,7 +124,7 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
-    // setLoadingPlaylist(false);
+    setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
@@ -154,77 +143,6 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
         }
       }
       setRecommendations(recs);
-    }
-  }
-
-  async function handleRefreshRecs() {
-    let updatedRecs = new Map(recommendations); // Copy current state to avoid mutating
-    const tempArray = Array.from(updatedRecs).slice(4, -1); // Remove first 5 tracks from current recs
-    updatedRecs = new Map(tempArray); // Add newly sliced recs to map
-
-    let newlyFetchedRecs: Map<string, TrackObject> | null; // Initialise Map to store newly fetched recs
-
-    // Fetch new recs if updatedRecs <=5
-    if (updatedRecs.size <= 5) {
-      console.log("Fetching 100 more recs");
-      // fetch and add new recs
-      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
-      if (!newlyFetchedRecs) return;
-
-      // Loop through recs items, removing tracks that are already in playlist
-      for (const key of newlyFetchedRecs.keys()) {
-        if (playlist?.get(key)) {
-          newlyFetchedRecs.delete(key);
-        }
-      }
-      // TODO: If newly fetched recs <= 5, try new seeds and get more
-      const finalisedRecs = new Map([...updatedRecs, ...newlyFetchedRecs]);
-
-      setRecommendations(finalisedRecs);
-    } else {
-      setRecommendations(updatedRecs);
-    }
-  }
-
-  // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
-  async function addRecToPlaylist(track: TrackObject) {
-    setPlaylist((prevPlaylist) => {
-      const newPlaylist = new Map(prevPlaylist);
-      newPlaylist.set(track.track.id, track);
-      return newPlaylist;
-    }); // add track to playlist
-
-    setRecommendations((prevRecs) => {
-      const newRecs = new Map(prevRecs);
-      newRecs.delete(track.track.id);
-      return newRecs;
-    }); // rm track from recs
-
-    // If recs.length <= 5, fetch new recs and add to recs
-    // Spotify will return the same recs as before. TODO: Update fetchRecs() to create variety in recs
-    if (recommendations && recommendations.size <= 5) {
-      const recs: Map<string, TrackObject> | null = await getRecommendations(
-        form.values,
-        anyTempo,
-        5
-      );
-      if (!recs) return;
-
-      // Loop through recsMap items, checking if already in playlist
-      for (const key of recs.keys()) {
-        if (playlist?.get(key) || recommendations.get(key)) {
-          console.log(`${key} track already in playlist or recommended`);
-          recs.delete(key);
-        }
-      }
-
-      // TODO: If recsMap 0 or low due to filter restraints, fetch more with new set of artists/tracks/genres?
-
-      setRecommendations((prevRecs) => {
-        // Init newRecs Map for adding newRecs to prevRecs
-        const newRecs = new Map([...(prevRecs ?? []), ...recs]); // prevRecs as [] if there are no prevRecs
-        return newRecs;
-      });
     }
   }
 
@@ -379,22 +297,6 @@ export default function Form({ user, storeMyData, libraryStored }: FormProps) {
           <Button type="submit">Submit</Button>
         </Group>
       </form>
-      {loadingPlaylist && <LoadingPlaylist />}
-      {!loadingPlaylist && playlist && (
-        <Playlist
-          setMatchingTracks={setMatchingTracks}
-          matchingTracks={matchingTracks}
-          playlist={playlist}
-          setPlaylist={setPlaylist}
-          recommendations={recommendations}
-          setRecommendations={setRecommendations}
-          addRecToPlaylist={addRecToPlaylist}
-          handleRefreshRecs={handleRefreshRecs}
-        />
-      )}
-      {!loadingPlaylist &&
-        !playlist &&
-        "Please submit your preferences to generate a playlist."}
     </div>
   );
 }
