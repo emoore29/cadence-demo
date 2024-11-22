@@ -178,7 +178,7 @@ h2#filters {
   vertical-align: middle;
 }
 
-.trackLink {
+.trackName {
   color: white;
   font-weight: 600;
 }
@@ -189,12 +189,13 @@ h2#filters {
 }
 
 /* Prevent text from overflowing or wrapping td */
-.trackLink,
+.trackName,
 .trackArtist,
 .trackAlbum {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  width: min-content;
 }
 
 tr:hover .trackPreview {

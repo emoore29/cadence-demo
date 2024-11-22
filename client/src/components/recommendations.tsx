@@ -1,10 +1,11 @@
 import { TrackObject, FormValues } from "@/types/types";
-import { Button, Group, Table } from "@mantine/core";
+import { Button, Group, Table, Skeleton } from "@mantine/core";
 import { MutableRefObject } from "react";
 import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
 import { UseFormReturnType } from "@mantine/form";
 import { getRecommendations } from "@/helpers/playlist";
+import SkeletonRow from "./skeletonRow";
 
 interface RecommendationsProps {
   playlist: Map<string, TrackObject> | null;
@@ -45,21 +46,23 @@ export default function Recommendations({
 
   // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
   async function addRecToPlaylist(track: TrackObject) {
+    // Add recommendation to playlist
     setPlaylist((prevPlaylist) => {
       const newPlaylist = new Map(prevPlaylist);
       newPlaylist.set(track.track.id, track);
       return newPlaylist;
-    }); // add track to playlist
+    });
 
+    // Remove recommendation from recommendations
     setRecommendations((prevRecs) => {
       const newRecs = new Map(prevRecs);
       newRecs.delete(track.track.id);
       return newRecs;
-    }); // rm track from recs
+    });
 
-    // If recs.length <= 5, fetch new recs and add to recs
+    // If recs.length <= 3, fetch new recs and add to recs
     // Spotify will return the same recs as before. TODO: Update fetchRecs() to create variety in recs
-    if (recommendations && recommendations.size <= 5) {
+    if (recommendations && recommendations.size <= 3) {
       const recs: Map<string, TrackObject> | null = await getRecommendations(
         form.values,
         anyTempo,
@@ -67,7 +70,7 @@ export default function Recommendations({
       );
       if (!recs) return;
 
-      // Loop through recsMap items, checking if already in playlist
+      // Loop through recs items, checking if already in playlist
       for (const key of recs.keys()) {
         if (playlist?.get(key) || recommendations.get(key)) {
           console.log(`${key} track already in playlist or recommended`);
@@ -87,17 +90,19 @@ export default function Recommendations({
 
   async function handleRefreshRecs() {
     let updatedRecs = new Map(recommendations); // Copy current state to avoid mutating
-    const tempArray = Array.from(updatedRecs).slice(4, -1); // Remove first 5 tracks from current recs
+    const tempArray = Array.from(updatedRecs).slice(2, -1); // Remove first 3 tracks from current recs
     updatedRecs = new Map(tempArray); // Add newly sliced recs to map
+
+    console.log("updated recs", updatedRecs);
 
     let newlyFetchedRecs: Map<string, TrackObject> | null; // Initialise Map to store newly fetched recs
 
     // Fetch new recs if updatedRecs <=5
-    if (updatedRecs.size <= 5) {
-      console.log("Fetching 100 more recs");
+    if (updatedRecs.size < 3) {
+      console.log("Fetching 9 more recs");
       setLoadingRecs(true);
       // fetch and add new recs
-      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
+      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 9);
       if (!newlyFetchedRecs) return;
 
       // Loop through recs items, removing tracks that are already in playlist
@@ -129,6 +134,7 @@ export default function Recommendations({
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
           strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
         />
+
         <Table.Td>
           <Button
             className="trackActionButton"
@@ -149,7 +155,17 @@ export default function Recommendations({
         highlightOnHover
       >
         <TableHead type="recommended" />
-        <Table.Tbody>{rows}</Table.Tbody>
+        <Table.Tbody>
+          {rows}
+          {/* Add skeleton rows if recommendations < 3 */}
+          {recommendations.size === 2 && <SkeletonRow />}
+          {recommendations.size === 1 && (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          )}
+        </Table.Tbody>
       </Table>
       <Group justify="flex-end" mt="md">
         <Button onClick={handleRefreshRecs}>Refresh</Button>

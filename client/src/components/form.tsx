@@ -51,7 +51,7 @@ export default function Form({
   setAnyTempo,
 }: FormProps) {
   async function handleSubmit(values: FormValues, anyTempo: boolean) {
-    // Mark playlist and recs as loading so that loadingPlaylist component is displayed
+    // Mark playlist and recs as loading so that loading components are displayed
     setLoadingPlaylist(true);
     setLoadingRecs(true);
 
@@ -74,20 +74,19 @@ export default function Form({
       syncSpotifyAndIdb(trackObject, trackObject.saved); // Adds or removes track from IDB depending on Spotify saved status
     }
 
-    // Create newPlaylist which will store the tracks that will be part of the playlist
+    // Initialise newPlaylist
     let newPlaylist: Map<string, TrackObject> = new Map();
-    // If there are tracks in the current playlist, find tracks user has "pinned" and add them to the newPlaylist
-    // If value.pinned === true for each value in current playlist, add to newPlaylistMap
+
+    // Add pinned tracks to newPlaylist
     if (playlist) {
       for (const [key, value] of playlist.entries()) {
         if (value.pinned === true) {
           newPlaylist.set(key, value);
-          console.log("adding pinned track to new playlist:", value);
         }
       }
     }
 
-    // Set new playlist with pinned tracks + matching tracks <= targetPlaylistLength
+    // Add matching tracks to newPlaylist up to the target size
     if (newPlaylist.size < values.target) {
       const missingNumber: number = values.target - newPlaylist.size;
 
@@ -101,9 +100,11 @@ export default function Form({
       }
 
       // If the user is searching based on Saved Songs, remove any tracks from matchingTracks that are marked as unsaved
-      // (They would have originally been found in library, but if they were unsaved in Spotify, IDB is synced as above but the track also needs to be removed from the playlist)
+      // (They would have originally been found in IDB library,
+      // but if they were later unsaved in Spotify,
+      // IDB is only synced after matches are found,
+      // so the track also needs to be removed from the playlist)
       if (values.source === "2") {
-        console.log("values.source === 2");
         for (const key of matchingTracks.keys()) {
           if (playlist?.get(key)) {
             if (!playlist.get(key)?.saved) {
@@ -116,7 +117,6 @@ export default function Form({
 
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
       const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
-
       const newMap = new Map(tempArray);
 
       // Remove the matching tracks being added to the newPlaylist from matchingTracks
@@ -131,22 +131,30 @@ export default function Form({
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
-    // Fetch 100 recs (only the first five will be displayed in the Recommendations component)
+    // Fetch 100 recs (only the first 3 will be displayed in the Recommendations component)
     const recs: Map<string, TrackObject> | null = await getRecommendations(
       values,
       anyTempo,
-      100
+      9
     );
+
+    // Remove any tracks that are already in the playlist
     if (recs) {
-      // Loop through recs items, checking if already in playlist
+      console.log("Num recommendations from spotify: ", recs.size);
       for (const key of recs.keys()) {
         if (playlist?.get(key)) {
-          console.log(`${key} track already in playlist`);
           recs.delete(key);
         }
       }
-      setRecommendations(recs);
-      setLoadingRecs(false);
+      if (recs.size > 0) {
+        console.log("recommendations", recs);
+        setRecommendations(recs);
+        setLoadingRecs(false);
+      } else {
+        console.log("Recs size = 0 after removing tracks already in playlist.");
+      }
+    } else {
+      console.log("Fetch recs returned null.");
     }
   }
 

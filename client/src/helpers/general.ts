@@ -95,3 +95,7 @@ export function msToTrackTime(ms: number): string {
         .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
     : `${minutes.toString()}:${seconds.toString().padStart(2, "0")}`;
 }
+
+export function getRandomWidth(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}

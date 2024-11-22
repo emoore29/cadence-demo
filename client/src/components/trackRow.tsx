@@ -64,14 +64,8 @@ export default function TrackRow({
               className="albumArt"
             />
           </div>
-
-          <div
-            className="titleAndArtist"
-            style={{
-              maxWidth: 300, // Limit cell width
-            }}
-          >
-            <a className="trackLink" href={track.track.external_urls.spotify}>
+          <div className="titleAndArtist">
+            <a className="trackName" href={track.track.external_urls.spotify}>
               {track.track.name}
             </a>
             <a

@@ -1,4 +1,5 @@
-import { Table, Skeleton } from "@mantine/core";
+import { Table } from "@mantine/core";
+import SkeletonRow from "./skeletonRow";
 import TableHead from "./tableHead";
 
 interface LoadingPlaylistProps {
@@ -14,47 +15,7 @@ export default function LoadingPlaylist({
     (value, index) => index
   );
 
-  function getRandomWidth(min: number, max: number): number {
-    return Math.random() * (max - min) + min;
-  }
-
-  const loadingRows = skeletonArray.map((item) => (
-    <Table.Tr key={item}>
-      {/* Album art, track name, artist */}
-      <Table.Td>
-        <div className="trackDisplaySkeleton">
-          <Skeleton className="albumArtSkeleton" radius={"10%"} />
-          <div className="titleAndArtistSkeleton">
-            <Skeleton
-              height={8}
-              width={`${getRandomWidth(15, 22)}%`}
-              radius={"xl"}
-            />
-            <Skeleton
-              height={8}
-              width={`${getRandomWidth(18, 25)}%`}
-              radius={"xl"}
-            />
-          </div>
-        </div>
-      </Table.Td>
-      {/* Album name */}
-      <Table.Td>
-        <Skeleton height={8} radius="xl" width={`${getRandomWidth(13, 20)}%`} />
-      </Table.Td>
-      {/* Like button */}
-      <Table.Td></Table.Td>
-      {/* Track length */}
-      <Table.Td className="trackTimeSkeletonTd">
-        <Skeleton
-          className="trackTimeSkeleton"
-          height={8}
-          radius="xl"
-          width={30}
-        />
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const loadingRows = skeletonArray.map((item) => <SkeletonRow key={item} />);
 
   return (
     <Table
