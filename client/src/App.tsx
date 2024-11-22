@@ -1,9 +1,15 @@
 import { Button, Loader } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Form from "./components/form";
 import Header from "./components/header";
+import LoadingPlaylist from "./components/loadingPlaylist";
+import Playlist from "./components/playlist";
+import Recommendations from "./components/recommendations";
 import { setUpDatabase } from "./helpers/database";
+import { updateSavedStatus } from "./helpers/fetchers";
+import { showSuccessNotif } from "./helpers/general";
 import {
   storeSavedTracksData,
   storeTopArtists,
@@ -16,15 +22,7 @@ import {
 } from "./helpers/localStorage";
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
-import { User } from "./types/types";
-import Playlist from "./components/playlist";
-import Recommendations from "./components/recommendations";
-import { TrackObject } from "./types/types";
-import { updateSavedStatus } from "./helpers/fetchers";
-import { showSuccessNotif } from "./helpers/general";
-import { getRecommendations } from "./helpers/playlist";
-import { useForm } from "@mantine/form";
-import LoadingPlaylist from "./components/loadingPlaylist";
+import { TrackObject, User } from "./types/types";
 
 function App() {
   const [libSize, setLibSize] = useState<number | null>(null);
