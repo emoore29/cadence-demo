@@ -1,7 +1,7 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
 import { syncSpotifyAndIdb } from "@/helpers/general";
 import { filterDatabase, getRecommendations } from "@/helpers/playlist";
-import { FormValues, TrackObject, User } from "@/types/types";
+import { FormValues, TrackObject } from "@/types/types";
 import {
   Accordion,
   Button,

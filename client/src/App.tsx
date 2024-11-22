@@ -101,7 +101,10 @@ function App() {
 
     // Handle token expiry every hour
     const interval = setInterval(handleTokens, 3600000);
-    return () => clearInterval(interval);
+    return () => {
+      console.log("interval cleared");
+      clearInterval(interval);
+    };
   }, []);
 
   // Gets user's Spotify library, top tracks, top artists and stores in IDB

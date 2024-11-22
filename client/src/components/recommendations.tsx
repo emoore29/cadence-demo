@@ -1,11 +1,11 @@
-import { TrackObject, FormValues } from "@/types/types";
-import { Button, Group, Table, Skeleton } from "@mantine/core";
+import { getRecommendations } from "@/helpers/playlist";
+import { FormValues, TrackObject } from "@/types/types";
+import { Button, Group, Table } from "@mantine/core";
+import { UseFormReturnType } from "@mantine/form";
 import { MutableRefObject } from "react";
+import SkeletonRow from "./skeletonRow";
 import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
-import { UseFormReturnType } from "@mantine/form";
-import { getRecommendations } from "@/helpers/playlist";
-import SkeletonRow from "./skeletonRow";
 
 interface RecommendationsProps {
   playlist: Map<string, TrackObject> | null;

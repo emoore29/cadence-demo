@@ -27,7 +27,7 @@ export function wasLibraryStoredInDatabase(): boolean {
   }
 }
 
-// Stores tokens in local storage, used when user logs in
+// Stores tokens and expiry in local storage
 export function storeTokens(
   access: string,
   refresh: string,

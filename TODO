@@ -1,20 +1,25 @@
-Add volume slider to manage preview volume?
-Responsive design + mobile/no mouse accessibility for hover features
-Fix signin prompt/load data prompts & styling
-Additional tooltips for filters to explain what they do?
-Spotify icon somewhere
-Refetch recs if no recs are returned from Spotify or indicator that none were returned
-Pin all / unpin all buttons
-Custom recommendation filters for artists/tracks/genres
-Move song order in playlist??
-Right click to generate playlist from a track or artist??
-Replace target tracks with target time??
-Use trigger click hover for toggle menus so hover on desktop but click on mobile (for tooltips?)
-Double check sync with IDB for a saved track doesn't go through if the request to spotify doesn't go through
+Basic Features:
 
-\*\*Check if tracks have been saved in Spotify since user last loaded their library
--- Check if the latest track in library with "date added" matches the latest "date added" track in Spotify
--- If not, fetch last several songs - check then if there is still no overlap between IDB and latest fetched songs, continue refetching data.
+- Clear signin prompt/load data prompts with progress bar
+- Custom recommendation filters for artists/tracks/genres
+- Pin all / unpin all buttons
+- Update IDB library based on Spotify library (check for new saved tracks utilising date added)
+- Spotify icon somewhere
+- Accessible tooltips & track features: use trigger click hover for toggle menus so hover on desktop but click on mobile
+- Refetch recs with expanded criteria if no recs are returned from Spotify or indicator that none were returned
 
-Bug test - recs empty after adding them all to playlist and then clicking submit to create new playlist?
-Organise styling with Mantine theme object
+Future Features:
+
+- Replace target tracks with target time
+- Move song order in playlist
+- Right click to generate playlist from a track or artist
+- Add volume slider to manage preview volume?
+
+Bugs?:
+
+- Recs empty after adding them all to playlist and then clicking submit to create new playlist?
+- Access token expiring
+
+Other:
+
+- Organise styling with Mantine theme object
