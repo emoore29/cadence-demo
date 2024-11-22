@@ -60,8 +60,8 @@ function App() {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "1",
-      target: 10,
+      source: "2",
+      target: 5,
     },
   });
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
@@ -300,9 +300,11 @@ function App() {
               circleOffsets={circleOffsets}
             />
           )}
-          <h2>Suggestions</h2>
           {loadingRecs ? (
-            <LoadingPlaylist targetTracks={3} />
+            <>
+              <h2>Suggestions</h2>
+              <LoadingPlaylist targetTracks={3} />
+            </>
           ) : (
             <Recommendations
               setLoadingRecs={setLoadingRecs}

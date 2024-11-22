@@ -142,6 +142,7 @@ export default function Recommendations({
 
   return (
     <>
+      <h2>Suggestions</h2>
       <Table
         highlightOnHoverColor="rgba(0,0,0,0.1)"
         withRowBorders={false}

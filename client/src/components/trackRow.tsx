@@ -95,7 +95,7 @@ export default function TrackRow({
       <Table.Td>
         <Button
           type="button"
-          className="trackActionButton likeBtn"
+          className="trackActionButton displayOnTrackHover"
           disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
           onClick={() => handleSaveClick(track, track.saved!)}
         >
@@ -108,7 +108,12 @@ export default function TrackRow({
           )}
         </Button>
       </Table.Td>
-      <Table.Td className="trackTime">
+      <Table.Td
+        className="trackTime"
+        style={{
+          paddingRight: "5px",
+        }}
+      >
         {msToTrackTime(track.track.duration_ms)}
       </Table.Td>
     </>
