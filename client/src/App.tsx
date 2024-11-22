@@ -25,13 +25,15 @@ import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
 
 function App() {
-  const [libSize, setLibSize] = useState<number | null>(null);
+  const [libSize, setLibSize] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(false);
+  const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject> | null>(
     null
   );
+  const [estimatedFetches, setEstimatedFetches] = useState<number>(0);
   const [matchingTracks, setMatchingTracks] = useState<Map<
     string,
     TrackObject
@@ -83,7 +85,7 @@ function App() {
   useEffect(() => {
     // Store tokens, user data and library size on login
     if (loginOccurred()) {
-      handleLogin(setLibSize, setUser);
+      handleLogin(setLibSize, setUser, setEstimatedFetches);
     }
 
     // Set user, libSize, lib stored, etc in state if user has already logged in
@@ -95,6 +97,9 @@ function App() {
         getItemFromLocalStorage("lib_size")
       );
       libSize && setLibSize(libSize);
+      const estimatedFetches = (3 * libSize) / 100 + 16;
+      console.log("estimated fetches: ", estimatedFetches);
+      setEstimatedFetches(estimatedFetches);
       setLibraryStored(wasLibraryStoredInDatabase());
       handleTokens();
     }
@@ -102,18 +107,37 @@ function App() {
     // Handle token expiry every hour
     const interval = setInterval(handleTokens, 3600000);
     return () => {
-      console.log("interval cleared");
       clearInterval(interval);
     };
   }, []);
+
+  useEffect(() => {
+    if (estimatedFetches !== undefined) {
+      console.log("estimatedFetches is updated:", estimatedFetches);
+    }
+  }, [estimatedFetches]); // This will run after estimatedFetches changes
+
+  function updateProgressBar() {
+    console.log(
+      `estimatedFetches inside updateProgressBar: ${estimatedFetches}`
+    );
+    console.log(`Adding ${(1 / estimatedFetches) * 100} to progress bar...`);
+    setLoadingDataProgress((prev) => prev + (1 / estimatedFetches) * 100); // + % to progress for each successful request
+  }
 
   // Gets user's Spotify library, top tracks, top artists and stores in IDB
   async function storeMyData(): Promise<void> {
     setLoadingData(true);
 
-    const savedTracks: boolean | null = await storeSavedTracksData();
-    const savedTopTracks: boolean | null = await storeTopTracksData();
-    const savedTopArtists: boolean | null = await storeTopArtists();
+    const savedTracks: boolean | null = await storeSavedTracksData(
+      updateProgressBar
+    );
+    const savedTopTracks: boolean | null = await storeTopTracksData(
+      updateProgressBar
+    );
+    const savedTopArtists: boolean | null = await storeTopArtists(
+      updateProgressBar
+    );
 
     if (savedTracks && savedTopTracks && savedTopArtists) {
       setLoadingData(false);
@@ -250,28 +274,17 @@ function App() {
   return (
     <div className="container">
       <Header
+        setPlaylist={setPlaylist}
+        setRecommendations={setRecommendations}
         user={user}
         setUser={setUser}
         setLibSize={setLibSize}
         setLibraryStored={setLibraryStored}
       />
-      {user && !libraryStored && (
-        <>
-          <p>
-            To use your Spotify data to create playlists, you can store your
-            data. You have {libSize} saved tracks. This may take a minute...
-          </p>
-          {!loadingData ? (
-            <Button onClick={storeMyData}>
-              Store my Spotify data in the database!
-            </Button>
-          ) : (
-            <Loader color="white" type="dots" />
-          )}
-        </>
-      )}
       <div className="main">
         <Form
+          loadingData={loadingData}
+          loadingDataProgress={loadingDataProgress}
           storeMyData={storeMyData}
           libraryStored={libraryStored}
           playlist={playlist}

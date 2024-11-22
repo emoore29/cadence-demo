@@ -45,7 +45,6 @@ export function getItemFromLocalStorage(item: string): string | null {
   if (itemValue) {
     return itemValue;
   } else {
-    console.error(`Error retrieving ${item} from local storage.`);
     return null;
   }
 }

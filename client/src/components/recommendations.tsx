@@ -66,14 +66,13 @@ export default function Recommendations({
       const recs: Map<string, TrackObject> | null = await getRecommendations(
         form.values,
         anyTempo,
-        5
+        100
       );
       if (!recs) return;
 
       // Loop through recs items, checking if already in playlist
       for (const key of recs.keys()) {
         if (playlist?.get(key) || recommendations.get(key)) {
-          console.log(`${key} track already in playlist or recommended`);
           recs.delete(key);
         }
       }
@@ -102,7 +101,7 @@ export default function Recommendations({
       console.log("Fetching 9 more recs");
       setLoadingRecs(true);
       // fetch and add new recs
-      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 9);
+      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
       if (!newlyFetchedRecs) return;
 
       // Loop through recs items, removing tracks that are already in playlist
@@ -165,6 +164,7 @@ export default function Recommendations({
               <SkeletonRow />
             </>
           )}
+          {recommendations.size === 0 && <div>No recommendations found.</div>}
         </Table.Tbody>
       </Table>
       <Group justify="flex-end" mt="md">

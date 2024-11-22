@@ -1,16 +1,22 @@
 import { deleteDatabase } from "@/helpers/database";
+import { showSuccessNotif } from "@/helpers/general";
 import { clearLocalStorage } from "@/helpers/localStorage";
 import { Menu, Text } from "@mantine/core";
-import { User } from "../types/types";
 import { modals } from "@mantine/modals";
-import { notifications } from "@mantine/notifications";
 import { IconMetronome } from "@tabler/icons-react";
+import { TrackObject, User } from "../types/types";
 
 interface HeaderProps {
   user: User | null;
   setUser: (user: User | null) => void;
   setLibSize: (libSize: number) => void;
   setLibraryStored: (libraryStored: boolean) => void;
+  setPlaylist: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
+  setRecommendations: React.Dispatch<
+    React.SetStateAction<Map<string, TrackObject> | null>
+  >;
 }
 
 export default function Header({
@@ -18,29 +24,30 @@ export default function Header({
   setUser,
   setLibSize,
   setLibraryStored,
+  setPlaylist,
+  setRecommendations,
 }: HeaderProps) {
   const logOut = () => {
     // Remove everything from local storage and store
+    setPlaylist(null);
+    setRecommendations(null);
     clearLocalStorage();
     deleteDatabase();
     setUser(null);
     setLibSize(0);
     setLibraryStored(false);
-    () =>
-      notifications.show({
-        title: "Logged out",
-        message: "Your data and authorization was removed.",
-      });
+    showSuccessNotif("Success", "You successfully logged out.");
   };
 
   const clearData = () => {
+    setPlaylist(null);
+    setRecommendations(null);
     clearLocalStorage();
     deleteDatabase();
-    () =>
-      notifications.show({
-        title: "Cleared data",
-        message: "Your data was removed.",
-      });
+    setUser(null);
+    setLibSize(0);
+    setLibraryStored(false);
+    showSuccessNotif("Success", "Your data was removed from browser storage.");
   };
 
   const openConfirmClearDataModal = () =>

@@ -5,7 +5,6 @@ import { storeTokens } from "./localStorage";
 export async function handleTokens(): Promise<void> {
   const storedAccessToken: string | null = localStorage.getItem("access_token");
   const storedExpiry: string | null = localStorage.getItem("token_expiry");
-  console.log("Handle tokens executed");
   if (
     !storedAccessToken ||
     storedAccessToken === "undefined" ||
@@ -22,12 +21,13 @@ export async function handleTokens(): Promise<void> {
   const now = Date.now();
   const expiryTime = parseInt(storedExpiry!, 10);
 
-  console.log("Now:", new Date(now).toLocaleString());
-  console.log("Expiry time:", new Date(expiryTime).toLocaleString());
+  // Logs for debugging token updates
+  // console.log("Now:", new Date(now).toLocaleString());
+  // console.log("Expiry time:", new Date(expiryTime).toLocaleString());
 
-  // Add a 10 second buffer such that the token refreshes just before it expires.
+  // Add a 30 second buffer such that the token refreshes just before it expires.
   // Allows for delays in fetching new tokens from Spotify
-  if (now > expiryTime - 10000) {
+  if (now > expiryTime - 30000) {
     console.log("Tokens out of date. Updating...");
     const tokens: string[] | null = await getNewTokens();
     if (tokens) {
@@ -37,8 +37,6 @@ export async function handleTokens(): Promise<void> {
       // If new tokens couldn't be retrieved for some reason, get user to log in again
       console.log("Your session has expired. Please log in again.");
     }
-  } else {
-    console.log("Access token is up to date.");
   }
 }
 

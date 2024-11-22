@@ -9,9 +9,11 @@ import {
 } from "./fetchers";
 import { showErrorNotif, showSuccessNotif, showWarnNotif } from "./general";
 
-export async function storeTopArtists(): Promise<boolean | null> {
+export async function storeTopArtists(
+  updateProgressBar: () => void
+): Promise<boolean | null> {
   let success = true;
-  const topArtists: Artist[] | null = await fetchTopArtists();
+  const topArtists: Artist[] | null = await fetchTopArtists(updateProgressBar);
   if (topArtists) {
     for (const artist of topArtists) {
       try {
@@ -33,12 +35,15 @@ export async function storeTopArtists(): Promise<boolean | null> {
 
 // Stores user's top tracks in IDB
 // saved: not included
-export async function storeTopTracksData(): Promise<boolean | null> {
-  const topTracks: Track[] | null = await fetchTopTracks();
+export async function storeTopTracksData(
+  updateProgressBar: () => void
+): Promise<boolean | null> {
+  const topTracks: Track[] | null = await fetchTopTracks(updateProgressBar);
   if (!topTracks) return null;
 
   const topTrackFeatures: TrackFeatures[] | null = await fetchTopTrackFeatures(
-    topTracks
+    topTracks,
+    updateProgressBar
   );
   if (!topTrackFeatures) return null;
 
@@ -48,11 +53,16 @@ export async function storeTopTracksData(): Promise<boolean | null> {
 
 // Stores user's saved tracks in IDB
 // Stores saved: true for all
-export async function storeSavedTracksData(): Promise<boolean | null> {
-  const lib: SavedTrack[] | null = await fetchSavedTracks();
+export async function storeSavedTracksData(
+  updateProgressBar: () => void
+): Promise<boolean | null> {
+  const lib: SavedTrack[] | null = await fetchSavedTracks(updateProgressBar);
   if (!lib) return null;
 
-  const feats: TrackFeatures[] | null = await fetchSavedTracksFeatures(lib);
+  const feats: TrackFeatures[] | null = await fetchSavedTracksFeatures(
+    lib,
+    updateProgressBar
+  );
   if (!feats) return null;
 
   const success = storeUserLibraryAndFeatures(lib, feats);

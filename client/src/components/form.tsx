@@ -1,7 +1,7 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
 import { syncSpotifyAndIdb } from "@/helpers/general";
 import { filterDatabase, getRecommendations } from "@/helpers/playlist";
-import { FormValues, TrackObject } from "@/types/types";
+import { FormValues, TrackObject, User } from "@/types/types";
 import {
   Accordion,
   Button,
@@ -12,11 +12,14 @@ import {
   Radio,
   Select,
   Tooltip,
+  Progress,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
 
 interface FormProps {
+  loadingData: boolean;
+  loadingDataProgress: number;
   storeMyData: () => void;
   libraryStored: boolean;
   playlist: Map<string, TrackObject> | null;
@@ -38,6 +41,8 @@ interface FormProps {
 }
 
 export default function Form({
+  loadingData,
+  loadingDataProgress,
   storeMyData,
   libraryStored,
   playlist,
@@ -108,7 +113,6 @@ export default function Form({
         for (const key of matchingTracks.keys()) {
           if (playlist?.get(key)) {
             if (!playlist.get(key)?.saved) {
-              console.log("track marked as not saved in spotify, removing");
               matchingTracks.delete(key);
             }
           }
@@ -131,30 +135,26 @@ export default function Form({
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
-    // Fetch 100 recs (only the first 3 will be displayed in the Recommendations component)
+    // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
+    // Note: Spotify is not guaranteed to return 100
     const recs: Map<string, TrackObject> | null = await getRecommendations(
       values,
       anyTempo,
-      9
+      100
     );
 
     // Remove any tracks that are already in the playlist
     if (recs) {
-      console.log("Num recommendations from spotify: ", recs.size);
       for (const key of recs.keys()) {
         if (playlist?.get(key)) {
           recs.delete(key);
         }
       }
       if (recs.size > 0) {
-        console.log("recommendations", recs);
         setRecommendations(recs);
         setLoadingRecs(false);
       } else {
-        console.log("Recs size = 0 after removing tracks already in playlist.");
       }
-    } else {
-      console.log("Fetch recs returned null.");
     }
   }
 
@@ -184,33 +184,37 @@ export default function Form({
               >
                 <Radio value={"1"} icon={CheckIcon} label="Custom" />
                 {!libraryStored ? (
-                  <Button onClick={storeMyData} style={{ maxWidth: "100%" }}>
-                    Fetch Spotify data to access personalised playlist features.
-                  </Button>
+                  <div className="loadLibraryOverlay">
+                    <p style={{ fontSize: "14px" }}>
+                      Load your Spotify library for personalised features
+                    </p>
+                    {!loadingData ? (
+                      <Button
+                        onClick={storeMyData}
+                        style={{ maxWidth: "100%", whiteSpace: "wrap" }}
+                      >
+                        Load my library
+                      </Button>
+                    ) : (
+                      <Progress
+                        value={loadingDataProgress}
+                        size="lg"
+                        transitionDuration={200}
+                      />
+                    )}
+                  </div>
                 ) : (
                   <>
-                    <Tooltip.Floating
-                      multiline
-                      w={200}
-                      label={"Filters from your Spotify Saved Tracks."}
-                    >
-                      <Radio
-                        className="sourceFilterRadio"
-                        value={"2"}
-                        icon={CheckIcon}
-                        // disabled={!user || !libraryStored}
-                        label="Saved Songs"
-                      />
-                    </Tooltip.Floating>
                     <Radio
-                      value={"3"}
-                      // disabled={!user || !libraryStored}
+                      className="sourceFilterRadio"
+                      value={"2"}
                       icon={CheckIcon}
-                      label="Top Tracks"
+                      label="Saved Songs"
                     />
+
+                    <Radio value={"3"} icon={CheckIcon} label="Top Tracks" />
                     <Radio
                       value={"4"}
-                      // disabled={!user || !libraryStored}
                       icon={CheckIcon}
                       label="Recommendations"
                     />

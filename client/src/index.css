@@ -171,6 +171,11 @@ h2#filters {
   max-height: 40px;
 }
 
+.welcome {
+  width: 100%;
+  text-align: center;
+}
+
 .centerContent {
   display: flex;
   justify-content: center;
@@ -196,6 +201,14 @@ h2#filters {
   text-overflow: ellipsis;
   overflow: hidden;
   width: min-content;
+}
+
+.loadLibraryOverlay {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  border-radius: 10px;
 }
 
 tr:hover .trackPreview {

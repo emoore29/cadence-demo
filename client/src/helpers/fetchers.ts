@@ -64,30 +64,31 @@ export async function fetchLibrarySize(): Promise<number | null> {
 
 // Fetches user's saved tracks 50 at a time
 // Returns SavedTrack[] or null if failed to fetch
-export async function fetchSavedTracks(): Promise<SavedTrack[] | null> {
+export async function fetchSavedTracks(
+  updateProgressBar: () => void
+): Promise<SavedTrack[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (accessToken) {
-    let library: SavedTrack[] = [];
-    let nextUrl = "https://api.spotify.com/v1/me/tracks?limit=50";
-    try {
-      while (nextUrl) {
-        const libraryResult = await axios.get<Library>(nextUrl, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+  if (!accessToken) return null;
 
-        library = [...library, ...libraryResult.data.items];
-        nextUrl = libraryResult.data.next;
-      }
+  let library: SavedTrack[] = [];
+  let nextUrl = "https://api.spotify.com/v1/me/tracks?limit=50";
+  try {
+    while (nextUrl) {
+      const libraryResult = await axios.get<Library>(nextUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-      // Log songs fetched to console to check they're all there.
-      console.log("Your library was fetched: ", library.length);
-      return library;
-    } catch (error) {
-      showErrorNotif("Error", "There was an error fetching your saved tracks.");
-      console.error("Error details: ", error);
-      return null;
+      library = [...library, ...libraryResult.data.items];
+
+      updateProgressBar();
+      nextUrl = libraryResult.data.next;
     }
-  } else {
+
+    // Log songs fetched to console to check they're all there.
+    return library;
+  } catch (error) {
+    showErrorNotif("Error", "There was an error fetching your saved tracks.");
+    console.error("Error details: ", error);
     return null;
   }
 }
@@ -96,7 +97,8 @@ export async function fetchSavedTracks(): Promise<SavedTrack[] | null> {
 // Takes SavedTrack[]
 // Returns TrackFeatures[] or null if failed to fetch
 export async function fetchSavedTracksFeatures(
-  library: SavedTrack[]
+  library: SavedTrack[],
+  updateProgressBar: () => void
 ): Promise<TrackFeatures[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
@@ -127,6 +129,7 @@ export async function fetchSavedTracksFeatures(
 
       // add the features to the features library
       featuresLibrary.push(...featuresResult.data.audio_features);
+      updateProgressBar();
     } catch (error) {
       showErrorNotif(
         "Error",
@@ -142,7 +145,9 @@ export async function fetchSavedTracksFeatures(
 
 // Fetches user's top 500 tracks from last 12 months (long_term)
 // Returns Track[] or null if failed to fetch
-export async function fetchTopTracks(): Promise<Track[] | null> {
+export async function fetchTopTracks(
+  updateProgressBar: () => void
+): Promise<Track[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
 
@@ -157,6 +162,7 @@ export async function fetchTopTracks(): Promise<Track[] | null> {
 
       topTracks = [...topTracks, ...res.data.items];
       nextUrl = res.data.next;
+      updateProgressBar();
     }
 
     // Log songs fetched to console to check they're all there.
@@ -173,7 +179,8 @@ export async function fetchTopTracks(): Promise<Track[] | null> {
 // Takes a Track[] of user's top tracks
 // Returns TrackFeatures[] or null if failed to fetch
 export async function fetchTopTrackFeatures(
-  topTracks: Track[]
+  topTracks: Track[],
+  updateProgressBar: () => void
 ): Promise<TrackFeatures[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
@@ -205,6 +212,7 @@ export async function fetchTopTrackFeatures(
 
       // add the features to the features library
       featuresTopTracks.push(...featuresResult.data.audio_features);
+      updateProgressBar();
     } catch (error) {
       showErrorNotif(
         "Error",
@@ -220,7 +228,9 @@ export async function fetchTopTrackFeatures(
 
 // Fetches user's top 5 artists from last 12 months (long_term)
 // Returns Artist[] or null if failed to fetch
-export async function fetchTopArtists(): Promise<Artist[] | null> {
+export async function fetchTopArtists(
+  updateProgressBar: () => void
+): Promise<Artist[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
 
@@ -234,6 +244,8 @@ export async function fetchTopArtists(): Promise<Artist[] | null> {
         },
       }
     );
+
+    updateProgressBar();
     return res.data.items;
   } catch (error) {
     showErrorNotif("Error", "There was an error fetching your top artists.");
