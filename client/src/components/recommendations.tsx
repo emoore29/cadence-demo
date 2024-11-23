@@ -167,9 +167,9 @@ export default function Recommendations({
               <SkeletonRow />
             </>
           )}
-          {recommendations.size === 0 && <div>No recommendations found.</div>}
         </Table.Tbody>
       </Table>
+      {recommendations.size === 0 && <div>No recommendations found.</div>}
       <Group justify="flex-end" mt="md">
         <Button onClick={handleRefreshRecs}>Refresh</Button>
       </Group>

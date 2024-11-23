@@ -465,3 +465,23 @@ export async function updateSavedStatus(
     }
   }
 }
+
+// Get available genre seeds
+export async function getAvailableGenreSeeds(): Promise<string[] | null> {
+  const accessToken: string | null = getItemFromLocalStorage("access_token");
+  if (!accessToken) return null;
+
+  try {
+    const res = await axios.get(
+      "https://api.spotify.com/v1/recommendations/available-genre-seeds",
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    console.log("Genres:", res.data);
+    return res.data.genres;
+  } catch (error) {
+    showErrorNotif("Error", "Something went wrong getting available genres.");
+    return null;
+  }
+}

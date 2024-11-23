@@ -8,11 +8,14 @@ Basic Features:
 - Spotify icon somewhere
 - Accessible tooltips & track features: use trigger click hover for toggle menus so hover on desktop but click on mobile
 - Refetch recs with expanded criteria if no recs are returned from Spotify or indicator that none were returned
+- Distinguish between clear data/log out?
 
 Bugs?:
 
 - Adding all recs to playlist, then clicking submit, recs hangs.
 - If recs.size == 2 or 1, but fetching more only returns recs that are in the playlist, it will look like it's "hanging" with the SkeletonRows, because no more recommendations can be found
+- Database deletion on logout/clear data
+- Token expiry still an issue
 
 Other:
 

@@ -1,7 +1,7 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
-import { syncSpotifyAndIdb } from "@/helpers/general";
-import { filterDatabase, getRecommendations } from "@/helpers/playlist";
-import { FormValues, TrackObject, User } from "@/types/types";
+import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
+import { getRecommendations, startSearch } from "@/helpers/playlist";
+import { FormValues, TrackObject } from "@/types/types";
 import {
   Accordion,
   Button,
@@ -9,15 +9,19 @@ import {
   CheckIcon,
   Group,
   NumberInput,
+  Progress,
   Radio,
   Select,
+  Tabs,
   Tooltip,
-  Progress,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
+import CustomFilters from "./customFilters";
 
 interface FormProps {
+  activeSourceTab: string | null;
+  setActiveSourceTab: React.Dispatch<React.SetStateAction<string | null>>;
   loadingData: boolean;
   loadingDataProgress: number;
   storeMyData: () => void;
@@ -39,6 +43,8 @@ interface FormProps {
 }
 
 export default function Form({
+  activeSourceTab,
+  setActiveSourceTab,
   loadingData,
   loadingDataProgress,
   storeMyData,
@@ -53,16 +59,63 @@ export default function Form({
   anyTempo,
   setAnyTempo,
 }: FormProps) {
-  async function handleSubmit(values: FormValues, anyTempo: boolean) {
+  async function handleSubmit(
+    values: FormValues,
+    anyTempo: boolean,
+    activeSourceTab: string | null
+  ) {
     // Mark playlist and recs as loading so that loading components are displayed
     setLoadingPlaylist(true);
     setLoadingRecs(true);
 
     // Search for matching tracks
     const matchingTracks: Map<string, TrackObject> | null | void =
-      await filterDatabase(values, anyTempo);
+      await startSearch(values, anyTempo, activeSourceTab);
     if (!matchingTracks) {
-      console.log("Could not find matching tracks");
+      showWarnNotif(
+        "No matches found",
+        "No tracks could be found that meet that criteria."
+      );
+      setPlaylist(new Map());
+      setRecommendations(new Map());
+      setMatchingTracks(new Map());
+      setLoadingPlaylist(false);
+      setLoadingRecs(false);
+      return;
+    }
+
+    // Remove any tracks from matchingTracks that are already pinned in the playlist
+    for (const key of matchingTracks.keys()) {
+      if (playlist?.get(key)) {
+        if (playlist.get(key)?.pinned) {
+          matchingTracks.delete(key);
+        }
+      }
+    }
+
+    // If user is filtering their saved tracks
+    // Remove tracks from matchingTracks that were returned but have synced as unsaved
+    if (values.source === "2") {
+      for (const key of matchingTracks.keys()) {
+        const track = playlist.get(key);
+        if (track && !track.saved) {
+          matchingTracks.delete(key);
+        }
+      }
+    }
+
+    // If after removing pinned tracks/unsaved tracks from matches, matchingTracks.size is 0,
+    // Return no matches found
+    if (matchingTracks.size === 0) {
+      showWarnNotif(
+        "No matches found",
+        "No tracks could be found that meet that criteria."
+      );
+      setPlaylist(new Map());
+      setRecommendations(new Map());
+      setMatchingTracks(new Map());
+      setLoadingPlaylist(false);
+      setLoadingRecs(false);
       return;
     }
 
@@ -92,26 +145,6 @@ export default function Form({
     // Add matching tracks to newPlaylist up to the target size
     if (newPlaylist.size < values.target) {
       const missingNumber: number = values.target - newPlaylist.size;
-
-      // Remove any tracks from matchingTracks that are already pinned in the playlist
-      for (const key of matchingTracks.keys()) {
-        if (playlist?.get(key)) {
-          if (playlist.get(key)?.pinned) {
-            matchingTracks.delete(key);
-          }
-        }
-      }
-
-      // If user is filtering their saved tracks
-      // Remove tracks from matchingTracks that were returned but have synced as unsaved
-      if (values.source === "2") {
-        for (const key of matchingTracks.keys()) {
-          const track = playlist.get(key);
-          if (track && !track.saved) {
-            matchingTracks.delete(key);
-          }
-        }
-      }
 
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
       const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
@@ -155,7 +188,9 @@ export default function Form({
   return (
     <form
       className="form"
-      onSubmit={form.onSubmit((values) => handleSubmit(values, anyTempo))}
+      onSubmit={form.onSubmit((values) =>
+        handleSubmit(values, anyTempo, activeSourceTab)
+      )}
       onReset={form.onReset}
     >
       <h2 id="filters">Filters</h2>
@@ -163,20 +198,17 @@ export default function Form({
         <Accordion.Item value="Tracks Source">
           <Accordion.Control>Tracks Source</Accordion.Control>
           <Accordion.Panel>
-            <Radio.Group
-              name="source"
-              label="Source"
-              {...form.getInputProps("source")}
-            >
-              <Group
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  textAlign: "left",
-                }}
-              >
-                <Radio value={"1"} icon={CheckIcon} label="Custom" />
+            <Tabs value={activeSourceTab} onChange={setActiveSourceTab}>
+              <Tabs.List>
+                <Tabs.Tab value="custom">Custom</Tabs.Tab>
+              </Tabs.List>
+              <Tabs.List>
+                <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
+              </Tabs.List>
+              <Tabs.Panel value="custom">
+                <CustomFilters />
+              </Tabs.Panel>
+              <Tabs.Panel value="mySpotify">
                 {!libraryStored ? (
                   <div className="loadLibraryOverlay">
                     <p style={{ fontSize: "14px" }}>
@@ -198,24 +230,36 @@ export default function Form({
                     )}
                   </div>
                 ) : (
-                  <>
-                    <Radio
-                      className="sourceFilterRadio"
-                      value={"2"}
-                      icon={CheckIcon}
-                      label="Saved Songs"
-                    />
-
-                    <Radio value={"3"} icon={CheckIcon} label="Top Tracks" />
-                    <Radio
-                      value={"4"}
-                      icon={CheckIcon}
-                      label="Recommendations"
-                    />
-                  </>
+                  <Radio.Group
+                    name="source"
+                    label="Source"
+                    {...form.getInputProps("source")}
+                  >
+                    <Group
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        textAlign: "left",
+                      }}
+                    >
+                      <Radio
+                        className="sourceFilterRadio"
+                        value={"1"}
+                        icon={CheckIcon}
+                        label="Saved Songs"
+                      />
+                      <Radio value={"2"} icon={CheckIcon} label="Top Tracks" />
+                      <Radio
+                        value={"3"}
+                        icon={CheckIcon}
+                        label="Recommendations"
+                      />
+                    </Group>
+                  </Radio.Group>
                 )}
-              </Group>
-            </Radio.Group>
+              </Tabs.Panel>
+            </Tabs>
           </Accordion.Panel>
         </Accordion.Item>
         <Accordion.Item value="Target Length">

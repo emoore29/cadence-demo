@@ -11,27 +11,30 @@ import { fetchRecommendations } from "./fetchers";
 import { getItemFromLocalStorage } from "./localStorage";
 import { showErrorNotif } from "./general";
 
-export async function filterDatabase(
+export async function startSearch(
   formValues: FormValues,
-  anyTempo: boolean
+  anyTempo: boolean,
+  activeSourceTab: string | null
 ): Promise<Map<string, TrackObject> | null | void> {
-  const store: string = formValues.source; // 1 = library, 2 = top tracks, 3 = recommendations
+  const store: string = formValues.source;
+  console.log("active source tab", activeSourceTab);
+  if (activeSourceTab === "mySpotify") {
+    console.log("active source tab my spotify");
+    switch (store) {
+      case "1":
+        return await filterFromStore("library", formValues, anyTempo);
 
-  switch (store) {
-    case "1":
-      return console.log("Getting custom recommendations");
+      case "2":
+        return await filterFromStore("topTracks", formValues, anyTempo);
 
-    case "2":
-      return await filterFromStore("library", formValues, anyTempo);
+      case "3":
+        return await getRecommendations(formValues, anyTempo);
 
-    case "3":
-      return await filterFromStore("topTracks", formValues, anyTempo);
-
-    case "4":
-      return await getRecommendations(formValues, anyTempo);
-
-    default:
-      return null;
+      default:
+        return null;
+    }
+  } else if (activeSourceTab === "custom") {
+    console.log("Getting custom recommendations...");
   }
 }
 

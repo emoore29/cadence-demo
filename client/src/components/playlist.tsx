@@ -1,23 +1,9 @@
-import {
-  calculatePlaylistTime,
-  showErrorNotif,
-  showSuccessNotif,
-} from "@/helpers/general";
-import { savePlaylist } from "@/helpers/playlist";
-import { PlaylistData, TrackObject } from "@/types/types";
-import {
-  Button,
-  Checkbox,
-  Group,
-  Menu,
-  Modal,
-  Table,
-  TextInput,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { useMediaQuery } from "@mantine/hooks";
-import { IconDots, IconPin, IconPinFilled, IconX } from "@tabler/icons-react";
+import { calculatePlaylistTime } from "@/helpers/general";
+import { TrackObject } from "@/types/types";
+import { Button, Group, Table } from "@mantine/core";
+import { IconPin, IconPinFilled, IconX } from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
+import SavePlaylistModal from "./savePlaylist";
 import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
 
@@ -52,37 +38,9 @@ export default function Playlist({
   audioRefs,
   circleOffsets,
 }: PlaylistProps) {
-  const [openSavePlaylist, setOpenSavePlaylist] = useState(false);
   const [openTrackMenuId, setOpenTrackMenuId] = useState<string>();
-  const isMobile = useMediaQuery("(max-width: 50em)");
+  const [openSavePlaylist, setOpenSavePlaylist] = useState(false);
   const trackMenuRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-  const form = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      name: "Cadence playlist",
-      description: "Cadence playlist description",
-      public: true,
-    },
-  });
-
-  if (playlist.size === 0)
-    return <div>Please enter your preferences to generate a playlist.</div>;
-
-  async function handleSubmit(
-    formValues: PlaylistData,
-    playlist: Map<string, TrackObject>
-  ) {
-    const savedPlaylist = await savePlaylist(playlist, formValues);
-    if (savedPlaylist) {
-      showSuccessNotif(
-        "Playlist saved",
-        "Your playlist was successfully saved."
-      );
-      setOpenSavePlaylist(false);
-    } else {
-      showErrorNotif("Error", "Your playlist could not be saved.");
-    }
-  }
 
   // Removes a given track from the playlist
   function removeFromPlaylist(trackId: string) {
@@ -93,6 +51,7 @@ export default function Playlist({
     });
   }
 
+  // Pins a track to the playlist
   function pinToPlaylist(trackId: string) {
     setPlaylist((prevPlaylist) => {
       // Clone prev playlist to avoid mutation
@@ -113,6 +72,7 @@ export default function Playlist({
     });
   }
 
+  // Handles track menu open/close
   function handleTrackMenuClick(trackId: string) {
     setOpenTrackMenuId((prev) => (prev === trackId ? "" : trackId));
   }
@@ -253,47 +213,14 @@ export default function Playlist({
         <TableHead type="playlist" />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      <Modal.Root
-        opened={openSavePlaylist}
-        onClose={() => setOpenSavePlaylist(false)}
-        fullScreen={isMobile}
-        centered
-      >
-        <Modal.Overlay />
-        <Modal.Content>
-          <Modal.Header>
-            <Modal.Title>Save Playlist</Modal.Title>
-            <Modal.CloseButton />
-          </Modal.Header>
-          <Modal.Body>
-            <form
-              className="playlistForm"
-              onSubmit={form.onSubmit((values) =>
-                handleSubmit(values, playlist)
-              )}
-            >
-              <TextInput
-                label="Playlist Name"
-                placeholder="Cadence: Playlist Name"
-                key={form.key("name")}
-                {...form.getInputProps("name")}
-              />
-              <TextInput
-                label="Playlist Description"
-                placeholder="Playlist generated with cadence"
-                key={form.key("description")}
-                {...form.getInputProps("description")}
-              />
-              <Checkbox
-                label="Public"
-                key={form.key("public")}
-                {...form.getInputProps("public", { type: "checkbox" })}
-              />
-              <Button type="submit">Save playlist</Button>
-            </form>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal.Root>
+      {playlist.size === 0 && (
+        <div>No matches found / enter your preferences.</div>
+      )}
+      <SavePlaylistModal
+        playlist={playlist}
+        openSavePlaylist={openSavePlaylist}
+        setOpenSavePlaylist={setOpenSavePlaylist}
+      />
       <Group justify="flex-end" mt="md">
         {matchingTracks && matchingTracks.size > 5 && (
           <Button type="button" onClick={showMoreResults}>

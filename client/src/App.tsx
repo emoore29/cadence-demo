@@ -1,4 +1,3 @@
-import { Button, Loader } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
@@ -58,11 +57,14 @@ function App() {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "2",
+      source: "1",
       target: 5,
     },
   });
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
+  const [activeSourceTab, setActiveSourceTab] = useState<string | null>(
+    "custom"
+  );
 
   // Sets up IDB on initial page load if it doesn't already exist
   useEffect(() => {
@@ -282,6 +284,8 @@ function App() {
       />
       <div className="main">
         <Form
+          activeSourceTab={activeSourceTab}
+          setActiveSourceTab={setActiveSourceTab}
           loadingData={loadingData}
           loadingDataProgress={loadingDataProgress}
           storeMyData={storeMyData}
