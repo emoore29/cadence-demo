@@ -11,11 +11,9 @@ interface HeaderProps {
   setUser: (user: User | null) => void;
   setLibSize: (libSize: number) => void;
   setLibraryStored: (libraryStored: boolean) => void;
-  setPlaylist: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
+  setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
+    React.SetStateAction<Map<string, TrackObject>>
   >;
 }
 
@@ -29,8 +27,8 @@ export default function Header({
 }: HeaderProps) {
   const logOut = () => {
     // Remove everything from local storage and store
-    setPlaylist(null);
-    setRecommendations(null);
+    setPlaylist(new Map());
+    setRecommendations(new Map());
     clearLocalStorage();
     deleteDatabase();
     setUser(null);
@@ -40,8 +38,8 @@ export default function Header({
   };
 
   const clearData = () => {
-    setPlaylist(null);
-    setRecommendations(null);
+    setPlaylist(new Map());
+    setRecommendations(new Map());
     clearLocalStorage();
     deleteDatabase();
     setUser(null);

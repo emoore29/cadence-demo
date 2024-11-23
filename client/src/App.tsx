@@ -9,7 +9,7 @@ import Playlist from "./components/playlist";
 import Recommendations from "./components/recommendations";
 import { setUpDatabase } from "./helpers/database";
 import { updateSavedStatus } from "./helpers/fetchers";
-import { showSuccessNotif } from "./helpers/general";
+import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
   storeSavedTracksData,
   storeTopArtists,
@@ -30,18 +30,14 @@ function App() {
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
-  const [playlist, setPlaylist] = useState<Map<string, TrackObject> | null>(
-    null
-  );
+  const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
   const [estimatedFetches, setEstimatedFetches] = useState<number>(0);
-  const [matchingTracks, setMatchingTracks] = useState<Map<
-    string,
-    TrackObject
-  > | null>(null);
-  const [recommendations, setRecommendations] = useState<Map<
-    string,
-    TrackObject
-  > | null>(null);
+  const [matchingTracks, setMatchingTracks] = useState<
+    Map<string, TrackObject>
+  >(new Map());
+  const [recommendations, setRecommendations] = useState<
+    Map<string, TrackObject>
+  >(new Map());
   const [loadingPlaylist, setLoadingPlaylist] = useState<boolean>(false);
   const [loadingRecs, setLoadingRecs] = useState<boolean>(false);
   const [loadingSaveStatusTrackIds, setLoadingSaveStatusTrackIds] = useState<
@@ -55,8 +51,8 @@ function App() {
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      minTempo: 165,
-      maxTempo: 180,
+      minTempo: 120,
+      maxTempo: 135,
       targetValence: "Any",
       targetDanceability: "Any",
       targetEnergy: "Any",
@@ -68,11 +64,11 @@ function App() {
   });
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
 
-  // Sets up IDB on initial page load
+  // Sets up IDB on initial page load if it doesn't already exist
   useEffect(() => {
     const setupDb = async () => {
       try {
-        setUpDatabase(); // setUpDatabase will only create a new db if it doesn't already exist.
+        setUpDatabase();
       } catch (error) {
         console.error("Failed to setup database:", error);
       }
@@ -80,8 +76,10 @@ function App() {
     setupDb();
   }, []);
 
-  // Handles initial page load:
-  // Handles initial login, retrieving saved user data from local storage, and sets up access token refresh interval
+  // On initial page load or refresh:
+  // Handles initial login
+  // If user is already logged in, retrieves saved user data from local storage,
+  // and restarts access token refresh interval
   useEffect(() => {
     // Store tokens, user data and library size on login
     if (loginOccurred()) {
@@ -111,18 +109,9 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (estimatedFetches !== undefined) {
-      console.log("estimatedFetches is updated:", estimatedFetches);
-    }
-  }, [estimatedFetches]); // This will run after estimatedFetches changes
-
+  // Adds % to progress bar for every successful fetch of new track data
   function updateProgressBar() {
-    console.log(
-      `estimatedFetches inside updateProgressBar: ${estimatedFetches}`
-    );
-    console.log(`Adding ${(1 / estimatedFetches) * 100} to progress bar...`);
-    setLoadingDataProgress((prev) => prev + (1 / estimatedFetches) * 100); // + % to progress for each successful request
+    setLoadingDataProgress((prev) => prev + (1 / estimatedFetches) * 100);
   }
 
   // Gets user's Spotify library, top tracks, top artists and stores in IDB
@@ -146,60 +135,70 @@ function App() {
     } else {
       setLoadingData(false);
       setLibraryStored(false);
-      console.log("Sorry, there was an error attempting to store your data.");
+      showErrorNotif(
+        "Error",
+        "Something went wrong while loading your Spotify data."
+      );
     }
   }
 
-  // Updates track's saved status in Spotify & IDB
-  // Updates saved indicator accordingly in playlist
+  // Updates a track's saved status in state
+  // (passed to setPlaylist or setRecommendations)
+  function updateTrackSavedStatus(
+    prevList: Map<string, TrackObject>,
+    trackObj: TrackObject,
+    updateStatus: string
+  ): Map<string, TrackObject> {
+    const newList = new Map(prevList);
+
+    const trackObject = newList.get(trackObj.track.id);
+
+    if (trackObject) {
+      const updatedTrackObject = {
+        ...trackObject,
+        saved: updateStatus === "Added",
+      };
+      newList.set(trackObj.track.id, updatedTrackObject);
+    }
+    return newList;
+  }
+
+  // Updates saved status in Spotify and IDB
   // Adds loading icon while awaiting Spotify API reqs
-  async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
+  async function handleSaveClick(
+    list: string,
+    trackObj: TrackObject,
+    saved: boolean
+  ) {
     // Add trackId to loading list
     setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]);
 
     // Update saved status in Spotify & IDB
+    // updateSavedStatus shows error notif if it fails
     const updateStatus: string | null = await updateSavedStatus(
       trackObj,
       saved
     );
+
+    // If it fails, remove loading status with no change to saved status
     if (!updateStatus) {
-      console.log("Failed to update track saved status");
       setLoadingSaveStatusTrackIds((prevIds) =>
         prevIds.filter((id) => id !== trackObj.track.id)
       );
       return;
     }
 
-    // On successful saved status update request, update track saved status in playlist/recommendations
-    setPlaylist((prevPlaylist) => {
-      const newPlaylist = new Map(prevPlaylist);
-
-      const trackObject = newPlaylist.get(trackObj.track.id);
-
-      if (trackObject) {
-        const updatedTrackObject = {
-          ...trackObject,
-          saved: updateStatus === "Added",
-        };
-        newPlaylist.set(trackObj.track.id, updatedTrackObject);
-      }
-      return newPlaylist;
-    });
-
-    setRecommendations((prevRecs) => {
-      const newRecs = new Map(prevRecs);
-
-      const trackObject = newRecs.get(trackObj.track.id);
-
-      if (trackObject) {
-        const updatedTrackObject = {
-          ...trackObject,
-          saved: updateStatus === "Added",
-        };
-        newRecs.set(trackObj.track.id, updatedTrackObject);
-      }
-      return newRecs;
-    });
+    // On successful saved status update request,
+    // update track saved status in playlist/recommendations
+    if (list === "Playlist") {
+      setPlaylist((prev) =>
+        updateTrackSavedStatus(prev, trackObj, updateStatus)
+      );
+    } else if (list === "Recommendations") {
+      setRecommendations((prev) =>
+        updateTrackSavedStatus(prev, trackObj, updateStatus)
+      );
+    }
 
     setLoadingSaveStatusTrackIds((prevIds) =>
       prevIds.filter((id) => id !== trackObj.track.id)

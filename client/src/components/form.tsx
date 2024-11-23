@@ -22,16 +22,14 @@ interface FormProps {
   loadingDataProgress: number;
   storeMyData: () => void;
   libraryStored: boolean;
-  playlist: Map<string, TrackObject> | null;
-  setPlaylist: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
-  matchingTracks: Map<string, TrackObject> | null;
+  playlist: Map<string, TrackObject>;
+  setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
+  matchingTracks: Map<string, TrackObject>;
   setMatchingTracks: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
+    React.SetStateAction<Map<string, TrackObject>>
   >;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
+    React.SetStateAction<Map<string, TrackObject>>
   >;
   setLoadingPlaylist: React.Dispatch<React.SetStateAction<boolean>>;
   setLoadingRecs: React.Dispatch<React.SetStateAction<boolean>>;
@@ -61,7 +59,7 @@ export default function Form({
     setLoadingRecs(true);
 
     // Search for matching tracks
-    const matchingTracks: Map<string, TrackObject> | null =
+    const matchingTracks: Map<string, TrackObject> | null | void =
       await filterDatabase(values, anyTempo);
     if (!matchingTracks) {
       console.log("Could not find matching tracks");
@@ -104,17 +102,13 @@ export default function Form({
         }
       }
 
-      // If the user is searching based on Saved Songs, remove any tracks from matchingTracks that are marked as unsaved
-      // (They would have originally been found in IDB library,
-      // but if they were later unsaved in Spotify,
-      // IDB is only synced after matches are found,
-      // so the track also needs to be removed from the playlist)
+      // If user is filtering their saved tracks
+      // Remove tracks from matchingTracks that were returned but have synced as unsaved
       if (values.source === "2") {
         for (const key of matchingTracks.keys()) {
-          if (playlist?.get(key)) {
-            if (!playlist.get(key)?.saved) {
-              matchingTracks.delete(key);
-            }
+          const track = playlist.get(key);
+          if (track && !track.saved) {
+            matchingTracks.delete(key);
           }
         }
       }

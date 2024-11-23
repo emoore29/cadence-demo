@@ -8,16 +8,18 @@ import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
 
 interface RecommendationsProps {
-  playlist: Map<string, TrackObject> | null;
-  setPlaylist: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
-  recommendations: Map<string, TrackObject> | null;
+  playlist: Map<string, TrackObject>;
+  setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
+  recommendations: Map<string, TrackObject>;
   setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
+    React.SetStateAction<Map<string, TrackObject>>
   >;
   setLoadingRecs: React.Dispatch<React.SetStateAction<boolean>>;
-  handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
+  handleSaveClick: (
+    listType: string,
+    trackObj: TrackObject,
+    saved: boolean
+  ) => void;
   loadingSaveStatusTrackIds: string[];
   playTrackPreview: (trackId: string) => void;
   playingTrackId: string;
@@ -125,6 +127,7 @@ export default function Recommendations({
     .map((track) => (
       <Table.Tr key={track[1].track.id}>
         <TrackRow
+          listType="Recommendations"
           track={track[1]}
           audioRefs={audioRefs}
           playingTrackId={playingTrackId}

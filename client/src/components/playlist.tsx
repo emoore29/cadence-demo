@@ -23,14 +23,16 @@ import TrackRow from "./trackRow";
 
 interface PlaylistProps {
   setMatchingTracks: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
+    React.SetStateAction<Map<string, TrackObject>>
   >;
-  matchingTracks: Map<string, TrackObject> | null;
-  playlist: Map<string, TrackObject> | null;
-  setPlaylist: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject> | null>
-  >;
-  handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
+  matchingTracks: Map<string, TrackObject>;
+  playlist: Map<string, TrackObject>;
+  setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
+  handleSaveClick: (
+    listType: string,
+    trackObj: TrackObject,
+    saved: boolean
+  ) => void;
   loadingSaveStatusTrackIds: string[];
   playTrackPreview: (trackId: string) => void;
   playingTrackId: string;
@@ -63,7 +65,7 @@ export default function Playlist({
     },
   });
 
-  if (!playlist)
+  if (playlist.size === 0)
     return <div>Please enter your preferences to generate a playlist.</div>;
 
   async function handleSubmit(
@@ -118,6 +120,7 @@ export default function Playlist({
   const rows = Array.from(playlist).map((track) => (
     <Table.Tr key={track[1].track.id}>
       <TrackRow
+        listType="Playlist"
         track={track[1]}
         audioRefs={audioRefs}
         playingTrackId={playingTrackId}

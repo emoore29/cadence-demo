@@ -7,16 +7,22 @@ import React from "react";
 import TrackPreview from "./trackPreview";
 
 type TrackRowProps = {
+  listType: string;
   track: TrackObject;
   audioRefs: React.MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   playingTrackId: string | null;
   playTrackPreview: (id: string) => void;
-  handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
+  handleSaveClick: (
+    listType: string,
+    trackObj: TrackObject,
+    saved: boolean
+  ) => void;
   loadingSaveStatusTrackIds: string[];
   strokeDashoffset: number;
 };
 
 export default function TrackRow({
+  listType,
   track,
   audioRefs,
   playingTrackId,
@@ -91,7 +97,7 @@ export default function TrackRow({
           type="button"
           className="trackActionButton displayOnTrackHover"
           disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
-          onClick={() => handleSaveClick(track, track.saved!)}
+          onClick={() => handleSaveClick(listType, track, track.saved!)}
         >
           {loadingSaveStatusTrackIds.includes(track.track.id) ? (
             <Loader color="white" size={16} />

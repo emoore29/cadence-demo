@@ -417,13 +417,13 @@ export async function updateSavedStatus(
   // Note: if user has deleted it via Spotify,
   // and it is still recorded as saved in Cadence,
   // this will still send a delete request to Spotify.
-  // No error occurs, however it's a redundant request and probably needs rethinking.
+  // No error occurs, however it's a redundant request.
   if (saved) {
     try {
       const res = await axios.delete("https://api.spotify.com/v1/me/tracks", {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: {
-          ids: trackObj.track.id, // Join IDs as a comma-separated string
+          ids: trackObj.track.id,
         },
       });
 
