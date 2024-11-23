@@ -478,7 +478,6 @@ export async function getAvailableGenreSeeds(): Promise<string[] | null> {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-    console.log("Genres:", res.data);
     return res.data.genres;
   } catch (error) {
     showErrorNotif("Error", "Something went wrong getting available genres.");

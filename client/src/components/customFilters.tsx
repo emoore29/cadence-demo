@@ -1,12 +1,36 @@
 import { getAvailableGenreSeeds } from "@/helpers/fetchers";
-import { TextInput, MultiSelect } from "@mantine/core";
+import { TextInput, MultiSelect, Button, Modal } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 
-export default function CustomFilters() {
+interface SavePlaylistModalProps {
+  openCustomFilters: boolean;
+  setOpenCustomFilters: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function CustomFilters({
+  openCustomFilters,
+  setOpenCustomFilters,
+}: SavePlaylistModalProps) {
   const [availableGenreSeeds, setAvailableGenreSeeds] = useState<string[]>([
-    "test",
-    "genre",
+    "acoustic",
+    "ambient",
+    "bossanova",
+    "indie",
+    "rock",
   ]);
+  const artistForm = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      artist: "",
+    },
+  });
+  const trackForm = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      track: "",
+    },
+  });
 
   async function getGenres() {
     const availableGenres: string[] | null = await getAvailableGenreSeeds();
@@ -17,24 +41,63 @@ export default function CustomFilters() {
 
   useEffect(() => {
     getGenres();
-    console.log(availableGenreSeeds);
   }, []);
 
-  return (
-    <>
-      <form className="artistForm">
-        <TextInput label="Artist" placeholder="Input placeholder" />
-      </form>
-      <form className="trackForm">
-        <TextInput label="Artist" placeholder="Input placeholder" />
-      </form>
+  async function handleArtistSubmit() {
+    console.log("Searching for artists...");
+  }
 
-      <MultiSelect
-        label="Genre"
-        placeholder="Pick some"
-        data={availableGenreSeeds}
-        searchable
-      />
-    </>
+  async function handleTrackSubmit() {
+    console.log("Searching for tracks...");
+  }
+
+  return (
+    <Modal.Root
+      opened={openCustomFilters}
+      onClose={() => setOpenCustomFilters(false)}
+      centered
+    >
+      <Modal.Overlay />
+      <Modal.Content>
+        <Modal.Header>
+          <Modal.Title>Custom Playlist Seeds</Modal.Title>
+          <Modal.CloseButton />
+        </Modal.Header>
+        <Modal.Body>
+          <div>
+            <form
+              className="artistForm"
+              onSubmit={artistForm.onSubmit(handleArtistSubmit)}
+            >
+              <TextInput
+                label="Artist"
+                placeholder="Input placeholder"
+                key={artistForm.key("artist")}
+                {...artistForm.getInputProps("artist")}
+              />
+              <Button type="submit">Find</Button>
+            </form>
+            <form
+              className="trackForm"
+              onSubmit={trackForm.onSubmit(handleTrackSubmit)}
+            >
+              <TextInput
+                label="Track"
+                placeholder="Input placeholder"
+                key={trackForm.key("track")}
+                {...trackForm.getInputProps("track")}
+              />
+              <Button type="submit">Find</Button>
+            </form>
+            <MultiSelect
+              label="Genre"
+              placeholder="Pick some"
+              data={availableGenreSeeds}
+              searchable
+            />
+          </div>
+        </Modal.Body>
+      </Modal.Content>
+    </Modal.Root>
   );
 }
