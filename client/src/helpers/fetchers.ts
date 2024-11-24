@@ -484,3 +484,51 @@ export async function getAvailableGenreSeeds(): Promise<string[] | null> {
     return null;
   }
 }
+
+// Search for artist
+export async function searchForArtist(
+  userInput: string
+): Promise<Artist[] | null> {
+  const accessToken: string | null = getItemFromLocalStorage("access_token");
+  if (!accessToken) return null;
+
+  const artistQuery = encodeURIComponent(userInput);
+
+  try {
+    const res = await axios.get(
+      `https://api.spotify.com/v1/search?q=${artistQuery}&type=artist&limit=5`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    console.log("artist search", res.data.artists.items);
+    return res.data.artists.items;
+  } catch (error) {
+    showErrorNotif("Error", "Something went wrong getting available artists.");
+    return null;
+  }
+}
+
+// Search for track
+export async function searchForTrack(
+  userInput: string
+): Promise<TrackObject[] | null> {
+  const accessToken: string | null = getItemFromLocalStorage("access_token");
+  if (!accessToken) return null;
+
+  const trackQuery = encodeURIComponent(userInput);
+
+  try {
+    const res = await axios.get(
+      `https://api.spotify.com/v1/search?q=${trackQuery}&type=track&limit=5`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    console.log("track search", res.data.tracks.items);
+    return res.data.tracks.items;
+  } catch (error) {
+    showErrorNotif("Error", "Something went wrong getting available tracks.");
+    return null;
+  }
+}

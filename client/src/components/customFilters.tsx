@@ -1,4 +1,9 @@
-import { getAvailableGenreSeeds } from "@/helpers/fetchers";
+import {
+  getAvailableGenreSeeds,
+  searchForArtist,
+  searchForTrack,
+} from "@/helpers/fetchers";
+import { Artist, TrackObject } from "@/types/types";
 import { TextInput, MultiSelect, Button, Modal } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
@@ -31,6 +36,8 @@ export default function CustomFilters({
       track: "",
     },
   });
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [trackResults, setTrackResults] = useState<TrackObject[]>([]);
 
   async function getGenres() {
     const availableGenres: string[] | null = await getAvailableGenreSeeds();
@@ -43,12 +50,20 @@ export default function CustomFilters({
     getGenres();
   }, []);
 
-  async function handleArtistSubmit() {
-    console.log("Searching for artists...");
+  async function handleArtistSubmit(values) {
+    console.log(values.artist);
+    const artistSearchResults: Artist[] | null = await searchForArtist(
+      values.artist
+    );
+    artistSearchResults && setArtists(artistSearchResults);
   }
 
-  async function handleTrackSubmit() {
-    console.log("Searching for tracks...");
+  async function handleTrackSubmit(values) {
+    console.log(values.track);
+    const trackSearchResults: TrackObject[] | null = await searchForTrack(
+      values.track
+    );
+    trackSearchResults && setTrackResults(trackSearchResults);
   }
 
   return (
@@ -67,7 +82,9 @@ export default function CustomFilters({
           <div>
             <form
               className="artistForm"
-              onSubmit={artistForm.onSubmit(handleArtistSubmit)}
+              onSubmit={artistForm.onSubmit((values) =>
+                handleArtistSubmit(values)
+              )}
             >
               <TextInput
                 label="Artist"
@@ -76,10 +93,14 @@ export default function CustomFilters({
                 {...artistForm.getInputProps("artist")}
               />
               <Button type="submit">Find</Button>
+              {artists &&
+                artists.map((artistObj) => <div>{artistObj.name}</div>)}
             </form>
             <form
               className="trackForm"
-              onSubmit={trackForm.onSubmit(handleTrackSubmit)}
+              onSubmit={trackForm.onSubmit((values) =>
+                handleTrackSubmit(values)
+              )}
             >
               <TextInput
                 label="Track"
@@ -88,10 +109,12 @@ export default function CustomFilters({
                 {...trackForm.getInputProps("track")}
               />
               <Button type="submit">Find</Button>
+              {trackResults &&
+                trackResults.map((trackObj) => <div>{trackObj.name}</div>)}
             </form>
             <MultiSelect
               label="Genre"
-              placeholder="Pick some"
+              placeholder="Select one or more genres"
               data={availableGenreSeeds}
               searchable
             />
