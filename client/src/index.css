@@ -363,3 +363,12 @@ tr:hover .trackActionButton {
 .mantine-Menu-item:hover {
   background-color: var(--mantine-color-darkPink-9);
 }
+
+.customSeedResults {
+  display: flex;
+  flex-direction: column;
+}
+
+.multiselectsContainer {
+  margin-bottom: 1000px;
+}

@@ -3,10 +3,18 @@ import {
   searchForArtist,
   searchForTrack,
 } from "@/helpers/fetchers";
-import { Artist, TrackObject } from "@/types/types";
+import {
+  Artist,
+  ArtistSeedForm,
+  Track,
+  TrackObject,
+  TrackSeedForm,
+} from "@/types/types";
 import { TextInput, MultiSelect, Button, Modal } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
+import { SearchableMultiSelect } from "./searchableMultiSelect";
+import { AsyncAutocomplete } from "./asyncSearchableMultiSelect";
 
 interface SavePlaylistModalProps {
   openCustomFilters: boolean;
@@ -24,20 +32,12 @@ export default function CustomFilters({
     "indie",
     "rock",
   ]);
-  const artistForm = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      artist: "",
-    },
-  });
-  const trackForm = useForm({
-    mode: "uncontrolled",
-    initialValues: {
-      track: "",
-    },
-  });
+
   const [artists, setArtists] = useState<Artist[]>([]);
-  const [trackResults, setTrackResults] = useState<TrackObject[]>([]);
+  const [trackResults, setTrackResults] = useState<Track[]>([]);
+  const [chosenGenres, setChosenGenres] = useState<string[]>([]);
+  const [chosenArtists, setChosenArtists] = useState<Artist[]>([]);
+  const [chosenTracks, setChosenTracks] = useState<Track[]>([]);
 
   async function getGenres() {
     const availableGenres: string[] | null = await getAvailableGenreSeeds();
@@ -50,27 +50,12 @@ export default function CustomFilters({
     getGenres();
   }, []);
 
-  async function handleArtistSubmit(values) {
-    console.log(values.artist);
-    const artistSearchResults: Artist[] | null = await searchForArtist(
-      values.artist
-    );
-    artistSearchResults && setArtists(artistSearchResults);
-  }
-
-  async function handleTrackSubmit(values) {
-    console.log(values.track);
-    const trackSearchResults: TrackObject[] | null = await searchForTrack(
-      values.track
-    );
-    trackSearchResults && setTrackResults(trackSearchResults);
-  }
-
   return (
     <Modal.Root
       opened={openCustomFilters}
       onClose={() => setOpenCustomFilters(false)}
       centered
+      fullScreen
     >
       <Modal.Overlay />
       <Modal.Content>
@@ -79,48 +64,42 @@ export default function CustomFilters({
           <Modal.CloseButton />
         </Modal.Header>
         <Modal.Body>
-          <div>
-            <form
-              className="artistForm"
-              onSubmit={artistForm.onSubmit((values) =>
-                handleArtistSubmit(values)
-              )}
-            >
-              <TextInput
-                label="Artist"
-                placeholder="Input placeholder"
-                key={artistForm.key("artist")}
-                {...artistForm.getInputProps("artist")}
-              />
-              <Button type="submit">Find</Button>
-              {artists &&
-                artists.map((artistObj) => <div>{artistObj.name}</div>)}
-            </form>
-            <form
-              className="trackForm"
-              onSubmit={trackForm.onSubmit((values) =>
-                handleTrackSubmit(values)
-              )}
-            >
-              <TextInput
-                label="Track"
-                placeholder="Input placeholder"
-                key={trackForm.key("track")}
-                {...trackForm.getInputProps("track")}
-              />
-              <Button type="submit">Find</Button>
-              {trackResults &&
-                trackResults.map((trackObj) => <div>{trackObj.name}</div>)}
-            </form>
-            <MultiSelect
-              label="Genre"
-              placeholder="Select one or more genres"
-              data={availableGenreSeeds}
-              searchable
-            />
+          <SearchableMultiSelect
+            data={availableGenreSeeds}
+            setChosenGenres={setChosenGenres}
+          />
+          {chosenGenres.map((genre) => genre + " ")}
+          <AsyncAutocomplete
+            setChosenArtists={setChosenArtists}
+            type="artist"
+          />
+          <AsyncAutocomplete setChosenTracks={setChosenTracks} type="track" />
+
+          <div className="chosenSeeds">
+            Genres:
+            {chosenGenres.map((genre) => (
+              <div>{genre}</div>
+            ))}
+            Artists:
+            {chosenArtists.map((artistObj) => (
+              <div>{artistObj.name}</div>
+            ))}
+            Tracks:
+            {chosenTracks.map((trackObj) => (
+              <div>{trackObj.name}</div>
+            ))}
           </div>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>
   );
+}
+
+{
+  /* <MultiSelect
+label="Genre"
+placeholder="Select one or more genres"
+data={availableGenreSeeds}
+searchable
+/> */
 }

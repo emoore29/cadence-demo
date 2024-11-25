@@ -214,6 +214,14 @@ export interface PlaylistData {
   public: boolean;
 }
 
+export interface TrackSeedForm {
+  track: string;
+}
+
+export interface ArtistSeedForm {
+  artist: string;
+}
+
 export interface TrackObject {
   track: Track;
   features: TrackFeatures;

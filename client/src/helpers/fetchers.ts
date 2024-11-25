@@ -487,7 +487,12 @@ export async function getAvailableGenreSeeds(): Promise<string[] | null> {
 
 // Search for artist
 export async function searchForArtist(
-  userInput: string
+  userInput: string,
+  abortController: React.MutableRefObject<AbortController | undefined>,
+  abortSignal: AbortSignal,
+  setData: React.Dispatch<React.SetStateAction<Track[] | Artist[] | null>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setEmpty: React.Dispatch<React.SetStateAction<boolean>>
 ): Promise<Artist[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
@@ -499,36 +504,56 @@ export async function searchForArtist(
       `https://api.spotify.com/v1/search?q=${artistQuery}&type=artist&limit=5`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
+        signal: abortSignal,
       }
     );
     console.log("artist search", res.data.artists.items);
+
+    setData(res.data.artists.items);
+    setLoading(false);
+    setEmpty(res.data.artists.items === 0);
+    abortController.current = undefined;
+
     return res.data.artists.items;
   } catch (error) {
-    showErrorNotif("Error", "Something went wrong getting available artists.");
+    // showErrorNotif("Error", "Something went wrong getting available artists.");
     return null;
   }
 }
 
 // Search for track
 export async function searchForTrack(
-  userInput: string
-): Promise<TrackObject[] | null> {
+  userInput: string,
+  abortController: React.MutableRefObject<AbortController | undefined>,
+  abortSignal: AbortSignal,
+  setData: React.Dispatch<React.SetStateAction<Track[] | Artist[] | null>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setEmpty: React.Dispatch<React.SetStateAction<boolean>>
+): Promise<Track[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
 
-  const trackQuery = encodeURIComponent(userInput);
+  const trackQuery = encodeURIComponent(userInput); // convert whitespace to %20
 
   try {
     const res = await axios.get(
       `https://api.spotify.com/v1/search?q=${trackQuery}&type=track&limit=5`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
+        signal: abortSignal,
       }
     );
     console.log("track search", res.data.tracks.items);
+
+    setData(res.data.tracks.items);
+    setLoading(false);
+
+    setEmpty(res.data.tracks.items === 0);
+    abortController.current = undefined;
+
     return res.data.tracks.items;
   } catch (error) {
-    showErrorNotif("Error", "Something went wrong getting available tracks.");
+    // showErrorNotif("Error", "Something went wrong getting available tracks.");
     return null;
   }
 }
