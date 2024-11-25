@@ -491,8 +491,7 @@ export async function searchForArtist(
   abortController: React.MutableRefObject<AbortController | undefined>,
   abortSignal: AbortSignal,
   setData: React.Dispatch<React.SetStateAction<Track[] | Artist[] | null>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setEmpty: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ): Promise<Artist[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
@@ -501,7 +500,7 @@ export async function searchForArtist(
 
   try {
     const res = await axios.get(
-      `https://api.spotify.com/v1/search?q=${artistQuery}&type=artist&limit=5`,
+      `https://api.spotify.com/v1/search?q=${artistQuery}&type=artist&limit=20`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
         signal: abortSignal,
@@ -511,7 +510,6 @@ export async function searchForArtist(
 
     setData(res.data.artists.items);
     setLoading(false);
-    setEmpty(res.data.artists.items === 0);
     abortController.current = undefined;
 
     return res.data.artists.items;
@@ -527,8 +525,7 @@ export async function searchForTrack(
   abortController: React.MutableRefObject<AbortController | undefined>,
   abortSignal: AbortSignal,
   setData: React.Dispatch<React.SetStateAction<Track[] | Artist[] | null>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setEmpty: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ): Promise<Track[] | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
@@ -537,7 +534,7 @@ export async function searchForTrack(
 
   try {
     const res = await axios.get(
-      `https://api.spotify.com/v1/search?q=${trackQuery}&type=track&limit=5`,
+      `https://api.spotify.com/v1/search?q=${trackQuery}&type=track&limit=20`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
         signal: abortSignal,
@@ -547,8 +544,6 @@ export async function searchForTrack(
 
     setData(res.data.tracks.items);
     setLoading(false);
-
-    setEmpty(res.data.tracks.items === 0);
     abortController.current = undefined;
 
     return res.data.tracks.items;

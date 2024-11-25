@@ -64,42 +64,18 @@ export default function CustomFilters({
           <Modal.CloseButton />
         </Modal.Header>
         <Modal.Body>
+          Select at least two categories, at most 5 total.
           <SearchableMultiSelect
             data={availableGenreSeeds}
             setChosenGenres={setChosenGenres}
           />
-          {chosenGenres.map((genre) => genre + " ")}
           <AsyncAutocomplete
             setChosenArtists={setChosenArtists}
             type="artist"
           />
           <AsyncAutocomplete setChosenTracks={setChosenTracks} type="track" />
-
-          <div className="chosenSeeds">
-            Genres:
-            {chosenGenres.map((genre) => (
-              <div>{genre}</div>
-            ))}
-            Artists:
-            {chosenArtists.map((artistObj) => (
-              <div>{artistObj.name}</div>
-            ))}
-            Tracks:
-            {chosenTracks.map((trackObj) => (
-              <div>{trackObj.name}</div>
-            ))}
-          </div>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>
   );
-}
-
-{
-  /* <MultiSelect
-label="Genre"
-placeholder="Select one or more genres"
-data={availableGenreSeeds}
-searchable
-/> */
 }

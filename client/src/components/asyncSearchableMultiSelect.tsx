@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Combobox, Loader, TextInput, useCombobox } from "@mantine/core";
-import { debounce } from "lodash";
+import {
+  Combobox,
+  Loader,
+  TextInput,
+  useCombobox,
+  Pill,
+  Group,
+  CheckIcon,
+  PillsInput,
+} from "@mantine/core";
+import { debounce, mapValues } from "lodash";
 import { searchForArtist, searchForTrack } from "@/helpers/fetchers";
 import { Artist, Track } from "@/types/types";
 
@@ -8,7 +17,7 @@ import { Artist, Track } from "@/types/types";
 // https://mantine.dev/combobox/?e=AsyncAutocomplete
 
 interface AsyncAutocompleteProps {
-  type: string;
+  type: "track" | "artist";
   setChosenTracks?: React.Dispatch<React.SetStateAction<Track[]>>;
   setChosenArtists?: React.Dispatch<React.SetStateAction<Artist[]>>;
 }
@@ -24,8 +33,8 @@ export function AsyncAutocomplete({
 
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<Track[] | Artist[] | null>(null);
-  const [value, setValue] = useState("");
-  const [empty, setEmpty] = useState(false);
+  const [values, setValues] = useState<(Track | Artist)[]>([]);
+  const [search, setSearch] = useState("");
   const abortController = useRef<AbortController>();
   const debouncedSearch = useRef(debounce(fetchOptions, 300)).current;
 
@@ -42,8 +51,7 @@ export function AsyncAutocomplete({
         abortController,
         abortController.current.signal,
         setData,
-        setLoading,
-        setEmpty
+        setLoading
       );
     } else if (type === "track") {
       searchForTrack(
@@ -51,8 +59,7 @@ export function AsyncAutocomplete({
         abortController,
         abortController.current.signal,
         setData,
-        setLoading,
-        setEmpty
+        setLoading
       );
     }
   }
@@ -64,79 +71,110 @@ export function AsyncAutocomplete({
     };
   }, [debouncedSearch]);
 
-  const options = (data || []).map((obj) => {
-    if ("album" in obj) {
-      return (
-        <Combobox.Option value={obj.id} key={obj.id}>
+  function handleValueRemove(val: string) {
+    setValues((currentVals) => {
+      console.log("filtering vals");
+      return currentVals.filter((obj) => obj.id !== val);
+    });
+  }
+
+  // Displays data in Comboboxes
+  const options = (data || []).map((obj) => (
+    <Combobox.Option value={obj.id} key={obj.id} active={values.includes(obj)}>
+      <Group gap="sm">
+        {values.includes(obj) ? <CheckIcon size={12} /> : null}
+        <span>
           {obj.name}
-        </Combobox.Option>
-      );
-    } else {
-      return (
-        <Combobox.Option value={obj.id} key={obj.id}>
-          {obj.name}
-        </Combobox.Option>
+          {"artists" in obj ? ` - ${obj.artists[0].name}` : ""}
+        </span>
+      </Group>
+    </Combobox.Option>
+  ));
+
+  // Displays selected options in pills
+  const pillValues = values?.map((obj) => (
+    <Pill
+      key={obj.id}
+      withRemoveButton
+      onRemove={() => handleValueRemove(obj.id)}
+    >
+      {obj.name}
+      {"artists" in obj ? ` - ${obj.artists[0].name}` : ""}
+    </Pill>
+  ));
+
+  // Adds the selected option to values which are displayed as pills in input field
+  function handleOptionSelect(optionId: string) {
+    // Get object from data using id
+    const chosenOption: Track | Artist | undefined = data?.find(
+      (obj) => obj.id === optionId
+    );
+
+    // If object exists in data, add it to values
+    if (chosenOption) {
+      // Add object to values
+      setValues((current) =>
+        current.includes(chosenOption)
+          ? current.filter((v) => v !== chosenOption)
+          : [...current, chosenOption]
       );
     }
-  });
+  }
 
   return (
     <Combobox
-      onOptionSubmit={(optionId) => {
-        const selectedOption: Artist | Track | undefined = (data || []).find(
-          (obj) => obj.id === optionId
-        );
-
-        if (selectedOption) {
-          setValue(selectedOption?.name);
-          if (type === "artist") {
-            setChosenArtists((prev) => [...prev, selectedOption]);
-          } else if (type === "track") {
-            setChosenTracks((prev) => [...prev, selectedOption]);
-          }
-        }
-
-        combobox.closeDropdown();
-      }}
+      onOptionSubmit={handleOptionSelect}
       withinPortal={false}
       store={combobox}
     >
-      <Combobox.Target>
-        <TextInput
-          label={type === "track" ? "Track" : "Artist"}
-          placeholder={
-            type === "track" ? "Type a track name" : "Type an artist name"
-          }
-          value={value}
-          onChange={(event) => {
-            setValue(event.currentTarget.value);
-            if (event.currentTarget.value.length < 1) {
-              console.log("clearing data");
-              setData(null);
-            }
+      <Combobox.DropdownTarget>
+        <PillsInput onClick={() => combobox.openDropdown()}>
+          <Pill.Group>
+            {pillValues}
+            <Combobox.EventsTarget>
+              <PillsInput.Field
+                placeholder={
+                  type === "track" ? "Type a track name" : "Type an artist name"
+                }
+                value={search}
+                onChange={(event) => {
+                  combobox.updateSelectedOptionIndex();
+                  setSearch(event.currentTarget.value);
+                  if (event.currentTarget.value.length < 1) {
+                    console.log("clearing data");
+                    setData(null);
+                  }
 
-            if (event.currentTarget.value.length > 1) {
-              fetchOptions(event.currentTarget.value);
-            }
-            combobox.resetSelectedOption();
-            combobox.openDropdown();
-          }}
-          onClick={() => combobox.openDropdown()}
-          onFocus={() => {
-            combobox.openDropdown();
-            if (data === null) {
-              fetchOptions(value);
-            }
-          }}
-          onBlur={() => combobox.closeDropdown()}
-          rightSection={loading && <Loader size={18} />}
-        />
-      </Combobox.Target>
+                  if (event.currentTarget.value.length > 0) {
+                    fetchOptions(event.currentTarget.value);
+                  }
+
+                  combobox.resetSelectedOption();
+                  combobox.openDropdown();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Backspace" && search.length === 0) {
+                    event.preventDefault();
+                    handleValueRemove(values[values.length - 1]);
+                  }
+                }}
+                onClick={() => combobox.openDropdown()}
+                onFocus={() => combobox.openDropdown()}
+                onBlur={() => combobox.closeDropdown()}
+                //     rightSection={loading && <Loader size={18}
+              />
+            </Combobox.EventsTarget>
+          </Pill.Group>
+        </PillsInput>
+      </Combobox.DropdownTarget>
 
       <Combobox.Dropdown hidden={data === null}>
         <Combobox.Options>
-          {options}
-          {empty && <Combobox.Empty>No results found</Combobox.Empty>}
+          {options.length > 0 ? (
+            options
+          ) : (
+            <Combobox.Empty>Nothing found...</Combobox.Empty>
+          )}
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>
