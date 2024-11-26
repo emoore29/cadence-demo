@@ -1,43 +1,27 @@
 import axios from "axios";
-import { storeTokens } from "./localStorage";
+import { checkTokenValidity, storeTokens } from "./localStorage";
+import { showErrorNotif } from "./general";
+
+// Create Singleton promise
+// Never more than one instance of tokenPromise
+// Multiple calls of handleTokens will not create multiple API calls
+let tokenPromise: Promise<void> | null = null;
 
 // If the current access token has expired, fetches and stores new tokens
 export async function handleTokens(): Promise<void> {
-  const storedAccessToken: string | null = localStorage.getItem("access_token");
-  const storedExpiry: string | null = localStorage.getItem("token_expiry");
-  if (
-    !storedAccessToken ||
-    storedAccessToken === "undefined" ||
-    !storedExpiry ||
-    storedExpiry === "undefined" ||
-    storedExpiry === "NaN"
-  ) {
-    // Either user has not logged in, or there is an error
-    console.error(
-      "Couldn't find stored access token or expiry in local storage."
-    );
+  if (!tokenPromise) {
+    tokenPromise = (async () => {
+      const isTokenValid = checkTokenValidity();
+      if (!isTokenValid) {
+        const tokens: string[] | null = await getNewTokens();
+        if (tokens) {
+          const [accessToken, newRefreshToken, expiresIn] = tokens;
+          storeTokens(accessToken, newRefreshToken, expiresIn);
+        }
+      }
+    })();
   }
-
-  const now = Date.now();
-  const expiryTime = parseInt(storedExpiry!, 10);
-
-  // Logs for debugging token updates
-  // console.log("Now:", new Date(now).toLocaleString());
-  // console.log("Expiry time:", new Date(expiryTime).toLocaleString());
-
-  // Add a 30 second buffer such that the token refreshes just before it expires.
-  // Allows for delays in fetching new tokens from Spotify
-  if (now > expiryTime - 30000) {
-    console.log("Tokens out of date. Updating...");
-    const tokens: string[] | null = await getNewTokens();
-    if (tokens) {
-      const [accessToken, newRefreshToken, expiresIn] = tokens;
-      storeTokens(accessToken, newRefreshToken, expiresIn);
-    } else {
-      // If new tokens couldn't be retrieved for some reason, get user to log in again
-      console.log("Your session has expired. Please log in again.");
-    }
-  }
+  return tokenPromise;
 }
 
 // Fetches new tokens from backend /refresh_token API endpoint
@@ -45,9 +29,10 @@ export async function getNewTokens(): Promise<string[] | null> {
   // Sends request to backend for new access token
   const refreshToken: string | null = localStorage.getItem("refresh_token");
   if (!refreshToken) {
-    console.error("No refresh token found in local storage.");
+    showErrorNotif("", "Your session has expired. Please log in again.");
     return null;
   }
+
   try {
     const response = await axios.get("http://localhost:3000/refresh_token", {
       params: {
@@ -63,10 +48,9 @@ export async function getNewTokens(): Promise<string[] | null> {
       expires_in: expiresIn,
     } = response.data;
 
-    console.log("New tokens fetched:", accessToken, newRefreshToken, expiresIn);
     return [accessToken, newRefreshToken, expiresIn];
   } catch (error) {
-    console.error("There was an error fetching a new access token:", error);
+    console.error("Something went wrong continuing login:", error);
     return null;
   }
 }

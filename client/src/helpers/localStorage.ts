@@ -1,5 +1,7 @@
 // Helper functions for storing, retrieving, and clearing data from local storage.
 
+import { showErrorNotif } from "./general";
+
 // Stores a key-value pair in local storage
 export function storeDataInLocalStorage(key: string, data: any): void {
   localStorage.setItem(key, JSON.stringify(data));
@@ -47,4 +49,26 @@ export function getItemFromLocalStorage(item: string): string | null {
   } else {
     return null;
   }
+}
+
+export function checkTokenValidity(): boolean {
+  const storedAccessToken: string | null = localStorage.getItem("access_token");
+  const storedExpiry: string | null = localStorage.getItem("token_expiry");
+  if (
+    !storedAccessToken ||
+    storedAccessToken === "undefined" ||
+    !storedExpiry ||
+    storedExpiry === "undefined" ||
+    storedExpiry === "NaN"
+  ) {
+    // Either user has not logged in, or there is an error
+    showErrorNotif(
+      "Error",
+      "Couldn't find stored access token or expiry. Please log in again."
+    );
+  }
+
+  const now = Date.now();
+  const expiryTime = parseInt(storedExpiry!, 10);
+  return now > expiryTime - 3000;
 }

@@ -83,31 +83,35 @@ function App() {
   // If user is already logged in, retrieves saved user data from local storage,
   // and restarts access token refresh interval
   useEffect(() => {
-    // Store tokens, user data and library size on login
-    if (loginOccurred()) {
-      handleLogin(setLibSize, setUser, setEstimatedFetches);
+    async function initialize() {
+      // Store tokens, user data and library size on login
+      if (loginOccurred()) {
+        handleLogin(setLibSize, setUser, setEstimatedFetches);
+      }
+
+      // Set user, libSize, lib stored, etc in state if user has already logged in
+      // Check for token expiry with handleTokens()
+      const user: string | null = getItemFromLocalStorage("user_data");
+      if (user) {
+        setUser(JSON.parse(user));
+        const libSize: number | null = Number(
+          getItemFromLocalStorage("lib_size")
+        );
+        libSize && setLibSize(libSize);
+        const estimatedFetches = (3 * libSize) / 100 + 16;
+        setEstimatedFetches(estimatedFetches);
+        setLibraryStored(wasLibraryStoredInDatabase());
+        await handleTokens();
+      }
+
+      // Handle token expiry every hour
+      const interval = setInterval(handleTokens, 3600000);
+      return () => {
+        clearInterval(interval);
+      };
     }
 
-    // Set user, libSize, lib stored, etc in state if user has already logged in
-    // Check for token expiry with handleTokens()
-    const user: string | null = getItemFromLocalStorage("user_data");
-    if (user) {
-      setUser(JSON.parse(user));
-      const libSize: number | null = Number(
-        getItemFromLocalStorage("lib_size")
-      );
-      libSize && setLibSize(libSize);
-      const estimatedFetches = (3 * libSize) / 100 + 16;
-      setEstimatedFetches(estimatedFetches);
-      setLibraryStored(wasLibraryStoredInDatabase());
-      handleTokens();
-    }
-
-    // Handle token expiry every hour
-    const interval = setInterval(handleTokens, 3600000);
-    return () => {
-      clearInterval(interval);
-    };
+    initialize();
   }, []);
 
   // Adds % to progress bar for every successful fetch of new track data

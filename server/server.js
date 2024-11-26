@@ -128,8 +128,7 @@ app.get("/refresh_token", async function (req, res) {
 
   var client_refresh_token = req.query.refresh_token;
 
-  console.log(`${currentTime}: Received refresh token from client`);
-  console.log(`${currentTime}: Requesting new access token from Spotify`);
+  console.log(`${currentTime}: User requested new access token`);
 
   try {
     const authResponse = await axios.post(
@@ -149,38 +148,31 @@ app.get("/refresh_token", async function (req, res) {
       }
     );
 
-    if (authResponse.status === 200) {
-      var updated_refresh_token;
-      const access_token = authResponse.data.access_token;
-      const expires_in = authResponse.data.expires_in;
-      var refresh_token;
-      // If a new token is sent, use that, otherwise use the old token
-      if (authResponse.data.refresh_token) {
-        updated_refresh_token = true;
-        refresh_token = authResponse.data.refresh_token;
-      } else {
-        updated_refresh_token = false;
-        refresh_token = client_refresh_token;
-      }
-
-      res.send({
-        access_token: access_token,
-        refresh_token: refresh_token,
-        expires_in: expires_in,
-      });
-
-      console.log(
-        `${currentTime}: Sent ${
-          updated_refresh_token ? "new" : "old"
-        } refresh_token, new access_token, and expiry time to client.`
-      );
+    var updated_refresh_token;
+    const access_token = authResponse.data.access_token;
+    const expires_in = authResponse.data.expires_in;
+    var refresh_token;
+    // If a new token is sent, use that, otherwise use the old token
+    if (authResponse.data.refresh_token) {
+      updated_refresh_token = true;
+      refresh_token = authResponse.data.refresh_token;
     } else {
-      console.log(
-        `${currentTime}: Response status from Spotify API to request for new access token was not 200.`
-      );
+      updated_refresh_token = false;
+      refresh_token = client_refresh_token;
     }
+
+    res.send({
+      access_token: access_token,
+      refresh_token: refresh_token,
+      expires_in: expires_in,
+    });
+
+    console.log(`${currentTime}: Sent new access token to client.`);
   } catch (error) {
-    console.error(error);
+    console.error(
+      "Something went wrong fetching new access token from Spotify.",
+      error
+    );
   }
 });
 
