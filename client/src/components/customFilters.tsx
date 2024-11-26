@@ -1,30 +1,14 @@
-import {
-  getAvailableGenreSeeds,
-  searchForArtist,
-  searchForTrack,
-} from "@/helpers/fetchers";
-import {
-  Artist,
-  ArtistSeedForm,
-  Track,
-  TrackObject,
-  TrackSeedForm,
-} from "@/types/types";
-import { TextInput, MultiSelect, Button, Modal } from "@mantine/core";
-import { useForm } from "@mantine/form";
+import { getAvailableGenreSeeds } from "@/helpers/fetchers";
+import { ChosenSeeds } from "@/types/types";
 import { useEffect, useState } from "react";
+import { AsyncAutocomplete } from "./asyncAutocomplete";
 import { SearchableMultiSelect } from "./searchableMultiSelect";
-import { AsyncAutocomplete } from "./asyncSearchableMultiSelect";
 
-interface SavePlaylistModalProps {
-  openCustomFilters: boolean;
-  setOpenCustomFilters: React.Dispatch<React.SetStateAction<boolean>>;
+interface CustomFiltersProps {
+  setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
 }
 
-export default function CustomFilters({
-  openCustomFilters,
-  setOpenCustomFilters,
-}: SavePlaylistModalProps) {
+export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
   const [availableGenreSeeds, setAvailableGenreSeeds] = useState<string[]>([
     "acoustic",
     "ambient",
@@ -32,12 +16,6 @@ export default function CustomFilters({
     "indie",
     "rock",
   ]);
-
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [trackResults, setTrackResults] = useState<Track[]>([]);
-  const [chosenGenres, setChosenGenres] = useState<string[]>([]);
-  const [chosenArtists, setChosenArtists] = useState<Artist[]>([]);
-  const [chosenTracks, setChosenTracks] = useState<Track[]>([]);
 
   async function getGenres() {
     const availableGenres: string[] | null = await getAvailableGenreSeeds();
@@ -51,31 +29,14 @@ export default function CustomFilters({
   }, []);
 
   return (
-    <Modal.Root
-      opened={openCustomFilters}
-      onClose={() => setOpenCustomFilters(false)}
-      centered
-      fullScreen
-    >
-      <Modal.Overlay />
-      <Modal.Content>
-        <Modal.Header>
-          <Modal.Title>Custom Playlist Seeds</Modal.Title>
-          <Modal.CloseButton />
-        </Modal.Header>
-        <Modal.Body>
-          Select at least two categories, at most 5 total.
-          <SearchableMultiSelect
-            data={availableGenreSeeds}
-            setChosenGenres={setChosenGenres}
-          />
-          <AsyncAutocomplete
-            setChosenArtists={setChosenArtists}
-            type="artist"
-          />
-          <AsyncAutocomplete setChosenTracks={setChosenTracks} type="track" />
-        </Modal.Body>
-      </Modal.Content>
-    </Modal.Root>
+    <div>
+      At least two categories must have input. At most 5 inputs.
+      <SearchableMultiSelect
+        data={availableGenreSeeds}
+        setChosenSeeds={setChosenSeeds}
+      />
+      <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
+      <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
+    </div>
   );
 }

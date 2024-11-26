@@ -1,7 +1,7 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
 import { getRecommendations, startSearch } from "@/helpers/playlist";
-import { FormValues, TrackObject } from "@/types/types";
+import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
 import {
   Accordion,
   Button,
@@ -18,7 +18,7 @@ import {
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
 import CustomFilters from "./customFilters";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FormProps {
   activeSourceTab: string | null;
@@ -60,7 +60,11 @@ export default function Form({
   anyTempo,
   setAnyTempo,
 }: FormProps) {
-  const [openCustomFilters, setOpenCustomFilters] = useState(false);
+  const [chosenSeeds, setChosenSeeds] = useState<ChosenSeeds>({
+    genres: [],
+    tracks: [],
+    artists: [],
+  });
 
   async function handleSubmit(
     values: FormValues,
@@ -71,9 +75,11 @@ export default function Form({
     setLoadingPlaylist(true);
     setLoadingRecs(true);
 
+    console.log("Chosen seeds", chosenSeeds);
+
     // Search for matching tracks
     const matchingTracks: Map<string, TrackObject> | null | void =
-      await startSearch(values, anyTempo, activeSourceTab);
+      await startSearch(values, anyTempo, activeSourceTab, chosenSeeds);
     if (!matchingTracks) {
       showWarnNotif(
         "No matches found",
@@ -169,8 +175,7 @@ export default function Form({
     // Note: Spotify is not guaranteed to return 100
     const recs: Map<string, TrackObject> | null = await getRecommendations(
       values,
-      anyTempo,
-      100
+      { anyTempo, targetRecs: 100 }
     );
 
     // Remove any tracks that are already in the playlist
@@ -187,6 +192,10 @@ export default function Form({
       }
     }
   }
+
+  useEffect(() => {
+    console.log("Chosen seeds:", chosenSeeds);
+  }, [chosenSeeds]);
 
   return (
     <>
@@ -211,15 +220,7 @@ export default function Form({
                   <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
                 </Tabs.List>
                 <Tabs.Panel value="custom">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      console.log("Opening modal");
-                      setOpenCustomFilters(true);
-                    }}
-                  >
-                    Open Custom Filters
-                  </Button>
+                  <CustomFilters setChosenSeeds={setChosenSeeds} />
                 </Tabs.Panel>
                 <Tabs.Panel value="mySpotify">
                   {!libraryStored ? (
@@ -366,10 +367,6 @@ export default function Form({
           <Button type="submit">Submit</Button>
         </Group>
       </form>
-      <CustomFilters
-        openCustomFilters={openCustomFilters}
-        setOpenCustomFilters={setOpenCustomFilters}
-      />
     </>
   );
 }

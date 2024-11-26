@@ -98,7 +98,6 @@ function App() {
       );
       libSize && setLibSize(libSize);
       const estimatedFetches = (3 * libSize) / 100 + 16;
-      console.log("estimated fetches: ", estimatedFetches);
       setEstimatedFetches(estimatedFetches);
       setLibraryStored(wasLibraryStoredInDatabase());
       handleTokens();

@@ -6,19 +6,21 @@ import {
   Pill,
   PillsInput,
   useCombobox,
+  ScrollArea,
 } from "@mantine/core";
+import { ChosenSeeds } from "@/types/types";
 
 // Component taken and modified from Mantine example component
 // https://mantine.dev/combobox/?e=BasicMultiSelect
 
 interface SearchableMultiSelectProps {
   data: string[];
-  setChosenGenres: React.Dispatch<React.SetStateAction<string[]>>;
+  setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
 }
 
 export function SearchableMultiSelect({
   data,
-  setChosenGenres,
+  setChosenSeeds,
 }: SearchableMultiSelectProps) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -26,27 +28,30 @@ export function SearchableMultiSelect({
   });
 
   const [search, setSearch] = useState("");
-  const [value, setValue] = useState<string[]>([]);
+  const [selectedValues, setSelectedValues] = useState<string[]>([]);
 
   function handleValueSelect(val: string) {
-    setValue((current) =>
+    setSearch("");
+    setSelectedValues((current) =>
       current.includes(val)
         ? current.filter((v) => v !== val)
         : [...current, val]
     );
-    setChosenGenres((current) =>
-      current.includes(val)
-        ? current.filter((v) => v !== val)
-        : [...current, val]
-    );
+    setChosenSeeds((prev) => ({
+      ...prev,
+      genres: [...prev.genres, val],
+    }));
   }
 
   const handleValueRemove = (val: string) => {
-    setValue((current) => current.filter((v) => v !== val));
-    setChosenGenres((current) => current.filter((v) => v !== val));
+    setSelectedValues((current) => current.filter((v) => v !== val));
+    setChosenSeeds((prev) => ({
+      ...prev,
+      genres: prev.genres.filter((v) => v !== val),
+    }));
   };
 
-  const values = value.map((item) => (
+  const values = selectedValues.map((item) => (
     <Pill key={item} withRemoveButton onRemove={() => handleValueRemove(item)}>
       {item}
     </Pill>
@@ -55,9 +60,13 @@ export function SearchableMultiSelect({
   const options = data
     .filter((item) => item.toLowerCase().includes(search.trim().toLowerCase()))
     .map((item) => (
-      <Combobox.Option value={item} key={item} active={value.includes(item)}>
+      <Combobox.Option
+        value={item}
+        key={item}
+        active={selectedValues.includes(item)}
+      >
         <Group gap="sm">
-          {value.includes(item) ? <CheckIcon size={12} /> : null}
+          {selectedValues.includes(item) ? <CheckIcon size={12} /> : null}
           <span>{item}</span>
         </Group>
       </Combobox.Option>
@@ -79,7 +88,7 @@ export function SearchableMultiSelect({
                 onFocus={() => combobox.openDropdown()}
                 onBlur={() => combobox.closeDropdown()}
                 value={search}
-                placeholder="Search values"
+                placeholder="Search genres"
                 onChange={(event) => {
                   combobox.updateSelectedOptionIndex();
                   setSearch(event.currentTarget.value);
@@ -87,7 +96,9 @@ export function SearchableMultiSelect({
                 onKeyDown={(event) => {
                   if (event.key === "Backspace" && search.length === 0) {
                     event.preventDefault();
-                    handleValueRemove(value[value.length - 1]);
+                    handleValueRemove(
+                      selectedValues[selectedValues.length - 1]
+                    );
                   }
                 }}
               />
@@ -98,11 +109,13 @@ export function SearchableMultiSelect({
 
       <Combobox.Dropdown>
         <Combobox.Options>
-          {options.length > 0 ? (
-            options
-          ) : (
-            <Combobox.Empty>Nothing found...</Combobox.Empty>
-          )}
+          <ScrollArea.Autosize mah={200} type="scroll">
+            {options.length > 0 ? (
+              options
+            ) : (
+              <Combobox.Empty>Nothing found...</Combobox.Empty>
+            )}
+          </ScrollArea.Autosize>
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>

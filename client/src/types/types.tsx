@@ -154,6 +154,18 @@ export interface NumericFeatures {
   valence: number;
 }
 
+export interface GetRecommendationsOptions {
+  anyTempo: boolean;
+  targetRecs?: number;
+  chosenSeeds?: ChosenSeeds;
+}
+
+export interface ChosenSeeds {
+  genres: string[];
+  tracks: string[];
+  artists: string[];
+}
+
 export interface Artist {
   external_urls: {
     spotify: string;

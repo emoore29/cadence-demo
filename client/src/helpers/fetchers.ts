@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   Artist,
+  ChosenSeeds,
   FeaturesLibrary,
   Library,
   NumericFilters,
@@ -270,7 +271,8 @@ function parseFilters(filters: NumericFilters) {
 // Returns Map<string, TrackObject> containing recommended songs and their features
 export async function fetchRecommendations(
   filters: NumericFilters,
-  target: number
+  target: number,
+  customSeeds?: ChosenSeeds
 ): Promise<Map<string, TrackObject> | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   const topTracks: string[] | null = await getTop5TrackIds();
@@ -278,8 +280,23 @@ export async function fetchRecommendations(
   if (!accessToken || !topTracks || !topArtists) return null;
 
   // Get top artist and track ids for recommendation API
-  const trackIds: string = topTracks.slice(0, 1).join(",");
-  const artistIds: string = topArtists.slice(0, 4).join(",");
+  let trackIds: string;
+  let artistIds: string;
+  let genres: string;
+  if (!customSeeds) {
+    // Slice top tracks from a random number b/w 1-4 (not 5 to account for there needing to be at least 2 seed categories)
+    trackIds = topTracks.slice(0, 1).join(",");
+
+    // Slice artists from a random number b/w 5-num(topTracks)
+    artistIds = topArtists.slice(0, 4).join(",");
+
+    // Slice genres from a random number b/w 5-num(topTracks)-num(topArtists)
+    genres = "indie";
+  } else {
+    trackIds = customSeeds.tracks.join(",");
+    artistIds = customSeeds.artists.join(",");
+    genres = customSeeds.genres.join(",");
+  }
 
   // Init Map for storing recommendations
   let recommendations: Map<string, TrackObject> = new Map();
@@ -289,6 +306,7 @@ export async function fetchRecommendations(
     ...parseFilters(filters),
     limit: String(target),
     seed_artists: artistIds,
+    seed_genres: genres,
     seed_tracks: trackIds,
   });
 
@@ -506,7 +524,6 @@ export async function searchForArtist(
         signal: abortSignal,
       }
     );
-    console.log("artist search", res.data.artists.items);
 
     setData(res.data.artists.items);
     setLoading(false);
@@ -540,7 +557,6 @@ export async function searchForTrack(
         signal: abortSignal,
       }
     );
-    console.log("track search", res.data.tracks.items);
 
     setData(res.data.tracks.items);
     setLoading(false);

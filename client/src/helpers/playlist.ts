@@ -5,6 +5,8 @@ import {
   PlaylistData,
   TrackObject,
   TrackFeatures,
+  ChosenSeeds,
+  GetRecommendationsOptions,
 } from "@/types/types";
 import axios from "axios";
 import { fetchRecommendations } from "./fetchers";
@@ -14,7 +16,8 @@ import { showErrorNotif } from "./general";
 export async function startSearch(
   formValues: FormValues,
   anyTempo: boolean,
-  activeSourceTab: string | null
+  activeSourceTab: string | null,
+  chosenSeeds?: ChosenSeeds
 ): Promise<Map<string, TrackObject> | null | void> {
   const store: string = formValues.source;
   console.log("active source tab", activeSourceTab);
@@ -28,13 +31,13 @@ export async function startSearch(
         return await filterFromStore("topTracks", formValues, anyTempo);
 
       case "3":
-        return await getRecommendations(formValues, anyTempo);
+        return await getRecommendations(formValues, { anyTempo });
 
       default:
         return null;
     }
   } else if (activeSourceTab === "custom") {
-    console.log("Getting custom recommendations...");
+    return await getRecommendations(formValues, { anyTempo, chosenSeeds });
   }
 }
 
@@ -74,10 +77,10 @@ async function filterFromStore(
 // Returns 5 recommended songs
 export async function getRecommendations(
   formValues: FormValues,
-  anyTempo: boolean,
-  targetRecs?: number
+  options: GetRecommendationsOptions
 ): Promise<Map<string, TrackObject> | null> {
   const { source, target, ...filters } = formValues;
+  const { anyTempo, targetRecs, chosenSeeds } = options;
 
   // Convert String selections (Any, Low, Med, High) to target numbers
   const targetValence: number | null = convertToNumber(filters.targetValence);
@@ -107,7 +110,8 @@ export async function getRecommendations(
   // otherwise, use the target from the form filters (e.g. user is searching with 'get recommendations' filter)
   const recs: Map<string, TrackObject> | null = await fetchRecommendations(
     numericFilters,
-    targetRecs ? targetRecs : target
+    targetRecs ? targetRecs : target,
+    chosenSeeds
   );
   if (!recs) return null;
   return recs;
