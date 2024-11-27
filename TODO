@@ -15,7 +15,8 @@ Bugs?:
 - Adding all recs to playlist, then clicking submit, recs hangs.
 - If recs.size == 2 or 1, but fetching more only returns recs that are in the playlist, it will look like it's "hanging" with the SkeletonRows, because no more recommendations can be found
 - Database deletion on logout/clear data
-- Token expiry still an issue
+- Token expiry still an issue???
+- Refactor circleOffset state to be only used within trackRow components.
 
 Other:
 

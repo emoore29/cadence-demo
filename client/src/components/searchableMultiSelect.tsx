@@ -32,6 +32,7 @@ export function SearchableMultiSelect({
 
   function handleValueSelect(val: string) {
     setSearch("");
+    combobox.closeDropdown();
     setSelectedValues((current) =>
       current.includes(val)
         ? current.filter((v) => v !== val)

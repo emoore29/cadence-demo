@@ -155,7 +155,6 @@ export function AsyncAutocomplete({
 
   useEffect(() => {
     if (search === "") {
-      console.log("clearing data");
       setData(null);
     }
   }, [search]);

@@ -1,6 +1,5 @@
 import { deleteDatabase } from "@/helpers/database";
 import { showSuccessNotif } from "@/helpers/general";
-import { clearLocalStorage } from "@/helpers/localStorage";
 import { Menu, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { IconMetronome } from "@tabler/icons-react";
@@ -29,7 +28,7 @@ export default function Header({
     // Remove everything from local storage and store
     setPlaylist(new Map());
     setRecommendations(new Map());
-    clearLocalStorage();
+    localStorage.clear();
     deleteDatabase();
     setUser(null);
     setLibSize(0);
@@ -40,7 +39,7 @@ export default function Header({
   const clearData = () => {
     setPlaylist(new Map());
     setRecommendations(new Map());
-    clearLocalStorage();
+    localStorage.clear();
     deleteDatabase();
     setUser(null);
     setLibSize(0);

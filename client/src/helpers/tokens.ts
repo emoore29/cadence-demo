@@ -11,8 +11,8 @@ let tokenPromise: Promise<void> | null = null;
 export async function handleTokens(): Promise<void> {
   if (!tokenPromise) {
     tokenPromise = (async () => {
-      const isTokenValid = checkTokenValidity();
-      if (!isTokenValid) {
+      const isTokenInvalid = checkTokenValidity();
+      if (isTokenInvalid) {
         const tokens: string[] | null = await getNewTokens();
         if (tokens) {
           const [accessToken, newRefreshToken, expiresIn] = tokens;

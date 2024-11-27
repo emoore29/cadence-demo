@@ -73,9 +73,6 @@ export default function Form({
   ) {
     // Mark playlist and recs as loading so that loading components are displayed
     setLoadingPlaylist(true);
-    setLoadingRecs(true);
-
-    console.log("Chosen seeds", chosenSeeds);
 
     // Search for matching tracks
     const matchingTracks: Map<string, TrackObject> | null | void =
@@ -171,31 +168,30 @@ export default function Form({
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
+    // If user searching the library, get recs
     // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
     // Note: Spotify is not guaranteed to return 100
-    const recs: Map<string, TrackObject> | null = await getRecommendations(
-      values,
-      { anyTempo, targetRecs: 100 }
-    );
+    if (activeSourceTab === "mySpotify") {
+      setLoadingRecs(true);
+      const recs: Map<string, TrackObject> | null = await getRecommendations(
+        values,
+        { anyTempo, targetRecs: 100 }
+      );
 
-    // Remove any tracks that are already in the playlist
-    if (recs) {
-      for (const key of recs.keys()) {
-        if (playlist?.get(key)) {
-          recs.delete(key);
+      // Remove any tracks that are already in the playlist
+      if (recs) {
+        for (const key of recs.keys()) {
+          if (playlist?.get(key)) {
+            recs.delete(key);
+          }
         }
-      }
-      if (recs.size > 0) {
-        setRecommendations(recs);
-        setLoadingRecs(false);
-      } else {
+        if (recs.size > 0) {
+          setRecommendations(recs);
+          setLoadingRecs(false);
+        }
       }
     }
   }
-
-  useEffect(() => {
-    console.log("Chosen seeds:", chosenSeeds);
-  }, [chosenSeeds]);
 
   return (
     <>

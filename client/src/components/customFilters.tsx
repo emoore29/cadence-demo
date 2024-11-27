@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { AsyncAutocomplete } from "./asyncAutocomplete";
 import { SearchableMultiSelect } from "./searchableMultiSelect";
 import { handleTokens } from "@/helpers/tokens";
+import {
+  getItemFromLocalStorage,
+  storeDataInLocalStorage,
+} from "@/helpers/localStorage";
 
 interface CustomFiltersProps {
   setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
@@ -23,11 +27,22 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
     const availableGenres: string[] | null = await getAvailableGenreSeeds();
     if (!availableGenres) return;
 
+    console.log("available genres", availableGenres);
     setAvailableGenreSeeds(availableGenres);
+    storeDataInLocalStorage("genres", availableGenres);
   }
 
   useEffect(() => {
-    getGenres();
+    const storedGenres: string | null = getItemFromLocalStorage("genres");
+    if (!storedGenres) {
+      getGenres();
+    } else {
+      console.log(
+        "genres already stored. parsed:",
+        typeof JSON.parse(storedGenres)
+      );
+      setAvailableGenreSeeds(JSON.parse(storedGenres));
+    }
   }, []);
 
   return (

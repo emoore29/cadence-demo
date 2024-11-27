@@ -67,8 +67,7 @@ export default function Recommendations({
     if (recommendations && recommendations.size <= 3) {
       const recs: Map<string, TrackObject> | null = await getRecommendations(
         form.values,
-        anyTempo,
-        100
+        { anyTempo, targetRecs: 100 }
       );
       if (!recs) return;
 
@@ -103,7 +102,10 @@ export default function Recommendations({
       console.log("Fetching 9 more recs");
       setLoadingRecs(true);
       // fetch and add new recs
-      newlyFetchedRecs = await getRecommendations(form.values, anyTempo, 100);
+      newlyFetchedRecs = await getRecommendations(form.values, {
+        anyTempo,
+        targetRecs: 100,
+      });
       if (!newlyFetchedRecs) return;
 
       // Loop through recs items, removing tracks that are already in playlist

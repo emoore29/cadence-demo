@@ -7,17 +7,6 @@ export function storeDataInLocalStorage(key: string, data: any): void {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
-// Clears everything from local storage, used when user logs out
-export function clearLocalStorage(): void {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("token_expiry");
-  localStorage.removeItem("user_data");
-  localStorage.removeItem("lib_size");
-  localStorage.removeItem("library_was_stored");
-  localStorage.removeItem("top_tracks_were_stored");
-}
-
 // Items are set to "true" in localStorage when they are stored in database
 // Checks if an item was stored in the database by checking localStorage
 export function wasLibraryStoredInDatabase(): boolean {
@@ -51,6 +40,7 @@ export function getItemFromLocalStorage(item: string): string | null {
   }
 }
 
+// Returns true if token is invalid
 export function checkTokenValidity(): boolean {
   const storedAccessToken: string | null = localStorage.getItem("access_token");
   const storedExpiry: string | null = localStorage.getItem("token_expiry");
