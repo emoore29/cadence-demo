@@ -36,6 +36,7 @@ export function getItemFromLocalStorage(item: string): string | null {
   if (itemValue) {
     return itemValue;
   } else {
+    showErrorNotif("Error", `Couldn't locate ${item} in browser storage.`);
     return null;
   }
 }

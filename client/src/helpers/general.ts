@@ -1,4 +1,4 @@
-import { ChosenSeeds, TrackObject } from "@/types/types";
+import { ChosenSeeds, NumericFilters, TrackObject } from "@/types/types";
 import { notifications } from "@mantine/notifications";
 import { deleteFromStore, getFromStore, setInStore } from "./database";
 import {
@@ -166,4 +166,17 @@ export async function generateSeeds(
   }
 
   return [trackIds, artistIds, genres].filter(Boolean) as string[];
+}
+
+// Converts form filter keys to snake case (e.g. minTempo -- min_tempo)
+// And values to strings (e.g. 180 --> "180")
+export function parseFilters(filters: NumericFilters): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(filters)
+      .filter(([key, value]) => value != undefined)
+      .map(([key, value]) => [
+        key.replace(/([A-Z])/g, "_$1").toLowerCase(),
+        String(value),
+      ])
+  );
 }
