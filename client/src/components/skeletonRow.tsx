@@ -1,5 +1,5 @@
-import { Table, Skeleton } from "@mantine/core";
-import { getRandomWidth } from "@/helpers/general";
+import { getRandomNumber } from "@/helpers/general";
+import { Skeleton, Table } from "@mantine/core";
 
 export default function SkeletonRow() {
   return (
@@ -11,12 +11,12 @@ export default function SkeletonRow() {
           <div className="titleAndArtistSkeleton">
             <Skeleton
               height={8}
-              width={`${getRandomWidth(15, 22)}%`}
+              width={`${getRandomNumber(15, 22)}%`}
               radius={"xl"}
             />
             <Skeleton
               height={8}
-              width={`${getRandomWidth(18, 25)}%`}
+              width={`${getRandomNumber(18, 25)}%`}
               radius={"xl"}
             />
           </div>
@@ -24,7 +24,11 @@ export default function SkeletonRow() {
       </Table.Td>
       {/* Album name */}
       <Table.Td>
-        <Skeleton height={8} radius="xl" width={`${getRandomWidth(13, 20)}%`} />
+        <Skeleton
+          height={8}
+          radius="xl"
+          width={`${getRandomNumber(13, 20)}%`}
+        />
       </Table.Td>
       {/* Like button */}
       <Table.Td></Table.Td>

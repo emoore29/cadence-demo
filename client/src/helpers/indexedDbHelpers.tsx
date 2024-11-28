@@ -1,4 +1,10 @@
-import { Artist, SavedTrack, Track, TrackFeatures } from "@/types/types";
+import {
+  Artist,
+  SavedTrack,
+  StoredTrack,
+  Track,
+  TrackFeatures,
+} from "@/types/types";
 import { getAllFromStore, setInStore } from "./database";
 import {
   fetchSavedTracks,
@@ -7,7 +13,12 @@ import {
   fetchTopTrackFeatures,
   fetchTopTracks,
 } from "./fetchers";
-import { showErrorNotif, showSuccessNotif, showWarnNotif } from "./general";
+import {
+  showErrorNotif,
+  showSuccessNotif,
+  showWarnNotif,
+  shuffleArray,
+} from "./general";
 
 export async function storeTopArtists(
   updateProgressBar: () => void
@@ -153,7 +164,7 @@ export async function storeUserLibraryAndFeatures(
 }
 
 // Returns top 5 tracks from database
-export async function getTop5TrackIds(): Promise<string[] | null> {
+export async function getShuffledTopTracks(): Promise<string[] | null> {
   try {
     const topTracks = await getAllFromStore("topTracks");
     if (!topTracks) {
@@ -161,29 +172,52 @@ export async function getTop5TrackIds(): Promise<string[] | null> {
       return null;
     }
 
-    const top5Tracks = topTracks
-      .filter((track) => track.order >= 0 && track.order < 5) // Only keep tracks with order 0 to 4
-      .sort((a, b) => a.order - b.order); // Sort by 'order' in ascending order
+    const shuffledTopTracks: StoredTrack[] = shuffleArray(topTracks);
 
     // Extract track ids from db object
-    const top5TrackIds = top5Tracks.map((entry) => entry.track.id);
-    return top5TrackIds;
+    const ids = shuffledTopTracks.map((entry) => entry.track.id);
+    return ids;
   } catch (error) {
     console.error(`Error retrieving top 5 tracks:`, error);
     return null;
   }
 }
 
-// Returns top 5 artists from database
-export async function getTop5ArtistIds(): Promise<string[] | null> {
+// Returns random top 5 artists from database
+export async function getShuffledTopArtists(): Promise<string[] | null> {
   try {
     const topArtists = await getAllFromStore("topArtists");
     if (!topArtists) {
       console.log("Couldn't find top artists in database");
       return null;
     }
-    const ids = topArtists.map((artist) => artist.id);
+
+    const shuffledTopArtists: Artist[] = shuffleArray(topArtists);
+
+    const ids = shuffledTopArtists.map((artist) => artist.id);
     return ids;
+  } catch (error) {
+    console.error(`Error retrieving top 5 artists:`, error);
+    return null;
+  }
+}
+
+export async function getUserTopGenres(): Promise<string[] | null> {
+  try {
+    const topArtists: Artist[] = await getAllFromStore("topArtists");
+    if (!topArtists) {
+      console.log("Couldn't find top artists in database");
+      return null;
+    }
+
+    const topGenres: Set<string> = new Set();
+    topArtists.map((artist) =>
+      artist.genres.map((genre) => topGenres.add(genre))
+    );
+
+    const topGenresArray = Array.from(topGenres);
+
+    return shuffleArray(topGenresArray);
   } catch (error) {
     console.error(`Error retrieving top 5 artists:`, error);
     return null;

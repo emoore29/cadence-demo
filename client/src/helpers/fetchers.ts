@@ -14,8 +14,7 @@ import {
   User,
 } from "../types/types";
 import { deleteFromStore, setInStore } from "./database";
-import { showErrorNotif, showWarnNotif } from "./general";
-import { getTop5ArtistIds, getTop5TrackIds } from "./indexedDbHelpers";
+import { generateSeeds, showErrorNotif, showWarnNotif } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
 
 // Fetches user data
@@ -227,7 +226,7 @@ export async function fetchTopTrackFeatures(
   return featuresTopTracks;
 }
 
-// Fetches user's top 5 artists from last 12 months (long_term)
+// Fetches user's top 50 artists from last 12 months (long_term)
 // Returns Artist[] or null if failed to fetch
 export async function fetchTopArtists(
   updateProgressBar: () => void
@@ -237,7 +236,7 @@ export async function fetchTopArtists(
 
   try {
     const res = await axios.get(
-      `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=5`,
+      `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=50`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -256,7 +255,7 @@ export async function fetchTopArtists(
 }
 
 // Converts filter keys to snake case and values to strings for adding to URL query params
-function parseFilters(filters: NumericFilters) {
+function parseFilters(filters: NumericFilters): Record<string, string> {
   return Object.fromEntries(
     Object.entries(filters)
       .filter(([key, value]) => value != undefined)
@@ -272,45 +271,32 @@ function parseFilters(filters: NumericFilters) {
 export async function fetchRecommendations(
   filters: NumericFilters,
   target: number,
-  customSeeds?: ChosenSeeds
+  chosenSeeds?: ChosenSeeds
 ): Promise<Map<string, TrackObject> | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  const topTracks: string[] | null = await getTop5TrackIds();
-  const topArtists: string[] | null = await getTop5ArtistIds();
-  if (!accessToken || !topTracks || !topArtists) return null;
+  if (!accessToken) return null;
 
-  // Get top artist and track ids for recommendation API
-  let trackIds: string;
-  let artistIds: string;
-  let genres: string;
-  if (!customSeeds) {
-    // Slice top tracks from a random number b/w 1-4 (not 5 to account for there needing to be at least 2 seed categories)
-    trackIds = topTracks.slice(0, 1).join(",");
+  const seeds: string[] | null = await generateSeeds(chosenSeeds);
+  if (!seeds) return null;
+  const [trackIds, artistIds, genres] = seeds;
 
-    // Slice artists from a random number b/w 5-num(topTracks)
-    artistIds = topArtists.slice(0, 4).join(",");
-
-    // Slice genres from a random number b/w 5-num(topTracks)-num(topArtists)
-    genres = "indie";
-  } else {
-    trackIds = customSeeds.tracks.join(",");
-    artistIds = customSeeds.artists.join(",");
-    genres = customSeeds.genres.join(",");
-  }
-
-  // Init Map for storing recommendations
-  let recommendations: Map<string, TrackObject> = new Map();
-
-  // Convert filter values to strings for URL params
-  const params = new URLSearchParams({
+  const paramsObject: {
+    [key: string]: string;
+  } = {
     ...parseFilters(filters),
     limit: String(target),
-    seed_artists: artistIds,
-    seed_genres: genres,
-    seed_tracks: trackIds,
-  });
+  };
 
-  // Initialise arrays for storing request results
+  // Conditionally add properties to the paramsObject
+  if (artistIds) paramsObject.seed_artists = artistIds;
+  if (genres) paramsObject.seed_genres = genres;
+  if (trackIds) paramsObject.seed_tracks = trackIds;
+
+  // Create URLSearchParams from the object
+  const params = new URLSearchParams(paramsObject);
+
+  // Initialise data structures for storing recommendation results
+  let recommendations: Map<string, TrackObject> = new Map();
   let recommendedTracks: Track[];
   let recommendedTrackFeatures: TrackFeatures[];
 

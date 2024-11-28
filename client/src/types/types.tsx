@@ -138,6 +138,12 @@ export interface TrackFeatures {
   valence: number;
 }
 
+export interface StoredTrack {
+  track: Track;
+  features: TrackFeatures;
+  order: number;
+}
+
 export interface NumericFeatures {
   acousticness: number;
   danceability: number;
