@@ -60,8 +60,10 @@ Clone the repository with GitHub desktop or via a terminal.
 `npm install`
 `npm run dev`
 
+To use the original authorization flow described above, create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and save the Client ID and Client Secret in a .env file inside /server:
 
-
+`SPOTIFY_CLIENT_ID="<insert ID here>"
+SPOTIFY_CLIENT_SECRET="<insert secret here>"`
 
 
 
