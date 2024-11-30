@@ -120,9 +120,7 @@ export function shuffleArray<T>(array: T[]): T[] {
     .map((a) => a.value);
 }
 
-export async function generateSeeds(
-  chosenSeeds: ChosenSeeds | undefined
-): Promise<string[] | null> {
+export async function generateSeeds(chosenSeeds: ChosenSeeds | undefined) {
   const topTracks: string[] | null = await getShuffledTopTracks();
   const topArtists: string[] | null = await getShuffledTopArtists();
 
@@ -147,7 +145,7 @@ export async function generateSeeds(
     // If no tracks, guarantee second category by preventing 5 artists
     const numberArtists =
       numberTracks === 0
-        ? getRandomInt(0, 4 - numberTracks)
+        ? getRandomInt(1, 4 - numberTracks)
         : getRandomInt(0, 5 - numberTracks);
 
     // Whatever is left to genres
@@ -165,7 +163,11 @@ export async function generateSeeds(
     genres = chosenSeeds.genres.join(",");
   }
 
-  return [trackIds, artistIds, genres].filter(Boolean) as string[];
+  return {
+    trackIds: trackIds || null,
+    artistIds: artistIds || null,
+    genres: genres || null,
+  };
 }
 
 // Converts form filter keys to snake case (e.g. minTempo -- min_tempo)

@@ -27,6 +27,8 @@ app.get("/login", function (req, res) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state); // Send the state key to the browser
 
+  console.log("User logging in, redirect to spotify to grant authorization");
+
   var scope =
     "user-read-private user-read-email user-top-read playlist-read-private playlist-modify-private playlist-modify-public user-library-read user-library-modify";
 
@@ -36,7 +38,7 @@ app.get("/login", function (req, res) {
         response_type: "code",
         client_id: client_id,
         scope: scope,
-        redirect_uri: redirect_uri,
+        redirect_uri: redirect_uri, // redirects to "/callback"
         state: state,
         show_dialog: true,
       })
@@ -48,6 +50,10 @@ app.get("/callback", async function (req, res) {
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
+
+  console.log(
+    "/callback axios get running, exchanging auth code for access token.."
+  );
 
   // Check that the state given by Spotify is the same as the storedState from the original authorization request
   if (state === null || state !== storedState) {

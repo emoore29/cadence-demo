@@ -211,9 +211,9 @@ export async function fetchRecommendations(
 ): Promise<Map<string, TrackObject> | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
   if (!accessToken) return null;
-  const seeds: string[] | null = await generateSeeds(chosenSeeds);
+  const seeds = await generateSeeds(chosenSeeds);
   if (!seeds) return null;
-  const [trackIds, artistIds, genres] = seeds;
+  const { trackIds, artistIds, genres } = seeds;
   const paramsObject: {
     [key: string]: string;
   } = {
@@ -221,7 +221,7 @@ export async function fetchRecommendations(
     limit: String(target),
   };
   if (artistIds) paramsObject.seed_artists = artistIds;
-  if (genres) paramsObject.seed_genres = genres;
+  if (genres) paramsObject.seed_genres = encodeURIComponent(genres);
   if (trackIds) paramsObject.seed_tracks = trackIds;
   const params = new URLSearchParams(paramsObject);
 
@@ -280,7 +280,42 @@ export async function fetchRecommendations(
       console.warn(`No features found for track ID ${track.id}`);
     }
   }
+
+  console.log("Recommendations", recommendations);
+  saveMapToJsonFile(recommendations, "recommendations.json");
   return recommendations;
+}
+
+async function saveMapToJsonFile(
+  map: Map<string, any>,
+  fileName: string
+): Promise<void> {
+  try {
+    // Convert the Map to an array of key-value pairs
+    const mapArray = Array.from(map.entries());
+
+    // Convert the array to a JSON string
+    const jsonData = JSON.stringify(mapArray, null, 2);
+
+    // Create a Blob with the JSON data
+    const blob = new Blob([jsonData], { type: "application/json" });
+
+    // Create a downloadable link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+
+    // Trigger the download
+    a.click();
+
+    // Clean up the URL object
+    URL.revokeObjectURL(url);
+
+    console.log(`Map saved to ${fileName}`);
+  } catch (error) {
+    console.error(`Error saving map to JSON file:`, error);
+  }
 }
 
 // Checks if the tracks are currently saved in the user's Spotify library
@@ -292,7 +327,9 @@ export async function checkSavedTracks(
   if (!accessToken) return null;
 
   const tracksArray: TrackObject[] = Array.from(tracks.values());
-  const chunks = chunk(tracksArray);
+  const chunks = chunk(tracksArray, 50);
+  console.log("num chunks", chunks.length);
+  console.log("Chunks", chunks);
   let results: boolean[] = [];
 
   for (const chunk of chunks) {

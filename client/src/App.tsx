@@ -6,7 +6,7 @@ import Header from "./components/header";
 import LoadingPlaylist from "./components/loadingPlaylist";
 import Playlist from "./components/playlist";
 import Recommendations from "./components/recommendations";
-import { setUpDatabase } from "./helpers/database";
+import { getAllFromStore, setUpDatabase, StoreName } from "./helpers/database";
 import { updateSavedStatus } from "./helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
@@ -22,6 +22,7 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
+import Welcome from "./components/welcome";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -65,6 +66,7 @@ function App() {
   const [activeSourceTab, setActiveSourceTab] = useState<string | null>(
     "custom"
   );
+  const [welcome, setWelcome] = useState<boolean>(true);
 
   // Sets up IDB on initial page load if it doesn't already exist
   useEffect(() => {
@@ -77,6 +79,38 @@ function App() {
     };
     setupDb();
   }, []);
+
+  async function saveStoreDataToJsonFile(storeName: StoreName): Promise<void> {
+    try {
+      // Retrieve data from the IndexedDB store
+      const data = await getAllFromStore(storeName);
+
+      // Convert the data to a JSON string
+      const jsonData = JSON.stringify(data, null, 2);
+
+      // Create a Blob with the JSON data
+      const blob = new Blob([jsonData], { type: "application/json" });
+
+      // Create a downloadable link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${storeName}.json`;
+
+      // Trigger the download
+      a.click();
+
+      // Clean up the URL object
+      URL.revokeObjectURL(url);
+
+      console.log(`Data from '${storeName}' saved to ${storeName}.json`);
+    } catch (error) {
+      console.error(
+        `Error saving data from '${storeName}' to JSON file:`,
+        error
+      );
+    }
+  }
 
   // On initial page load or refresh:
   // Handles initial login
@@ -101,7 +135,11 @@ function App() {
         const estimatedFetches = (3 * libSize) / 100 + 16;
         setEstimatedFetches(estimatedFetches);
         setLibraryStored(wasLibraryStoredInDatabase());
-        await handleTokens();
+        // await handleTokens();
+        localStorage.setItem(
+          "access_token",
+          "BQB-ryf74dxIUn_7W2aCKbRaGDzllZ6wDBr_Da-1_6emM7g3Ff4-oenlRs03n9N5YXuQwKwEB1lXDuNch8-3DtJo3MbaUTMOD-u3byvsioRLAE1YK6tPS159J1vYnQT-_pOsg2TGAi69bhng2VHEXq_PLueO2Yu5qJd0ai8Lj_EpH1NxsVD2KHbL4dcIOG88fJ1SHR46gpwAeH9ZdVhEIL8Wip1SoolYOOhZnOCiXPFM-Vjc7xQOmooRGV_1zoShLG2ZK0GJw_r9kJbJLRI74Y6cZ1a-cIg4pViqAAloqsul9K_dhhxPMZrUPIxQNO4bsaUn5LDrEG0"
+        );
       }
 
       // Handle token expiry every hour
@@ -277,75 +315,81 @@ function App() {
 
   return (
     <div className="container">
-      <Header
-        setPlaylist={setPlaylist}
-        setRecommendations={setRecommendations}
-        user={user}
-        setUser={setUser}
-        setLibSize={setLibSize}
-        setLibraryStored={setLibraryStored}
-      />
-      <div className="main">
-        <Form
-          activeSourceTab={activeSourceTab}
-          setActiveSourceTab={setActiveSourceTab}
-          loadingData={loadingData}
-          loadingDataProgress={loadingDataProgress}
-          storeMyData={storeMyData}
-          libraryStored={libraryStored}
-          playlist={playlist}
-          setPlaylist={setPlaylist}
-          matchingTracks={matchingTracks}
-          setMatchingTracks={setMatchingTracks}
-          setRecommendations={setRecommendations}
-          setLoadingPlaylist={setLoadingPlaylist}
-          setLoadingRecs={setLoadingRecs}
-          form={form}
-          anyTempo={anyTempo}
-          setAnyTempo={setAnyTempo}
-        />
-        <div className="playlistAndRecsContainer">
-          <h2>Results</h2>
-          {loadingPlaylist ? (
-            <LoadingPlaylist targetTracks={5} />
-          ) : (
-            <Playlist
-              setMatchingTracks={setMatchingTracks}
+      {welcome ? (
+        <Welcome setWelcome={setWelcome} />
+      ) : (
+        <>
+          <Header
+            setPlaylist={setPlaylist}
+            setRecommendations={setRecommendations}
+            user={user}
+            setUser={setUser}
+            setLibSize={setLibSize}
+            setLibraryStored={setLibraryStored}
+          />
+          <div className="main">
+            <Form
+              activeSourceTab={activeSourceTab}
+              setActiveSourceTab={setActiveSourceTab}
+              loadingData={loadingData}
+              loadingDataProgress={loadingDataProgress}
+              storeMyData={storeMyData}
+              libraryStored={libraryStored}
+              playlist={playlist}
+              setPlaylist={setPlaylist}
               matchingTracks={matchingTracks}
-              playlist={playlist}
-              setPlaylist={setPlaylist}
-              handleSaveClick={handleSaveClick}
-              loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-              playTrackPreview={playTrackPreview}
-              playingTrackId={playingTrackId}
-              audioRefs={audioRefs}
-              circleOffsets={circleOffsets}
-            />
-          )}
-          {loadingRecs ? (
-            <>
-              <h2>Suggestions</h2>
-              <LoadingPlaylist targetTracks={3} />
-            </>
-          ) : (
-            <Recommendations
-              setLoadingRecs={setLoadingRecs}
-              playlist={playlist}
-              setPlaylist={setPlaylist}
-              recommendations={recommendations}
+              setMatchingTracks={setMatchingTracks}
               setRecommendations={setRecommendations}
-              handleSaveClick={handleSaveClick}
-              loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-              playTrackPreview={playTrackPreview}
-              playingTrackId={playingTrackId}
-              audioRefs={audioRefs}
-              circleOffsets={circleOffsets}
+              setLoadingPlaylist={setLoadingPlaylist}
+              setLoadingRecs={setLoadingRecs}
               form={form}
               anyTempo={anyTempo}
+              setAnyTempo={setAnyTempo}
             />
-          )}
-        </div>
-      </div>
+            <div className="playlistAndRecsContainer">
+              <h2>Results</h2>
+              {loadingPlaylist ? (
+                <LoadingPlaylist targetTracks={5} />
+              ) : (
+                <Playlist
+                  setMatchingTracks={setMatchingTracks}
+                  matchingTracks={matchingTracks}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  playTrackPreview={playTrackPreview}
+                  playingTrackId={playingTrackId}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                />
+              )}
+              {loadingRecs ? (
+                <>
+                  <h2>Suggestions</h2>
+                  <LoadingPlaylist targetTracks={3} />
+                </>
+              ) : (
+                <Recommendations
+                  setLoadingRecs={setLoadingRecs}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  recommendations={recommendations}
+                  setRecommendations={setRecommendations}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  playTrackPreview={playTrackPreview}
+                  playingTrackId={playingTrackId}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                  form={form}
+                  anyTempo={anyTempo}
+                />
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
