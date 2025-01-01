@@ -13,7 +13,7 @@ These are no longer available to existing apps that are still in development mod
 
 The original codebase is still theoretically functional, but the access token granted will not give access to those endpoints anymore so fetch requests to Spotify will return 403 or 404 status codes. 
 
-Because of this, demo data is now used for saved tracks, top tracks, and recommendations, to demonstrate how the app would function if the API endpoints were still accessible. A user can still interact with and create playlists with Cadence, but sadly, not with their own Spotify data.
+Because of this, demo data is now used for saved tracks, top tracks, and recommendations, to demonstrate how the app would function if the API endpoints were still accessible. Users can still interact with and create playlists with Cadence, but sadly, only with a limited database of tracks purely for demonstration purposes, not with their own Spotify libraries as was intended.
 
 If you are interested in creating playlists based on track features from your actual Spotify data, I recommend [Sort Your Music](http://sortyourmusic.playlistmachinery.com/), which is a web app that was approved pre-deprecation and offers similar functionality and uses the same API endpoints Cadence relied on.
 
