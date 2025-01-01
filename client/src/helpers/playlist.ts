@@ -31,7 +31,8 @@ export async function startSearch(
         return await filterFromStore("topTracks", formValues, anyTempo);
 
       case "3":
-        return await getRecommendations(formValues, { anyTempo });
+        // return await getRecommendations(formValues, { anyTempo });
+        return await filterFromStore("recommendations", formValues, anyTempo);
 
       default:
         return null;
@@ -43,7 +44,7 @@ export async function startSearch(
 
 // Gets songs matching filters from saved songs or top songs library
 // Returns array of matching tracks
-async function filterFromStore(
+export async function filterFromStore(
   storeName: StoreName,
   formValues: FormValues,
   anyTempo: boolean

@@ -91,7 +91,7 @@ export interface Track {
   };
   name: string;
   popularity: number;
-  preview_url: string;
+  preview_url: string | null;
   track_number: number;
   type: string;
   uri: string;
@@ -142,6 +142,11 @@ export interface StoredTrack {
   track: Track;
   features: TrackFeatures;
   order: number;
+}
+
+export interface DemoTrack {
+  track: Track;
+  features: TrackFeatures;
 }
 
 export interface NumericFeatures {

@@ -4,6 +4,7 @@ import { Menu, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { IconMetronome } from "@tabler/icons-react";
 import { TrackObject, User } from "../types/types";
+import { storeDataInLocalStorage } from "@/helpers/localStorage";
 
 interface HeaderProps {
   user: User | null;
@@ -28,22 +29,23 @@ export default function Header({
     // Remove everything from local storage and store
     setPlaylist(new Map());
     setRecommendations(new Map());
-    localStorage.clear();
-    deleteDatabase();
+    // localStorage.clear();
+    // deleteDatabase();
     setUser(null);
     setLibSize(0);
-    setLibraryStored(false);
+    // setLibraryStored(false);
     showSuccessNotif("Success", "You successfully logged out.");
   };
 
   const clearData = () => {
     setPlaylist(new Map());
     setRecommendations(new Map());
-    localStorage.clear();
+    // localStorage.clear();
     deleteDatabase();
-    setUser(null);
-    setLibSize(0);
+    // setUser(null);
+    // setLibSize(0);
     setLibraryStored(false);
+    storeDataInLocalStorage("library_was_stored", false);
     showSuccessNotif("Success", "Your data was removed from browser storage.");
   };
 
@@ -78,9 +80,7 @@ export default function Header({
   return (
     <div className="header">
       <IconMetronome size={32} stroke={2} />
-
       <h1>cadence</h1>
-
       {user ? (
         <Menu position="bottom-end" offset={1} shadow="md" width={200}>
           <Menu.Target>

@@ -3,7 +3,11 @@ import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 // Functions to set up and delete database, and store, delete, and retrieve items from database
 
-export type StoreName = "library" | "topArtists" | "topTracks";
+export type StoreName =
+  | "library"
+  | "topArtists"
+  | "topTracks"
+  | "recommendations";
 
 interface MyDB extends DBSchema {
   library: {
@@ -23,6 +27,13 @@ interface MyDB extends DBSchema {
       track: Track;
       features: TrackFeatures;
       order: number;
+    };
+  };
+  recommendations: {
+    key: string; // track id
+    value: {
+      track: Track;
+      features: TrackFeatures;
     };
   };
 }
@@ -46,6 +57,11 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
       // Create an object store for top tracks
       if (!db.objectStoreNames.contains("topTracks")) {
         db.createObjectStore("topTracks", { keyPath: "track.id" });
+      }
+
+      // Create an object store for recommendations
+      if (!db.objectStoreNames.contains("recommendations")) {
+        db.createObjectStore("recommendations", { keyPath: "track.id" });
       }
     },
   });

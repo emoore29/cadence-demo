@@ -10,6 +10,9 @@ import { getAllFromStore, setUpDatabase, StoreName } from "./helpers/database";
 import { updateSavedStatus } from "./helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
+  storeDemoLibrary,
+  storeDemoRecommendations,
+  storeDemoTopTracks,
   storeSavedTracksData,
   storeTopArtists,
   storeTopTracksData,
@@ -68,6 +71,14 @@ function App() {
   );
   const [welcome, setWelcome] = useState<boolean>(true);
 
+  // Values needed to calculate load bar for loading demo data
+  const demoLibSize = 455;
+  const demoRecsSize = 798;
+  const demoTopTracks = 50;
+  const topArtistsFetch = 1;
+  const totalLoadActions =
+    demoLibSize + demoRecsSize + demoTopTracks + topArtistsFetch;
+
   // Sets up IDB on initial page load if it doesn't already exist
   useEffect(() => {
     const setupDb = async () => {
@@ -79,38 +90,6 @@ function App() {
     };
     setupDb();
   }, []);
-
-  async function saveStoreDataToJsonFile(storeName: StoreName): Promise<void> {
-    try {
-      // Retrieve data from the IndexedDB store
-      const data = await getAllFromStore(storeName);
-
-      // Convert the data to a JSON string
-      const jsonData = JSON.stringify(data, null, 2);
-
-      // Create a Blob with the JSON data
-      const blob = new Blob([jsonData], { type: "application/json" });
-
-      // Create a downloadable link
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${storeName}.json`;
-
-      // Trigger the download
-      a.click();
-
-      // Clean up the URL object
-      URL.revokeObjectURL(url);
-
-      console.log(`Data from '${storeName}' saved to ${storeName}.json`);
-    } catch (error) {
-      console.error(
-        `Error saving data from '${storeName}' to JSON file:`,
-        error
-      );
-    }
-  }
 
   // On initial page load or refresh:
   // Handles initial login
@@ -132,14 +111,15 @@ function App() {
           getItemFromLocalStorage("lib_size")
         );
         libSize && setLibSize(libSize);
+
         const estimatedFetches = (3 * libSize) / 100 + 16;
         setEstimatedFetches(estimatedFetches);
         setLibraryStored(wasLibraryStoredInDatabase());
         // await handleTokens();
-        localStorage.setItem(
-          "access_token",
-          "BQB-ryf74dxIUn_7W2aCKbRaGDzllZ6wDBr_Da-1_6emM7g3Ff4-oenlRs03n9N5YXuQwKwEB1lXDuNch8-3DtJo3MbaUTMOD-u3byvsioRLAE1YK6tPS159J1vYnQT-_pOsg2TGAi69bhng2VHEXq_PLueO2Yu5qJd0ai8Lj_EpH1NxsVD2KHbL4dcIOG88fJ1SHR46gpwAeH9ZdVhEIL8Wip1SoolYOOhZnOCiXPFM-Vjc7xQOmooRGV_1zoShLG2ZK0GJw_r9kJbJLRI74Y6cZ1a-cIg4pViqAAloqsul9K_dhhxPMZrUPIxQNO4bsaUn5LDrEG0"
-        );
+        // localStorage.setItem(
+        //   "access_token",
+        //   "BQB-ryf74dxIUn_7W2aCKbRaGDzllZ6wDBr_Da-1_6emM7g3Ff4-oenlRs03n9N5YXuQwKwEB1lXDuNch8-3DtJo3MbaUTMOD-u3byvsioRLAE1YK6tPS159J1vYnQT-_pOsg2TGAi69bhng2VHEXq_PLueO2Yu5qJd0ai8Lj_EpH1NxsVD2KHbL4dcIOG88fJ1SHR46gpwAeH9ZdVhEIL8Wip1SoolYOOhZnOCiXPFM-Vjc7xQOmooRGV_1zoShLG2ZK0GJw_r9kJbJLRI74Y6cZ1a-cIg4pViqAAloqsul9K_dhhxPMZrUPIxQNO4bsaUn5LDrEG0"
+        // );
       }
 
       // Handle token expiry every hour
@@ -154,24 +134,40 @@ function App() {
 
   // Adds % to progress bar for every successful fetch of new track data
   function updateProgressBar() {
-    setLoadingDataProgress((prev) => prev + (1 / estimatedFetches) * 100);
+    setLoadingDataProgress((prev) => prev + (1 / totalLoadActions) * 100);
   }
 
   // Gets user's Spotify library, top tracks, top artists and stores in IDB
   async function storeMyData(): Promise<void> {
     setLoadingData(true);
 
-    const savedTracks: boolean | null = await storeSavedTracksData(
+    // ↓ Code to retrieve actual Spotify data pre-deprecation ↓
+    // const savedTracks: boolean | null = await storeSavedTracksData(
+    //   updateProgressBar
+    // );
+    // const savedTopTracks: boolean | null = await storeTopTracksData(
+    //   updateProgressBar
+    // );
+    // const savedTopArtists: boolean | null = await storeTopArtists(
+    //   updateProgressBar
+    // );
+
+    // ↓ Code for demo version post-deprecation ↓
+    const savedTracks: boolean | null = await storeDemoLibrary(
       updateProgressBar
     );
-    const savedTopTracks: boolean | null = await storeTopTracksData(
+    const savedTopTracks: boolean | null = await storeDemoTopTracks(
       updateProgressBar
     );
+    const recommendations: boolean | null = await storeDemoRecommendations(
+      updateProgressBar
+    );
+    // Note: top artists can still be retrieved from Spotify as this is not deprecated
     const savedTopArtists: boolean | null = await storeTopArtists(
       updateProgressBar
     );
 
-    if (savedTracks && savedTopTracks && savedTopArtists) {
+    if (savedTracks && savedTopTracks && savedTopArtists && recommendations) {
       setLoadingData(false);
       storeDataInLocalStorage("library_was_stored", true);
       setLibraryStored(true);
@@ -315,81 +311,77 @@ function App() {
 
   return (
     <div className="container">
-      {welcome ? (
-        <Welcome setWelcome={setWelcome} />
-      ) : (
-        <>
-          <Header
+      <>
+        <Header
+          setPlaylist={setPlaylist}
+          setRecommendations={setRecommendations}
+          user={user}
+          setUser={setUser}
+          setLibSize={setLibSize}
+          setLibraryStored={setLibraryStored}
+        />
+        <div className="main">
+          <Form
+            activeSourceTab={activeSourceTab}
+            setActiveSourceTab={setActiveSourceTab}
+            loadingData={loadingData}
+            loadingDataProgress={loadingDataProgress}
+            storeMyData={storeMyData}
+            libraryStored={libraryStored}
+            playlist={playlist}
             setPlaylist={setPlaylist}
+            matchingTracks={matchingTracks}
+            setMatchingTracks={setMatchingTracks}
             setRecommendations={setRecommendations}
-            user={user}
-            setUser={setUser}
-            setLibSize={setLibSize}
-            setLibraryStored={setLibraryStored}
+            setLoadingPlaylist={setLoadingPlaylist}
+            setLoadingRecs={setLoadingRecs}
+            form={form}
+            anyTempo={anyTempo}
+            setAnyTempo={setAnyTempo}
           />
-          <div className="main">
-            <Form
-              activeSourceTab={activeSourceTab}
-              setActiveSourceTab={setActiveSourceTab}
-              loadingData={loadingData}
-              loadingDataProgress={loadingDataProgress}
-              storeMyData={storeMyData}
-              libraryStored={libraryStored}
-              playlist={playlist}
-              setPlaylist={setPlaylist}
-              matchingTracks={matchingTracks}
-              setMatchingTracks={setMatchingTracks}
-              setRecommendations={setRecommendations}
-              setLoadingPlaylist={setLoadingPlaylist}
-              setLoadingRecs={setLoadingRecs}
-              form={form}
-              anyTempo={anyTempo}
-              setAnyTempo={setAnyTempo}
-            />
-            <div className="playlistAndRecsContainer">
-              <h2>Results</h2>
-              {loadingPlaylist ? (
-                <LoadingPlaylist targetTracks={5} />
-              ) : (
-                <Playlist
-                  setMatchingTracks={setMatchingTracks}
-                  matchingTracks={matchingTracks}
-                  playlist={playlist}
-                  setPlaylist={setPlaylist}
-                  handleSaveClick={handleSaveClick}
-                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                  playTrackPreview={playTrackPreview}
-                  playingTrackId={playingTrackId}
-                  audioRefs={audioRefs}
-                  circleOffsets={circleOffsets}
-                />
-              )}
-              {loadingRecs ? (
-                <>
-                  <h2>Suggestions</h2>
-                  <LoadingPlaylist targetTracks={3} />
-                </>
-              ) : (
-                <Recommendations
-                  setLoadingRecs={setLoadingRecs}
-                  playlist={playlist}
-                  setPlaylist={setPlaylist}
-                  recommendations={recommendations}
-                  setRecommendations={setRecommendations}
-                  handleSaveClick={handleSaveClick}
-                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                  playTrackPreview={playTrackPreview}
-                  playingTrackId={playingTrackId}
-                  audioRefs={audioRefs}
-                  circleOffsets={circleOffsets}
-                  form={form}
-                  anyTempo={anyTempo}
-                />
-              )}
-            </div>
+          <div className="playlistAndRecsContainer">
+            <h2>Results</h2>
+            {loadingPlaylist ? (
+              <LoadingPlaylist targetTracks={5} />
+            ) : (
+              <Playlist
+                setMatchingTracks={setMatchingTracks}
+                matchingTracks={matchingTracks}
+                playlist={playlist}
+                setPlaylist={setPlaylist}
+                handleSaveClick={handleSaveClick}
+                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                playTrackPreview={playTrackPreview}
+                playingTrackId={playingTrackId}
+                audioRefs={audioRefs}
+                circleOffsets={circleOffsets}
+              />
+            )}
+            {loadingRecs ? (
+              <>
+                <h2>Suggestions</h2>
+                <LoadingPlaylist targetTracks={3} />
+              </>
+            ) : (
+              <Recommendations
+                setLoadingRecs={setLoadingRecs}
+                playlist={playlist}
+                setPlaylist={setPlaylist}
+                recommendations={recommendations}
+                setRecommendations={setRecommendations}
+                handleSaveClick={handleSaveClick}
+                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                playTrackPreview={playTrackPreview}
+                playingTrackId={playingTrackId}
+                audioRefs={audioRefs}
+                circleOffsets={circleOffsets}
+                form={form}
+                anyTempo={anyTempo}
+              />
+            )}
           </div>
-        </>
-      )}
+        </div>
+      </>
     </div>
   );
 }

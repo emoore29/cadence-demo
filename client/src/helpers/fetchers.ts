@@ -22,6 +22,7 @@ import {
   showWarnNotif,
 } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
+import { genres } from "@/demoData/genres";
 
 // Fetches user data, returns User or null on failure
 export async function fetchUserData(): Promise<User | null> {
@@ -108,7 +109,7 @@ export async function fetchSavedTracksFeatures(
     } catch (error) {
       showErrorNotif(
         "Error",
-        "There was an error fetching your library features."
+        "Spotify has deprecated this endpoint. Unable to fetch your library features."
       );
       return null;
     }
@@ -169,7 +170,7 @@ export async function fetchTopTrackFeatures(
     } catch (error) {
       showErrorNotif(
         "Error",
-        "There was an error fetching your top track features."
+        "Spotify has deprecated this endpoint. Unable to fetch your top track features."
       );
       return null;
     }
@@ -281,42 +282,43 @@ export async function fetchRecommendations(
     }
   }
 
-  console.log("Recommendations", recommendations);
-  saveMapToJsonFile(recommendations, "recommendations.json");
+  // console.log("Recommendations", recommendations);
+  // saveMapToJsonFile(recommendations, "recommendations.json");
   return recommendations;
 }
 
-async function saveMapToJsonFile(
-  map: Map<string, any>,
-  fileName: string
-): Promise<void> {
-  try {
-    // Convert the Map to an array of key-value pairs
-    const mapArray = Array.from(map.entries());
+// Function used to get demo data
+// async function saveMapToJsonFile(
+//   map: Map<string, any>,
+//   fileName: string
+// ): Promise<void> {
+//   try {
+//     // Convert the Map to an array of key-value pairs
+//     const mapArray = Array.from(map.entries());
 
-    // Convert the array to a JSON string
-    const jsonData = JSON.stringify(mapArray, null, 2);
+//     // Convert the array to a JSON string
+//     const jsonData = JSON.stringify(mapArray, null, 2);
 
-    // Create a Blob with the JSON data
-    const blob = new Blob([jsonData], { type: "application/json" });
+//     // Create a Blob with the JSON data
+//     const blob = new Blob([jsonData], { type: "application/json" });
 
-    // Create a downloadable link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
+//     // Create a downloadable link
+//     const url = URL.createObjectURL(blob);
+//     const a = document.createElement("a");
+//     a.href = url;
+//     a.download = fileName;
 
-    // Trigger the download
-    a.click();
+//     // Trigger the download
+//     a.click();
 
-    // Clean up the URL object
-    URL.revokeObjectURL(url);
+//     // Clean up the URL object
+//     URL.revokeObjectURL(url);
 
-    console.log(`Map saved to ${fileName}`);
-  } catch (error) {
-    console.error(`Error saving map to JSON file:`, error);
-  }
-}
+//     console.log(`Map saved to ${fileName}`);
+//   } catch (error) {
+//     console.error(`Error saving map to JSON file:`, error);
+//   }
+// }
 
 // Checks if the tracks are currently saved in the user's Spotify library
 // Adds saved property reflecting Spotify saved status to each track
@@ -415,21 +417,28 @@ export async function updateSavedStatus(
 
 // Get available genre seeds
 export async function getAvailableGenreSeeds(): Promise<string[] | null> {
-  const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (!accessToken) return null;
+  // ↓ Code for fetching genres if API endpoint were available ↓
+  // const accessToken: string | null = getItemFromLocalStorage("access_token");
+  // if (!accessToken) return null;
 
-  try {
-    const res = await axios.get(
-      "https://api.spotify.com/v1/recommendations/available-genre-seeds",
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
-    return res.data.genres;
-  } catch (error) {
-    showErrorNotif("Error", "Something went wrong getting available genres.");
-    return null;
-  }
+  // try {
+  //   const res = await axios.get(
+  //     "https://api.spotify.com/v1/recommendations/available-genre-seeds",
+  //     {
+  //       headers: { Authorization: `Bearer ${accessToken}` },
+  //     }
+  //   );
+  //   return res.data.genres;
+  // } catch (error) {
+  //   showErrorNotif(
+  //     "Error",
+  //     "Spotify has deprecated this endpoint. Unable to fetch available genres."
+  //   );
+  //   return null;
+  // }
+
+  // ↓ Return genre seeds from demo data ↓
+  return genres;
 }
 
 // Search for artist

@@ -27,7 +27,6 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
     const availableGenres: string[] | null = await getAvailableGenreSeeds();
     if (!availableGenres) return;
 
-    console.log("available genres", availableGenres);
     setAvailableGenreSeeds(availableGenres);
     storeDataInLocalStorage("genres", availableGenres);
   }
@@ -37,10 +36,6 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
     if (!storedGenres) {
       getGenres();
     } else {
-      console.log(
-        "genres already stored. parsed:",
-        typeof JSON.parse(storedGenres)
-      );
       setAvailableGenreSeeds(JSON.parse(storedGenres));
     }
   }, []);

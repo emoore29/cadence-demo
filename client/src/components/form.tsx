@@ -1,6 +1,10 @@
 import { checkSavedTracks } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
-import { getRecommendations, startSearch } from "@/helpers/playlist";
+import {
+  filterFromStore,
+  getRecommendations,
+  startSearch,
+} from "@/helpers/playlist";
 import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
 import {
   Accordion,
@@ -168,14 +172,22 @@ export default function Form({
     setPlaylist(newPlaylist);
     setMatchingTracks(matchingTracks);
 
-    // If user searching the library, get recs
     // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
     // Note: Spotify is not guaranteed to return 100
+    // Commented out as fetching recommendations no longer functions due to API deprecation.
+
     if (activeSourceTab === "mySpotify") {
       setLoadingRecs(true);
-      const recs: Map<string, TrackObject> | null = await getRecommendations(
+      // const recs: Map<string, TrackObject> | null = await getRecommendations(
+      //   values,
+      //   { anyTempo, targetRecs: 100 }
+      // );
+
+      // Replace above with filtering demo recommendations
+      const recs: Map<string, TrackObject> | null = await filterFromStore(
+        "recommendations",
         values,
-        { anyTempo, targetRecs: 100 }
+        anyTempo
       );
 
       // Remove any tracks that are already in the playlist
