@@ -1,6 +1,6 @@
 # Cadence Demo
 
-A demo web app that lets you filter your Spotify library, top tracks, and get recommendations based on BPM and more.
+A demo web app that simulates filtering your Spotify library, top tracks, and getting Spotify recommendations based on BPM and other track features. 
 
 Cadence development started on 24 October 2024. On 27 November 2024, [Spotify deprecated the following endpoints overnight](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api) on which Cadence relied:
 
@@ -11,7 +11,11 @@ Cadence development started on 24 October 2024. On 27 November 2024, [Spotify de
 
 These are no longer available to existing apps that are still in development mode without a pending extension request, which applies to Cadence.
 
-The current codebase is still theoretically functional, but the access token granted will not give access to those endpoints anymore so fetch requests to Spotify will return 403 or 404 status codes.
+The original codebase is still theoretically functional, but the access token granted will not give access to those endpoints anymore so fetch requests to Spotify will return 403 or 404 status codes. 
+
+Because of this, demo data is now used for saved tracks, top tracks, and recommendations, to demonstrate how the app would function if the API endpoints were still accessible. A user can still interact with and create playlists with Cadence, but sadly, not with their own Spotify data.
+
+If you are interested in creating playlists based on track features from your actual Spotify data, I recommend [Sort Your Music](http://sortyourmusic.playlistmachinery.com/), which is a web app that was approved pre-deprecation and offers similar functionality and uses the same API endpoints Cadence relied on.
 
 ## How it works/worked
 
