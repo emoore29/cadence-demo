@@ -11,7 +11,7 @@ Cadence development started on 24 October 2024. On 27 November 2024, [Spotify de
 
 These are no longer available to existing apps that are still in development mode without a pending extension request, which applies to Cadence.
 
-The original codebase is still theoretically functional, but the access token granted will not give access to those endpoints anymore so fetch requests to Spotify will return 403 or 404 status codes. 
+The original codebase is still theoretically functional, but the access token granted by Cadence's Client ID will not provide access to those endpoints anymore, so fetch requests to Spotify will return 403 or 404 status codes. 
 
 Because of this, demo data is now used for saved tracks, top tracks, and recommendations, to demonstrate how the app would function if the API endpoints were still accessible. Users can still interact with and create playlists with Cadence, but sadly, only with a limited database of tracks purely for demonstration purposes, not with their own Spotify libraries as was intended.
 
