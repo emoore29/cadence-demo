@@ -29,11 +29,11 @@ export default function Header({
     // Remove everything from local storage and store
     setPlaylist(new Map());
     setRecommendations(new Map());
-    // localStorage.clear();
-    // deleteDatabase();
+    localStorage.clear();
+    deleteDatabase();
     setUser(null);
     setLibSize(0);
-    // setLibraryStored(false);
+    setLibraryStored(false);
     showSuccessNotif("Success", "You successfully logged out.");
   };
 

@@ -8,6 +8,8 @@ import {
   getItemFromLocalStorage,
   storeDataInLocalStorage,
 } from "@/helpers/localStorage";
+import { Alert } from "@mantine/core";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 interface CustomFiltersProps {
   setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
@@ -21,6 +23,8 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
     "indie",
     "rock",
   ]);
+  const user = getItemFromLocalStorage("user_data");
+  const icon = <IconInfoCircle />;
 
   async function getGenres() {
     await handleTokens(); // Check for access token expiry before fetching genres
@@ -42,13 +46,29 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
 
   return (
     <div>
-      Add up to five seeds to get customised recommendations.
-      <SearchableMultiSelect
-        data={availableGenreSeeds}
-        setChosenSeeds={setChosenSeeds}
-      />
-      <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
-      <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
+      {!user ? (
+        "Sign in to add custom playlist seeds."
+      ) : (
+        <>
+          Add up to five seeds to get customised recommendations.
+          <Alert
+            variant="light"
+            color="grape"
+            title="Demo only"
+            icon={icon}
+            style={{ marginBottom: "20px" }}
+          >
+            Recommendations are now deprecated. Read more{" "}
+            <a href="https://github.com/emoore29/cadence-demo">here</a>.
+          </Alert>
+          <SearchableMultiSelect
+            data={availableGenreSeeds}
+            setChosenSeeds={setChosenSeeds}
+          />
+          <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
+          <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
+        </>
+      )}
     </div>
   );
 }

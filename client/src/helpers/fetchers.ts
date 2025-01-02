@@ -325,7 +325,11 @@ export async function fetchRecommendations(
 
 // Checks if the tracks are currently saved in the user's Spotify library
 // Adds saved property reflecting Spotify saved status to each track
-export async function checkSavedTracks(
+// NOTE: In demo, "Saved Songs" are not the user's Saved Songs.
+// So the more they create playlists and sync Cadence with their Spotify library,
+// the more tracks that will be removed from IDB - eventually there will be very few demo tracks left,
+// assuming the user's saved tracks do not overlap with the demo tracks significantly.
+export async function syncTracksSavedStatus(
   tracks: Map<string, TrackObject>
 ): Promise<Map<string, TrackObject> | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
@@ -333,9 +337,7 @@ export async function checkSavedTracks(
 
   const tracksArray: TrackObject[] = Array.from(tracks.values());
   const chunks = chunk(tracksArray, 50);
-  console.log("num chunks", chunks.length);
-  console.log("Chunks", chunks);
-  let results: boolean[] = [];
+  let results: boolean[] = []; // Initialise results array - true if track is saved in Spotify, false if not
 
   for (const chunk of chunks) {
     const ids = chunk.map((song) => song!.track.id);
@@ -359,10 +361,12 @@ export async function checkSavedTracks(
     }
   }
 
+  // The indexes of matchingTracks and results should align
   let index = 0;
-  for (const [trackId, track] of tracks.entries()) {
-    track.saved = results[index++];
+  for (const track of tracks.values()) {
+    track.saved = results[index++]; // Update the track.saved status to reflect true/false returned from Spotify
   }
+  // Return matchingTracks with updated saved statuses
   return tracks;
 }
 
@@ -451,9 +455,13 @@ export async function searchForArtist(
   abortSignal: AbortSignal,
   setData: React.Dispatch<React.SetStateAction<Track[] | Artist[] | null>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
-): Promise<Artist[] | null> {
+): Promise<boolean> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (!accessToken) return null;
+  if (!accessToken) {
+    setLoading(false);
+    abortController.current = undefined;
+    return false;
+  }
 
   const artistQuery = encodeURIComponent(userInput);
 
@@ -466,14 +474,17 @@ export async function searchForArtist(
       }
     );
 
+    console.log("got a result back");
     setData(res.data.artists.items);
     setLoading(false);
     abortController.current = undefined;
 
-    return res.data.artists.items;
+    return true;
   } catch (error) {
     // showErrorNotif("Error", "Something went wrong getting available artists.");
-    return null;
+    setLoading(false);
+    abortController.current = undefined;
+    return false;
   }
 }
 

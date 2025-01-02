@@ -1,4 +1,6 @@
 import { searchForArtist, searchForTrack } from "@/helpers/fetchers";
+import { showWarnNotif } from "@/helpers/general";
+import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { Artist, ChosenSeeds, Track } from "@/types/types";
 import {
   CheckIcon,
@@ -44,13 +46,19 @@ export function AsyncAutocomplete({
     // Start a new search
     // Passing signal means the request can be cancelled as above if a new request is started
     if (type === "artist") {
-      searchForArtist(
+      const success = searchForArtist(
         query,
         abortController,
         abortController.current.signal,
         setData,
         setLoading
       );
+      if (!success) {
+        showWarnNotif(
+          "Sign in",
+          "The feature you are trying to use requires you to be signed in."
+        );
+      }
     } else if (type === "track") {
       searchForTrack(
         query,

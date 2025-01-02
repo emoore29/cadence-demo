@@ -28,6 +28,7 @@ export async function storeTopArtists(
 ): Promise<boolean | null> {
   let success = true;
   const topArtists: Artist[] | null = await fetchTopArtists(updateProgressBar);
+
   if (topArtists) {
     for (const artist of topArtists) {
       try {
@@ -42,9 +43,11 @@ export async function storeTopArtists(
       }
     }
   } else {
-    success = false; // fetchTopArtists will throw an error in this case
+    success = false; // fetchTopArtists will display an error in this case
   }
-  showSuccessNotif("Success", "Your top artists were stored.");
+
+  success && showSuccessNotif("Success", "Your top artists were stored.");
+
   return success;
 }
 
@@ -172,8 +175,6 @@ export async function storeDemoLibrary(
 ): Promise<boolean> {
   let success = true;
 
-  console.log("demo library length", demoLibrary.length);
-
   // Add each track to the IDB library
   for (let i = 0; i < demoLibrary.length; i++) {
     const track = demoLibrary[i][1].track;
@@ -194,7 +195,7 @@ export async function storeDemoLibrary(
       success = false;
     }
   }
-  showSuccessNotif("Success", "Demo library was loaded.");
+  success && showSuccessNotif("Success", "Demo saved tracks were loaded.");
 
   return success;
 }
@@ -204,7 +205,6 @@ export async function storeDemoRecommendations(
 ): Promise<boolean> {
   let success = true;
 
-  console.log("demo recs length", demoRecommendations.length);
   // Add each track to the IDB library
   for (let i = 0; i < demoRecommendations.length; i++) {
     const track = demoRecommendations[i][1].track;
@@ -224,7 +224,7 @@ export async function storeDemoRecommendations(
       success = false;
     }
   }
-  showSuccessNotif("Success", "Demo recommendations were loaded.");
+  success && showSuccessNotif("Success", "Demo recommendations were loaded.");
   return success;
 }
 
@@ -255,7 +255,7 @@ export async function storeDemoTopTracks(
       success = false;
     }
   }
-  showSuccessNotif("Success", "Demo topTracks were loaded.");
+  success && showSuccessNotif("Success", "Demo top tracks were loaded.");
 
   return success;
 }

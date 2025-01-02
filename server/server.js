@@ -51,10 +51,6 @@ app.get("/callback", async function (req, res) {
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
 
-  console.log(
-    "/callback axios get running, exchanging auth code for access token.."
-  );
-
   // Check that the state given by Spotify is the same as the storedState from the original authorization request
   if (state === null || state !== storedState) {
     res.redirect(

@@ -1,10 +1,6 @@
-import { checkSavedTracks } from "@/helpers/fetchers";
+import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
-import {
-  filterFromStore,
-  getRecommendations,
-  startSearch,
-} from "@/helpers/playlist";
+import { filterFromStore, startSearch } from "@/helpers/playlist";
 import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
 import {
   Accordion,
@@ -21,8 +17,8 @@ import {
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
+import { useState } from "react";
 import CustomFilters from "./customFilters";
-import { useEffect, useState } from "react";
 
 interface FormProps {
   activeSourceTab: string | null;
@@ -69,6 +65,7 @@ export default function Form({
     tracks: [],
     artists: [],
   });
+  const icon = <IconInfoCircle />;
 
   async function handleSubmit(
     values: FormValues,
@@ -79,9 +76,13 @@ export default function Form({
     setLoadingPlaylist(true);
 
     // Search for matching tracks
-    const matchingTracks: Map<string, TrackObject> | null | void =
-      await startSearch(values, anyTempo, activeSourceTab, chosenSeeds);
-    if (!matchingTracks) {
+    let matches: Map<string, TrackObject> | null | void = await startSearch(
+      values,
+      anyTempo,
+      activeSourceTab,
+      chosenSeeds
+    );
+    if (!matches) {
       showWarnNotif(
         "No matches found",
         "No tracks could be found that meet that criteria."
@@ -95,28 +96,42 @@ export default function Form({
     }
 
     // Remove any tracks from matchingTracks that are already pinned in the playlist
-    for (const key of matchingTracks.keys()) {
+    for (const key of matches.keys()) {
       if (playlist?.get(key)) {
         if (playlist.get(key)?.pinned) {
-          matchingTracks.delete(key);
+          matches.delete(key);
         }
       }
     }
 
-    // If user is filtering their saved tracks
-    // Remove tracks from matchingTracks that were returned but have synced as unsaved
-    if (values.source === "2") {
-      for (const key of matchingTracks.keys()) {
-        const track = playlist.get(key);
-        if (track && !track.saved) {
-          matchingTracks.delete(key);
+    // Check if matching tracks are saved in Spotify library
+    const syncedTracks: Map<string, TrackObject> | null =
+      await syncTracksSavedStatus(matches);
+    if (syncedTracks) {
+      matches = syncedTracks; // Update matchingTracks to include up-to-date saved status
+    } else {
+      showWarnNotif(
+        "Sign in to allow syncing with Spotify",
+        "Tracks' displayed saved status may not reflect your Spotify library. Read more on GitHub."
+      );
+    }
+
+    // For each matching track, sync IDB saved track status with the Spotify saved status
+    // E.g. if one track is marked as unsaved in spotify but is saved in IDB, remove it from IDB
+    for (const track of matches.values()) {
+      const action = await syncSpotifyAndIdb(track, track.saved); // Adds or removes track from IDB depending on Spotify saved status
+      if (action == -1) {
+        // Track was removed from IDB
+        // Remove from matching tracks if user is searching based on Saved Tracks
+        if (values.source === "1") {
+          matches.delete(track.track.id);
         }
       }
     }
 
     // If after removing pinned tracks/unsaved tracks from matches, matchingTracks.size is 0,
     // Return no matches found
-    if (matchingTracks.size === 0) {
+    if (matches.size === 0) {
       showWarnNotif(
         "No matches found",
         "No tracks could be found that meet that criteria."
@@ -127,17 +142,6 @@ export default function Form({
       setLoadingPlaylist(false);
       setLoadingRecs(false);
       return;
-    }
-
-    // Check if matching tracks are saved in Spotify library
-    const syncedSpotifySaveStatusTracks: Map<string, TrackObject> | null =
-      await checkSavedTracks(matchingTracks);
-    if (!syncedSpotifySaveStatusTracks) return;
-
-    // For each matching track, sync IDB saved tracks library with the Spotify saved status
-    // E.g. if one track is marked as unsaved in spotify but is saved in IDB, remove it from IDB
-    for (const trackObject of matchingTracks.values()) {
-      syncSpotifyAndIdb(trackObject, trackObject.saved); // Adds or removes track from IDB depending on Spotify saved status
     }
 
     // Initialise newPlaylist
@@ -157,12 +161,12 @@ export default function Form({
       const missingNumber: number = values.target - newPlaylist.size;
 
       // Slice matchingTracks to be the size of missingNumber, then add to newPlaylist
-      const tempArray = Array.from(matchingTracks).slice(0, missingNumber);
+      const tempArray = Array.from(matches).slice(0, missingNumber);
       const newMap = new Map(tempArray);
 
       // Remove the matching tracks being added to the newPlaylist from matchingTracks
       for (const key of newMap.keys()) {
-        matchingTracks.delete(key);
+        matches.delete(key);
       }
 
       newPlaylist = new Map([...newPlaylist, ...newMap]);
@@ -170,7 +174,7 @@ export default function Form({
 
     setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
-    setMatchingTracks(matchingTracks);
+    setMatchingTracks(matches);
 
     // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
     // Note: Spotify is not guaranteed to return 100
@@ -234,14 +238,14 @@ export default function Form({
                   {!libraryStored ? (
                     <div className="loadLibraryOverlay">
                       <p style={{ fontSize: "14px" }}>
-                        {!loadingData ? "Load " : "Loading "}demo tracks
+                        {!loadingData ? "Load " : "Loading "}demo data
                       </p>
                       {!loadingData ? (
                         <Button
                           onClick={storeMyData}
                           style={{ maxWidth: "100%", whiteSpace: "wrap" }}
                         >
-                          Load my library
+                          Load demo data
                         </Button>
                       ) : (
                         <Progress
@@ -276,11 +280,11 @@ export default function Form({
                           icon={CheckIcon}
                           label="Top Tracks"
                         />
-                        <Radio
+                        {/* <Radio
                           value={"3"}
                           icon={CheckIcon}
                           label="Recommendations"
-                        />
+                        /> */}
                       </Group>
                     </Radio.Group>
                   )}
@@ -337,10 +341,21 @@ export default function Form({
           <Accordion.Item value="Advanced">
             <Accordion.Control>Advanced</Accordion.Control>
             <Accordion.Panel>
+              {/* <Alert
+                variant="light"
+                color="grape"
+                title="Spotify API deprecation"
+                icon={icon}
+                style={{ marginBottom: "20px" }}
+              >
+                Spotify has deprecated the endpoints needed for this feature.
+                Values selected below will be ignored in filters. Read more{" "}
+                <a href="https://github.com/emoore29/cadence-demo">here</a>.
+              </Alert> */}
               <Tooltip
                 multiline
                 w={220}
-                label="Advanced filters are subjective and may limit results more than desired."
+                label="Advanced filters may significantly limit results."
                 events={{ hover: true, focus: true, touch: false }}
                 position="right"
               >

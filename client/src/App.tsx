@@ -1,6 +1,5 @@
 import { useForm } from "@mantine/form";
-import { Alert } from "@mantine/core";
-import { IconInfoCircle } from "@tabler/icons-react";
+
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Form from "./components/form";
@@ -28,6 +27,8 @@ import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
 import Welcome from "./components/welcome";
+import { Alert } from "@mantine/core";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -103,6 +104,7 @@ function App() {
       // Store tokens, user data and library size on login
       if (loginOccurred()) {
         handleLogin(setLibSize, setUser, setEstimatedFetches);
+        setLibraryStored(wasLibraryStoredInDatabase());
       }
 
       // Set user, libSize, lib stored, etc in state if user has already logged in
@@ -118,7 +120,7 @@ function App() {
         const estimatedFetches = (3 * libSize) / 100 + 16;
         setEstimatedFetches(estimatedFetches);
         setLibraryStored(wasLibraryStoredInDatabase());
-        // await handleTokens();
+        await handleTokens();
         // localStorage.setItem(
         //   "access_token",
         //   "BQB-ryf74dxIUn_7W2aCKbRaGDzllZ6wDBr_Da-1_6emM7g3Ff4-oenlRs03n9N5YXuQwKwEB1lXDuNch8-3DtJo3MbaUTMOD-u3byvsioRLAE1YK6tPS159J1vYnQT-_pOsg2TGAi69bhng2VHEXq_PLueO2Yu5qJd0ai8Lj_EpH1NxsVD2KHbL4dcIOG88fJ1SHR46gpwAeH9ZdVhEIL8Wip1SoolYOOhZnOCiXPFM-Vjc7xQOmooRGV_1zoShLG2ZK0GJw_r9kJbJLRI74Y6cZ1a-cIg4pViqAAloqsul9K_dhhxPMZrUPIxQNO4bsaUn5LDrEG0"
@@ -156,32 +158,40 @@ function App() {
     // );
 
     // ↓ Code for demo version post-deprecation ↓
+
     const savedTracks: boolean | null = await storeDemoLibrary(
       updateProgressBar
     );
+    if (!savedTracks) {
+      errorStoringData();
+      return;
+    }
     const savedTopTracks: boolean | null = await storeDemoTopTracks(
       updateProgressBar
     );
+    if (!savedTopTracks) {
+      errorStoringData();
+      return;
+    }
     const recommendations: boolean | null = await storeDemoRecommendations(
       updateProgressBar
     );
-    // Note: top artists can still be retrieved from Spotify as this is not deprecated
-    const savedTopArtists: boolean | null = await storeTopArtists(
-      updateProgressBar
-    );
-
-    if (savedTracks && savedTopTracks && savedTopArtists && recommendations) {
-      setLoadingData(false);
-      storeDataInLocalStorage("library_was_stored", true);
-      setLibraryStored(true);
-    } else {
-      setLoadingData(false);
-      setLibraryStored(false);
-      showErrorNotif(
-        "Error",
-        "Something went wrong while loading your Spotify data."
-      );
+    if (!recommendations) {
+      errorStoringData();
+      return;
     }
+
+    setLoadingData(false);
+    storeDataInLocalStorage("library_was_stored", true);
+    setLibraryStored(true);
+    setLoadingDataProgress(0);
+  }
+
+  function errorStoringData() {
+    setLoadingData(false);
+    setLibraryStored(false);
+    setLoadingDataProgress(0);
+    showErrorNotif("Error", "Something went wrong while loading demo data.");
   }
 
   // Updates a track's saved status in state
@@ -330,9 +340,9 @@ function App() {
           icon={icon}
           style={{ marginBottom: "20px" }}
         >
-          Spotify has deprecated the endpoints needed for Cadence to function as
-          intended. This app now uses a small set of sample track data for
-          demonstration purposes only. Read more{" "}
+          Spotify has deprecated the endpoints Cadence required to function.
+          This app now uses a small set of sample track data for demonstration
+          purposes only. Read more{" "}
           <a href="https://github.com/emoore29/cadence-demo">here</a>.
         </Alert>
         <div className="main">

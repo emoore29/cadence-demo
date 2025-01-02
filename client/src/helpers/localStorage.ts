@@ -36,7 +36,6 @@ export function getItemFromLocalStorage(item: string): string | null {
   if (itemValue) {
     return itemValue;
   } else {
-    showErrorNotif("Error", `Couldn't locate ${item} in browser storage.`);
     return null;
   }
 }
@@ -45,6 +44,7 @@ export function getItemFromLocalStorage(item: string): string | null {
 export function checkTokenValidity(): boolean {
   const storedAccessToken: string | null = localStorage.getItem("access_token");
   const storedExpiry: string | null = localStorage.getItem("token_expiry");
+  const storedUser: string | null = localStorage.getItem("user_data");
   if (
     !storedAccessToken ||
     storedAccessToken === "undefined" ||
@@ -52,11 +52,12 @@ export function checkTokenValidity(): boolean {
     storedExpiry === "undefined" ||
     storedExpiry === "NaN"
   ) {
-    // Either user has not logged in, or there is an error
-    showErrorNotif(
-      "Error",
-      "Couldn't find stored access token or expiry. Please log in again."
-    );
+    if (storedUser) {
+      showErrorNotif(
+        "Error",
+        "Couldn't find stored access token or expiry. Please log out and log in again."
+      );
+    }
   }
 
   const now = Date.now();

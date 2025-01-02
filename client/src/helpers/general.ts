@@ -20,6 +20,7 @@ export function showErrorNotif(title: string, message: string) {
     color: "red",
     title: title,
     message: message,
+    autoClose: 5000,
   });
 }
 
@@ -28,6 +29,7 @@ export function showWarnNotif(title: string, message: string) {
     color: "yellow",
     title: title,
     message: message,
+    autoClose: 5000,
   });
 }
 
@@ -35,10 +37,12 @@ export function showWarnNotif(title: string, message: string) {
 // If a user updates their saved tracks outside of Cadence,
 // this ensures when a track is shown to the user the saved status displayed is accurate
 // and keeps IDB up to date
+// Returns 1 if a track was added, -1 if a track was removed, 0 if no action was taken
 export async function syncSpotifyAndIdb(
   track: TrackObject,
   saved: boolean | undefined
-) {
+): Promise<number> {
+  // Check if the track exists in the IDB library
   // Although getFromStore may return Track or Artist, we know it always returns a TrackObject from the "library"
   const savedInDb = (await getFromStore("library", track.track.id)) as
     | TrackObject
@@ -46,14 +50,19 @@ export async function syncSpotifyAndIdb(
 
   // Ensure IDB matches Spotify
   // If song saved in Spotify but not in IDB, add to IDB
+  // (e.g. a top track that wasn't saved when the database was initially loaded,
+  // but the user has since saved it in Spotify)
   if (saved && !savedInDb) {
     await setInStore("library", track);
-    console.log("added to IDB");
+    return 1;
   } else if (!saved && savedInDb) {
     // If song not saved in Spotify but saved in IDB, rm from IDB
     await deleteFromStore("library", track.track.id);
-    console.log("removed from IDB");
+    console.log("removed track from IDB");
+    // if it's removed, remove it from matching tracks as well if user is filtering "saved tracks"
+    return -1;
   }
+  return 0;
 }
 
 export function calculatePlaylistTime(

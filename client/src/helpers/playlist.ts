@@ -20,9 +20,7 @@ export async function startSearch(
   chosenSeeds?: ChosenSeeds
 ): Promise<Map<string, TrackObject> | null | void> {
   const store: string = formValues.source;
-  console.log("active source tab", activeSourceTab);
   if (activeSourceTab === "mySpotify") {
-    console.log("active source tab my spotify");
     switch (store) {
       case "1":
         return await filterFromStore("library", formValues, anyTempo);
@@ -30,9 +28,9 @@ export async function startSearch(
       case "2":
         return await filterFromStore("topTracks", formValues, anyTempo);
 
-      case "3":
-        // return await getRecommendations(formValues, { anyTempo }); // deprecated
-        return await filterFromStore("recommendations", formValues, anyTempo);
+      // Deprecated
+      // case "3":
+      //   return await getRecommendations(formValues, { anyTempo });
 
       default:
         return null;
@@ -61,7 +59,6 @@ export async function filterFromStore(
         matchingTracks.set(track.track.id, track);
       }
     }
-    console.log("returning matching tracks");
     return matchingTracks;
   } catch (error) {
     showErrorNotif(
