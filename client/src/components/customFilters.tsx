@@ -42,7 +42,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
 
   return (
     <div>
-      At least two categories must have input. At most 5 inputs.
+      Add up to five seeds to get customised recommendations.
       <SearchableMultiSelect
         data={availableGenreSeeds}
         setChosenSeeds={setChosenSeeds}

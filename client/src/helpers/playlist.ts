@@ -31,7 +31,7 @@ export async function startSearch(
         return await filterFromStore("topTracks", formValues, anyTempo);
 
       case "3":
-        // return await getRecommendations(formValues, { anyTempo });
+        // return await getRecommendations(formValues, { anyTempo }); // deprecated
         return await filterFromStore("recommendations", formValues, anyTempo);
 
       default:
@@ -61,7 +61,7 @@ export async function filterFromStore(
         matchingTracks.set(track.track.id, track);
       }
     }
-
+    console.log("returning matching tracks");
     return matchingTracks;
   } catch (error) {
     showErrorNotif(
@@ -75,7 +75,6 @@ export async function filterFromStore(
 
 // Gets recommendations from Spotify based on filters
 // Used for user "Get Recommendations"/"Custom" search, or used to populate Suggestions table
-// Returns 5 recommended songs
 export async function getRecommendations(
   formValues: FormValues,
   options: GetRecommendationsOptions

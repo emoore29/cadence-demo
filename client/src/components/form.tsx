@@ -234,7 +234,7 @@ export default function Form({
                   {!libraryStored ? (
                     <div className="loadLibraryOverlay">
                       <p style={{ fontSize: "14px" }}>
-                        Load your Spotify library for personalised features
+                        {!loadingData ? "Load " : "Loading "}demo tracks
                       </p>
                       {!loadingData ? (
                         <Button

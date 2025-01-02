@@ -243,7 +243,10 @@ export async function fetchRecommendations(
     );
     recommendedTracks = res.data.tracks;
   } catch (error) {
-    showErrorNotif("Error", "There was an error fetching recommendations.");
+    showErrorNotif(
+      "Error",
+      "Spotify has deprecated this endpoint. Unable to fetch recommendations."
+    );
     return null;
   }
 
@@ -264,7 +267,7 @@ export async function fetchRecommendations(
   } catch (error) {
     showErrorNotif(
       "Error",
-      "There was an error fetching recommended track features."
+      "Spotify has deprecated this endpoint. Unable to fetch recommended track features."
     );
     return null;
   }

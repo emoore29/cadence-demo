@@ -1,4 +1,6 @@
 import { useForm } from "@mantine/form";
+import { Alert } from "@mantine/core";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Form from "./components/form";
@@ -70,6 +72,7 @@ function App() {
     "custom"
   );
   const [welcome, setWelcome] = useState<boolean>(true);
+  const icon = <IconInfoCircle />;
 
   // Values needed to calculate load bar for loading demo data
   const demoLibSize = 455;
@@ -320,6 +323,18 @@ function App() {
           setLibSize={setLibSize}
           setLibraryStored={setLibraryStored}
         />
+        <Alert
+          variant="light"
+          color="grape"
+          title="Spotify API deprecation"
+          icon={icon}
+          style={{ marginBottom: "20px" }}
+        >
+          Spotify has deprecated the endpoints needed for Cadence to function as
+          intended. This app now uses a small set of sample track data for
+          demonstration purposes only. Read more{" "}
+          <a href="https://github.com/emoore29/cadence-demo">here</a>.
+        </Alert>
         <div className="main">
           <Form
             activeSourceTab={activeSourceTab}
