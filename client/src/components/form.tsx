@@ -65,7 +65,6 @@ export default function Form({
     tracks: [],
     artists: [],
   });
-  const icon = <IconInfoCircle />;
 
   async function handleSubmit(
     values: FormValues,
