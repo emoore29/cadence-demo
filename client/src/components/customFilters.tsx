@@ -50,7 +50,9 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
         "Sign in to add custom playlist seeds."
       ) : (
         <>
-          Add up to five seeds to get customised recommendations.
+          <p style={{ fontSize: "14px", padding: "5px 0" }}>
+            Add up to five seeds to get customised recommendations.
+          </p>
           {/* <Alert
             variant="light"
             color="grape"
