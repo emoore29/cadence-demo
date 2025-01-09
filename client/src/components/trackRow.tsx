@@ -56,7 +56,7 @@ export default function TrackRow({
             />
           </div>
           <div className="titleAndArtist">
-            <div>
+            <div className="pinAndTitle">
               {pinToPlaylist && track.pinned === true && (
                 <button
                   className="pin"
@@ -67,7 +67,7 @@ export default function TrackRow({
                     size={18}
                   />
                 </button>
-              )}{" "}
+              )}
               <a className="trackName" href={track.track.external_urls.spotify}>
                 {track.track.name}
               </a>
@@ -93,7 +93,7 @@ export default function TrackRow({
         </Table.Td>
       )}
       {!isMobile && (
-        <Table.Td>
+        <Table.Td className="centerTd">
           <Button
             type="button"
             className="trackActionButton displayOnTrackHover"
@@ -111,7 +111,7 @@ export default function TrackRow({
         </Table.Td>
       )}
       <Table.Td
-        className="trackTime"
+        className="rightTd"
         style={{
           paddingRight: "5px",
         }}

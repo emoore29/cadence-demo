@@ -102,7 +102,7 @@ export default function Playlist({
           position="bottom-end"
           offset={1}
           shadow="md"
-          width={200}
+          width={100}
         >
           <Menu.Target>
             <Button
@@ -190,6 +190,7 @@ export default function Playlist({
         highlightOnHover
         horizontalSpacing="xs"
         verticalSpacing="xs"
+        style={{ tableLayout: "fixed" }}
       >
         <TableHead type="playlist" />
         <Table.Tbody>{rows}</Table.Tbody>

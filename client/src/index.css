@@ -109,7 +109,7 @@ h2#filters {
   flex-direction: column;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
-  padding: 20px;
+  padding: 10px;
   border-radius: 10px;
   height: fit-content;
 }
@@ -121,6 +121,25 @@ h2#filters {
 
 .playlistContainer {
   margin-bottom: 50px;
+  max-width: 100%;
+}
+
+.addButton {
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mobileAddButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  color: rgba(255, 255, 255);
+  border: 1px solid rgba(255, 255, 255);
 }
 
 .main {
@@ -162,13 +181,24 @@ h2#filters {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .titleAndArtist,
 .titleAndArtistSkeleton {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  /* width: 20px; */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pinAndTitle {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .titleAndArtistSkeleton {
@@ -202,6 +232,15 @@ h2#filters {
   vertical-align: middle;
 }
 
+.centerTd {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.rightTd {
+  text-align: right;
+}
+
 .trackName {
   color: white;
   font-weight: 600;
@@ -219,7 +258,11 @@ h2#filters {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  width: min-content;
+  max-width: 100%;
+}
+
+.m_b23fa0ef .mantine-Table-table {
+  max-width: 100%;
 }
 
 .loadLibraryOverlay {
@@ -247,10 +290,6 @@ tr:hover .trackActionButton {
 
 .trackActionsMenu.opened {
   display: block;
-}
-
-.trackTime {
-  text-align: right;
 }
 
 .trackTimeSkeleton {

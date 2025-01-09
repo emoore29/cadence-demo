@@ -6,6 +6,8 @@ import { MutableRefObject } from "react";
 import SkeletonRow from "./skeletonRow";
 import TableHead from "./tableHead";
 import TrackRow from "./trackRow";
+import { useMediaQuery } from "@mantine/hooks";
+import LikeIcon from "@/icons/LikeIcon";
 
 interface RecommendationsProps {
   playlist: Map<string, TrackObject>;
@@ -45,6 +47,7 @@ export default function Recommendations({
   anyTempo,
 }: RecommendationsProps) {
   if (!recommendations) return <div></div>;
+  const isMobile = useMediaQuery("(max-width: 50em)");
 
   // Adds a recommendation to the playlist, and checks if this makes recs.size < 5, if so, fetches more recs
   async function addRecToPlaylist(track: TrackObject) {
@@ -139,13 +142,25 @@ export default function Recommendations({
           strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
         />
 
-        <Table.Td>
-          <Button
-            className="trackActionButton"
-            onClick={() => addRecToPlaylist(track[1])}
-          >
-            Add
-          </Button>
+        <Table.Td className="rightTd">
+          {!isMobile ? (
+            <Button
+              className="addButton"
+              variant="outline"
+              size="compact-xs"
+              radius="xl"
+              onClick={() => addRecToPlaylist(track[1])}
+            >
+              Add
+            </Button>
+          ) : (
+            <button
+              className="mobileAddButton"
+              onClick={() => addRecToPlaylist(track[1])}
+            >
+              <LikeIcon size={16} />
+            </button>
+          )}
         </Table.Td>
       </Table.Tr>
     ));
@@ -160,6 +175,7 @@ export default function Recommendations({
         highlightOnHover
         horizontalSpacing="xs"
         verticalSpacing="xs"
+        style={{ tableLayout: "fixed" }}
       >
         <TableHead type="recommended" />
         <Table.Tbody>
