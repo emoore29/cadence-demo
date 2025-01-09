@@ -9,9 +9,14 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 
+button {
+  background-color: transparent;
+  border: none;
+}
+
 #root {
-  padding: 0 100px;
   box-sizing: border-box;
+  padding: 0;
   background: radial-gradient(
       circle farthest-side at bottom left,
       #5c1c37 400px,
@@ -28,6 +33,7 @@ body {
 .container {
   max-width: 2400px;
   margin: 0 auto;
+  padding: 0 20px;
   text-align: left;
 }
 
@@ -61,6 +67,17 @@ h2#filters {
   margin-bottom: 10px;
 }
 
+.title-and-logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metronome-icon {
+  margin-top: 0.3rem;
+}
+
 #user-btn {
   display: flex;
   align-items: center;
@@ -90,10 +107,10 @@ h2#filters {
 .form {
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
   padding: 20px;
-  border-radius: 20px;
+  border-radius: 10px;
   height: fit-content;
 }
 
@@ -108,7 +125,9 @@ h2#filters {
 
 .main {
   display: flex;
+  flex-direction: column;
   gap: 50px;
+  margin-bottom: 6rem;
 }
 
 .playlistAndRecsContainer {
@@ -292,8 +311,17 @@ tr:hover .trackActionButton {
   margin: auto;
 }
 
+.pin {
+  color: rgba(255, 255, 255);
+  padding: 0 2px 0 0;
+  cursor: pointer;
+}
+
 .alwaysVisibleTrackActionButton {
+  position: absolute;
   display: block;
+  top: 0;
+  left: 0;
   background-color: transparent;
   padding: 0;
   color: rgba(255, 255, 255, 0.8);
@@ -371,4 +399,20 @@ tr:hover .trackActionButton {
 
 .multiselectsContainer {
   margin-bottom: 1000px;
+}
+
+@media screen and (min-width: 1000px) {
+  .container {
+    padding: 0 80px;
+  }
+
+  .main {
+    flex-direction: row;
+    margin-bottom: 2rem;
+  }
+
+  .form {
+    min-width: 300px;
+    width: 300px;
+  }
 }

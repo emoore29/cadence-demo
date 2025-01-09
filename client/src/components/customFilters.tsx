@@ -51,7 +51,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
       ) : (
         <>
           Add up to five seeds to get customised recommendations.
-          <Alert
+          {/* <Alert
             variant="light"
             color="grape"
             title="Demo only"
@@ -60,7 +60,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
           >
             Recommendations are now deprecated. Read more{" "}
             <a href="https://github.com/emoore29/cadence-demo">here</a>.
-          </Alert>
+          </Alert> */}
           <SearchableMultiSelect
             data={availableGenreSeeds}
             setChosenSeeds={setChosenSeeds}

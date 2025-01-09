@@ -156,7 +156,10 @@ export default function Recommendations({
       <Table
         highlightOnHoverColor="rgba(0,0,0,0.1)"
         withRowBorders={false}
+        withColumnBorders={false}
         highlightOnHover
+        horizontalSpacing="xs"
+        verticalSpacing="xs"
       >
         <TableHead type="recommended" />
         <Table.Tbody>

@@ -1,7 +1,12 @@
 import { calculatePlaylistTime } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
-import { Button, Group, Table } from "@mantine/core";
-import { IconPin, IconPinFilled, IconX } from "@tabler/icons-react";
+import { Button, Group, Table, Menu } from "@mantine/core";
+import {
+  IconPin,
+  IconPinFilled,
+  IconX,
+  IconDotsVertical,
+} from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
 import SavePlaylistModal from "./savePlaylist";
 import TableHead from "./tableHead";
@@ -80,6 +85,7 @@ export default function Playlist({
   const rows = Array.from(playlist).map((track) => (
     <Table.Tr key={track[1].track.id}>
       <TrackRow
+        pinToPlaylist={pinToPlaylist}
         listType="Playlist"
         track={track[1]}
         audioRefs={audioRefs}
@@ -90,25 +96,6 @@ export default function Playlist({
         strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5} // Default offset to circumference of circle if not set in state
       />
       <Table.Td>
-        {track[1].pinned === true ? (
-          <Button
-            className="alwaysVisibleTrackActionButton"
-            onClick={() => pinToPlaylist(track[1].track.id)}
-          >
-            <IconPinFilled size={16} />
-          </Button>
-        ) : (
-          <Button
-            className="trackActionButton"
-            onClick={() => pinToPlaylist(track[1].track.id)}
-          >
-            <IconPin size={16} />
-          </Button>
-        )}
-      </Table.Td>
-      <Table.Td>
-        {/* 
-        Menu for mobile
         <Menu
           opened={track[1].track.id === openTrackMenuId}
           onClose={() => setOpenTrackMenuId("")}
@@ -125,7 +112,7 @@ export default function Playlist({
               }`}
               onClick={() => handleTrackMenuClick(track[1].track.id)}
             >
-              <IconDots stroke={2} size={16} />
+              <IconDotsVertical stroke={2} size={16} />
             </Button>
           </Menu.Target>
           <Menu.Dropdown>
@@ -142,13 +129,7 @@ export default function Playlist({
               {track[1].pinned ? "Unpin" : "Pin"}
             </Menu.Item>
           </Menu.Dropdown>
-        </Menu> */}
-        <Button
-          className="displayOnTrackHover trackActionButton"
-          onClick={() => removeFromPlaylist(track[1].track.id)}
-        >
-          <IconX stroke={2} size={16} />
-        </Button>
+        </Menu>
       </Table.Td>
     </Table.Tr>
   ));

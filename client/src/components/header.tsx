@@ -79,8 +79,10 @@ export default function Header({
 
   return (
     <div className="header">
-      <IconMetronome size={32} stroke={2} />
-      <h1>cadence</h1>
+      <div className="title-and-logo">
+        <IconMetronome className="metronome-icon" size={32} stroke={2} />
+        <h1>cadence</h1>
+      </div>
       {user ? (
         <Menu position="bottom-end" offset={1} shadow="md" width={200}>
           <Menu.Target>

@@ -70,10 +70,8 @@ function App() {
   });
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
   const [activeSourceTab, setActiveSourceTab] = useState<string | null>(
-    "custom"
+    "mySpotify"
   );
-  const [welcome, setWelcome] = useState<boolean>(true);
-  const icon = <IconInfoCircle />;
 
   // Values needed to calculate load bar for loading demo data
   const demoLibSize = 455;
@@ -333,7 +331,7 @@ function App() {
           setLibSize={setLibSize}
           setLibraryStored={setLibraryStored}
         />
-        <Alert
+        {/* <Alert
           variant="light"
           color="grape"
           title="Spotify API deprecation"
@@ -344,7 +342,7 @@ function App() {
           This app now uses a small set of sample track data for demonstration
           purposes only. Read more{" "}
           <a href="https://github.com/emoore29/cadence-demo">here</a>.
-        </Alert>
+        </Alert> */}
         <div className="main">
           <Form
             activeSourceTab={activeSourceTab}

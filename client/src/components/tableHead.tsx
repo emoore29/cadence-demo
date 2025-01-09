@@ -1,4 +1,5 @@
 import { Table } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { IconClock } from "@tabler/icons-react";
 
 interface TableHeadProps {
@@ -6,15 +7,20 @@ interface TableHeadProps {
 }
 
 export default function TableHead({ type }: TableHeadProps) {
+  const isMobile = useMediaQuery("(max-width: 50em)");
   const actionBtnColWidth = "25px";
   return (
     <Table.Thead>
       <Table.Tr>
         <Table.Th>Title</Table.Th>
-        <Table.Th>Album</Table.Th>
-        <Table.Th
-          style={{ minWidth: actionBtnColWidth, width: actionBtnColWidth }}
-        ></Table.Th>
+        {!isMobile && <Table.Th>Album</Table.Th>}
+        {/* Saved */}
+        {!isMobile && (
+          <Table.Th
+            style={{ minWidth: actionBtnColWidth, width: actionBtnColWidth }}
+          ></Table.Th>
+        )}
+        {/* Track length */}
         <Table.Th
           style={{
             minWidth: "50px",
@@ -25,19 +31,16 @@ export default function TableHead({ type }: TableHeadProps) {
         >
           <IconClock size={18} stroke={2} />
         </Table.Th>
+        {/* Columns for dropdown menu & pinned */}
         {type === "playlist" && (
-          // Columns for dropdown menu & pinned
           <>
-            <Table.Th
-              style={{ minWidth: actionBtnColWidth, width: actionBtnColWidth }}
-            ></Table.Th>
             <Table.Th
               style={{ minWidth: actionBtnColWidth, width: actionBtnColWidth }}
             ></Table.Th>
           </>
         )}
+        {/*  Column for "Add" button */}
         {type === "recommended" && (
-          // Column for "Add" button
           <Table.Th style={{ minWidth: "40px", width: "40px" }}></Table.Th>
         )}
       </Table.Tr>

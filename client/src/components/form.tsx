@@ -210,7 +210,6 @@ export default function Form({
 
   return (
     <>
-      {" "}
       <form
         className="form"
         onSubmit={form.onSubmit((values) =>
@@ -223,16 +222,15 @@ export default function Form({
           <Accordion.Item value="Tracks Source">
             <Accordion.Control>Tracks Source</Accordion.Control>
             <Accordion.Panel>
-              <Tabs value={activeSourceTab} onChange={setActiveSourceTab}>
-                <Tabs.List>
-                  <Tabs.Tab value="custom">Custom</Tabs.Tab>
-                </Tabs.List>
+              <Tabs
+                defaultValue="mySpotify"
+                value={activeSourceTab}
+                onChange={setActiveSourceTab}
+              >
                 <Tabs.List>
                   <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
+                  <Tabs.Tab value="custom">Custom</Tabs.Tab>
                 </Tabs.List>
-                <Tabs.Panel value="custom">
-                  <CustomFilters setChosenSeeds={setChosenSeeds} />
-                </Tabs.Panel>
                 <Tabs.Panel value="mySpotify">
                   {!libraryStored ? (
                     <div className="loadLibraryOverlay">
@@ -287,6 +285,9 @@ export default function Form({
                       </Group>
                     </Radio.Group>
                   )}
+                </Tabs.Panel>
+                <Tabs.Panel value="custom">
+                  <CustomFilters setChosenSeeds={setChosenSeeds} />
                 </Tabs.Panel>
               </Tabs>
             </Accordion.Panel>
