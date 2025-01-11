@@ -184,7 +184,6 @@ export default function Playlist({
         withRowBorders={false}
         withColumnBorders={false}
         highlightOnHover
-        horizontalSpacing="xs"
         style={{ tableLayout: "fixed" }}
       >
         <TableHead type="playlist" />

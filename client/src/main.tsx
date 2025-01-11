@@ -9,6 +9,18 @@ import "@mantine/notifications/styles.css";
 import { Notifications } from "@mantine/notifications";
 
 const theme = createTheme({
+  components: {
+    Table: {
+      styles: {
+        td: {
+          padding: "5px 0",
+        },
+        th: {
+          padding: "5px 0",
+        },
+      },
+    },
+  },
   headings: {
     fontFamily: "Greycliff CF, sans-serif",
     sizes: {

@@ -175,7 +175,6 @@ export default function Recommendations({
         withRowBorders={false}
         withColumnBorders={false}
         highlightOnHover
-        horizontalSpacing="xs"
         style={{ tableLayout: "fixed" }}
       >
         <TableHead type="recommended" />

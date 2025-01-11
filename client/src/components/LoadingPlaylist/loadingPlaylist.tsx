@@ -24,8 +24,6 @@ export default function LoadingPlaylist({
       highlightOnHoverColor="rgba(0,0,0,0.1)"
       withRowBorders={false}
       highlightOnHover
-      horizontalSpacing="xs"
-      verticalSpacing="xs"
       layout="auto"
     >
       <TableHead type={"skeleton"} />
