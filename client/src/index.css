@@ -48,6 +48,7 @@ a:hover {
 
 h1 {
   font-size: 2em;
+  margin: 0;
 }
 
 h2 {
@@ -445,8 +446,13 @@ tr:hover .trackActionButton {
 }
 
 @media screen and (min-width: 1000px) {
+  .header {
+    margin-bottom: 2rem;
+  }
+
   .container {
-    padding: 0 80px;
+    padding: 30px 50px;
+    max-width: 1440px;
   }
 
   .main {

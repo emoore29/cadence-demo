@@ -221,7 +221,6 @@ export function AsyncAutocomplete({
           </Pill.Group>
         </PillsInput>
       </Combobox.DropdownTarget>
-
       <Combobox.Dropdown hidden={data === null}>
         <Combobox.Options>
           <ScrollArea.Autosize mah={200} type="scroll">
