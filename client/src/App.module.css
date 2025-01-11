@@ -1,0 +1,29 @@
+.container {
+  max-width: 2400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  text-align: left;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  margin-bottom: 6rem;
+}
+
+.playlistAndRecsContainer {
+  width: 100%;
+}
+
+@media screen and (min-width: 1000px) {
+  .container {
+    padding: 30px 50px;
+    max-width: 1440px;
+  }
+
+  .main {
+    flex-direction: row;
+    margin-bottom: 2rem;
+  }
+}

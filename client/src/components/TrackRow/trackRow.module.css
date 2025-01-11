@@ -1,0 +1,76 @@
+.trackDisplay {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.artAndPreview {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.albumArt {
+  width: 40px;
+  height: 40px;
+  border-radius: 10%;
+}
+
+.pinAndTitle {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pin {
+  color: rgba(255, 255, 255);
+  padding: 0 2px 0 0;
+  cursor: pointer;
+}
+
+.trackName {
+  color: white;
+  font-weight: 600;
+}
+
+.trackName,
+.trackArtist,
+.trackAlbum {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.trackArtist,
+.trackAlbum {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.centerTd {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.trackActionButton {
+  display: none;
+  background-color: transparent;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.8);
+  margin: auto;
+}
+
+.rightTd {
+  text-align: right;
+}
+
+.titleAndArtist {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

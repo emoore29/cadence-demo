@@ -1,22 +1,18 @@
 import { useForm } from "@mantine/form";
-
 import { useEffect, useRef, useState } from "react";
-import "./App.css";
-import Form from "./components/form";
-import Header from "./components/header";
-import LoadingPlaylist from "./components/loadingPlaylist";
-import Playlist from "./components/playlist";
-import Recommendations from "./components/recommendations";
-import { getAllFromStore, setUpDatabase, StoreName } from "./helpers/database";
+import styles from "./App.module.css";
+import Form from "./components/Form/form";
+import Header from "./components/Header/header";
+import LoadingPlaylist from "./components/LoadingPlaylist/loadingPlaylist";
+import Playlist from "./components/Playlist/playlist";
+import Recommendations from "./components/Recommendations/recommendations";
+import { setUpDatabase } from "./helpers/database";
 import { updateSavedStatus } from "./helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
   storeDemoLibrary,
   storeDemoRecommendations,
   storeDemoTopTracks,
-  storeSavedTracksData,
-  storeTopArtists,
-  storeTopTracksData,
 } from "./helpers/indexedDbHelpers";
 import {
   getItemFromLocalStorage,
@@ -26,9 +22,6 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
-import Welcome from "./components/welcome";
-import { Alert } from "@mantine/core";
-import { IconInfoCircle } from "@tabler/icons-react";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -321,7 +314,7 @@ function App() {
   }
 
   return (
-    <div className="container">
+    <div className={styles.container}>
       <>
         <Header
           setPlaylist={setPlaylist}
@@ -343,7 +336,7 @@ function App() {
           purposes only. Read more{" "}
           <a href="https://github.com/emoore29/cadence-demo">here</a>.
         </Alert> */}
-        <div className="main">
+        <div className={styles.main}>
           <Form
             activeSourceTab={activeSourceTab}
             setActiveSourceTab={setActiveSourceTab}
@@ -362,7 +355,7 @@ function App() {
             anyTempo={anyTempo}
             setAnyTempo={setAnyTempo}
           />
-          <div className="playlistAndRecsContainer">
+          <div className={styles.playlistAndRecsContainer}>
             <h2>Results</h2>
             {loadingPlaylist ? (
               <LoadingPlaylist targetTracks={5} />

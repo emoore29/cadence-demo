@@ -1,6 +1,7 @@
 import { Table } from "@mantine/core";
-import SkeletonRow from "./skeletonRow";
-import TableHead from "./tableHead";
+import SkeletonRow from "../SkeletonRow/skeletonRow";
+import TableHead from "../TableHead/tableHead";
+import styles from "./loadingPlaylist.module.css";
 
 interface LoadingPlaylistProps {
   targetTracks: number;
@@ -19,7 +20,7 @@ export default function LoadingPlaylist({
 
   return (
     <Table
-      className="skeletonTable"
+      className={styles.skeletonTable}
       highlightOnHoverColor="rgba(0,0,0,0.1)"
       withRowBorders={false}
       highlightOnHover

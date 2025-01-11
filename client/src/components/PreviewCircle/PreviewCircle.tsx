@@ -1,3 +1,5 @@
+import styles from "./PreviewCircle.module.css";
+
 interface PreviewCircleProps {
   trackId: string;
   size: number;
@@ -19,7 +21,7 @@ export default function PreviewCircle({
 
   return (
     <div
-      className="previewCircle"
+      className={styles.previewCircle}
       style={{
         width: `${size}px`,
         height: `${size}px`,

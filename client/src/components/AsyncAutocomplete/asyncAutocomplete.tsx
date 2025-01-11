@@ -1,16 +1,15 @@
 import { searchForArtist, searchForTrack } from "@/helpers/fetchers";
 import { showWarnNotif } from "@/helpers/general";
-import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { Artist, ChosenSeeds, Track } from "@/types/types";
 import {
   CheckIcon,
   Combobox,
   Group,
+  Loader,
   Pill,
   PillsInput,
   ScrollArea,
   useCombobox,
-  Loader,
 } from "@mantine/core";
 import { debounce } from "lodash";
 import { useEffect, useRef, useState } from "react";

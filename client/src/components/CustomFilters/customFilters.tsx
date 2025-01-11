@@ -1,15 +1,15 @@
 import { getAvailableGenreSeeds } from "@/helpers/fetchers";
-import { ChosenSeeds } from "@/types/types";
-import { useEffect, useState } from "react";
-import { AsyncAutocomplete } from "./asyncAutocomplete";
-import { SearchableMultiSelect } from "./searchableMultiSelect";
-import { handleTokens } from "@/helpers/tokens";
 import {
   getItemFromLocalStorage,
   storeDataInLocalStorage,
 } from "@/helpers/localStorage";
+import { handleTokens } from "@/helpers/tokens";
+import { ChosenSeeds } from "@/types/types";
 import { Alert } from "@mantine/core";
 import { IconInfoCircle } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { AsyncAutocomplete } from "../AsyncAutocomplete/asyncAutocomplete";
+import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 
 interface CustomFiltersProps {
   setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
@@ -53,7 +53,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
           <p style={{ fontSize: "14px", padding: "5px 0" }}>
             Add up to five seeds to get customised recommendations.
           </p>
-          {/* <Alert
+          <Alert
             variant="light"
             color="grape"
             title="Demo only"
@@ -61,8 +61,11 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
             style={{ marginBottom: "20px" }}
           >
             Recommendations are now deprecated. Read more{" "}
-            <a href="https://github.com/emoore29/cadence-demo">here</a>.
-          </Alert> */}
+            <a href="https://github.com/emoore29/cadence-demo" target="_blank">
+              here
+            </a>
+            .
+          </Alert>
           <SearchableMultiSelect
             data={availableGenreSeeds}
             setChosenSeeds={setChosenSeeds}

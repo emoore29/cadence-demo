@@ -1,0 +1,34 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.titleAndLogo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metronomeIcon {
+  margin-top: 0.3rem;
+}
+
+.userImg {
+  object-fit: cover;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 5px solid transparent; /* Set initial border as transparent */
+}
+
+.userImg:hover {
+  border-color: rgba(0, 0, 0, 0.2); /* Change border color on hover */
+}
+
+@media screen and (min-width: 1000px) {
+  .header {
+    margin-bottom: 2rem;
+  }
+}

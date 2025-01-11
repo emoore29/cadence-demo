@@ -1,0 +1,17 @@
+.playlistContainer {
+  margin-bottom: 50px;
+  max-width: 100%;
+}
+
+.trackActionsMenu.opened {
+  display: block;
+}
+
+.trackActionsMenu {
+  padding: 0;
+  background-color: transparent;
+}
+
+.trackActionsMenu:hover {
+  background-color: transparent;
+}

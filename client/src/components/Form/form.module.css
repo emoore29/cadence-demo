@@ -1,0 +1,28 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 10px;
+  height: fit-content;
+}
+
+.loadLibrary {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.bpm {
+  display: flex;
+}
+
+@media screen and (min-width: 1000px) {
+  .form {
+    min-width: 300px;
+    width: 300px;
+  }
+}

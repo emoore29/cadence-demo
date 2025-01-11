@@ -1,16 +1,12 @@
 import { calculatePlaylistTime } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
-import { Button, Group, Table, Menu } from "@mantine/core";
-import {
-  IconPin,
-  IconPinFilled,
-  IconX,
-  IconDotsVertical,
-} from "@tabler/icons-react";
+import { Button, Group, Menu, Table } from "@mantine/core";
+import { IconDotsVertical } from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
-import SavePlaylistModal from "./savePlaylist";
-import TableHead from "./tableHead";
-import TrackRow from "./trackRow";
+import SavePlaylistModal from "../SavePlaylist/savePlaylist";
+import TableHead from "../TableHead/tableHead";
+import TrackRow from "../TrackRow/trackRow";
+import styles from "./playlist.module.css";
 
 interface PlaylistProps {
   setMatchingTracks: React.Dispatch<
@@ -107,8 +103,8 @@ export default function Playlist({
           <Menu.Target>
             <Button
               ref={(el) => (trackMenuRefs.current[track[1].track.id] = el)}
-              className={`trackActionsMenu ${
-                track[1].track.id === openTrackMenuId ? "opened" : ""
+              className={`${styles.trackActionsMenu} ${
+                track[1].track.id === openTrackMenuId ? styles.opened : ""
               }`}
               onClick={() => handleTrackMenuClick(track[1].track.id)}
             >
@@ -179,7 +175,7 @@ export default function Playlist({
   const playlistTime = calculatePlaylistTime(playlist);
 
   return (
-    <div className="playlistContainer">
+    <div className={styles.playlistContainer}>
       <p>
         {playlist.size} songs, {playlistTime}
       </p>

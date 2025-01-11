@@ -1,13 +1,14 @@
 import { getRecommendations } from "@/helpers/playlist";
+import LikeIcon from "@/components/LikeIcon/LikeIcon";
 import { FormValues, TrackObject } from "@/types/types";
 import { Button, Group, Table } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { MutableRefObject } from "react";
-import SkeletonRow from "./skeletonRow";
-import TableHead from "./tableHead";
-import TrackRow from "./trackRow";
 import { useMediaQuery } from "@mantine/hooks";
-import LikeIcon from "@/icons/LikeIcon";
+import { MutableRefObject } from "react";
+import SkeletonRow from "../SkeletonRow/skeletonRow";
+import TableHead from "../TableHead/tableHead";
+import TrackRow from "../TrackRow/trackRow";
+import styles from "./recommendations.module.css";
 
 interface RecommendationsProps {
   playlist: Map<string, TrackObject>;
@@ -142,10 +143,10 @@ export default function Recommendations({
           strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
         />
 
-        <Table.Td className="rightTd">
+        <Table.Td className={styles.rightTd}>
           {!isMobile ? (
             <Button
-              className="addButton"
+              className={styles.addButton}
               variant="outline"
               size="compact-xs"
               radius="xl"
@@ -155,7 +156,7 @@ export default function Recommendations({
             </Button>
           ) : (
             <button
-              className="mobileAddButton"
+              className={styles.mobileAddButton}
               onClick={() => addRecToPlaylist(track[1])}
             >
               <LikeIcon size={16} />

@@ -4,6 +4,7 @@ import { PlaylistData, TrackObject } from "@/types/types";
 import { Button, Checkbox, Modal, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMediaQuery } from "@mantine/hooks";
+import styles from "./savePlaylist.module.css";
 
 interface SavePlaylistModalProps {
   playlist: Map<string, TrackObject>;
@@ -57,7 +58,7 @@ export default function SavePlaylistModal({
         </Modal.Header>
         <Modal.Body>
           <form
-            className="playlistForm"
+            className={styles.playlistForm}
             onSubmit={form.onSubmit((values) => handleSubmit(values, playlist))}
           >
             <TextInput

@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import { ChosenSeeds } from "@/types/types";
 import {
   CheckIcon,
   Combobox,
   Group,
   Pill,
   PillsInput,
-  useCombobox,
   ScrollArea,
+  useCombobox,
 } from "@mantine/core";
-import { ChosenSeeds } from "@/types/types";
+import React, { useState } from "react";
 
 // Component taken and modified from Mantine example component
 // https://mantine.dev/combobox/?e=BasicMultiSelect

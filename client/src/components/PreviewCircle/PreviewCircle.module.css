@@ -1,0 +1,4 @@
+.previewCircle {
+  position: absolute;
+  transform: rotate(-90deg);
+}
