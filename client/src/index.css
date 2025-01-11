@@ -17,8 +17,6 @@ button {
 #root {
   width: 100%;
   height: 100vh;
-  padding: 2rem;
-  text-align: center;
   background: radial-gradient(
       circle farthest-side at bottom left,
       #5c1c37 400px,
@@ -41,17 +39,21 @@ a:hover {
   text-decoration: underline;
 }
 
-h1 {
-  font-size: 2em;
+h1,
+h2,
+p {
   margin: 0;
 }
 
+h1 {
+  font-size: 2em;
+}
+
 h2 {
-  margin: 0;
   font-size: 1.2em;
   padding: 0 0;
 }
 
-p {
-  margin: 0;
+td {
+  padding: 0 5px;
 }

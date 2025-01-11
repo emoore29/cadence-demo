@@ -94,7 +94,7 @@ export default function Recommendations({
 
   async function handleRefreshRecs() {
     let updatedRecs = new Map(recommendations); // Copy current state to avoid mutating
-    const tempArray = Array.from(updatedRecs).slice(2, -1); // Remove first 3 tracks from current recs
+    const tempArray = Array.from(updatedRecs).slice(3, -1); // Remove first 3 tracks from current recs
     updatedRecs = new Map(tempArray); // Add newly sliced recs to map
 
     console.log("updated recs", updatedRecs);
@@ -176,7 +176,6 @@ export default function Recommendations({
         withColumnBorders={false}
         highlightOnHover
         horizontalSpacing="xs"
-        verticalSpacing="xs"
         style={{ tableLayout: "fixed" }}
       >
         <TableHead type="recommended" />
