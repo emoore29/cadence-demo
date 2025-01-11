@@ -97,8 +97,6 @@ export default function Recommendations({
     const tempArray = Array.from(updatedRecs).slice(3, -1); // Remove first 3 tracks from current recs
     updatedRecs = new Map(tempArray); // Add newly sliced recs to map
 
-    console.log("updated recs", updatedRecs);
-
     let newlyFetchedRecs: Map<string, TrackObject> | null; // Initialise Map to store newly fetched recs
 
     // Fetch new recs if updatedRecs <=5
