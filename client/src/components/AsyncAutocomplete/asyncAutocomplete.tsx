@@ -214,6 +214,11 @@ export function AsyncAutocomplete({
                   onClick={() => combobox.openDropdown()}
                   onFocus={() => combobox.openDropdown()}
                   onBlur={() => combobox.closeDropdown()}
+                  aria-label={
+                    type === "track"
+                      ? "Enter track names"
+                      : "Enter artist names"
+                  }
                 />
               </PillsInput>
             </Combobox.EventsTarget>

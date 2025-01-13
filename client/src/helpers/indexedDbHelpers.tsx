@@ -180,7 +180,7 @@ export async function storeDemoLibrary(
     const track = demoLibrary[i][1].track;
     const trackFeatures = demoLibrary[i][1].features;
     try {
-      await setInStore("library", {
+      await setInStore("demoTracks", {
         track: track,
         features: trackFeatures,
         saved: true,
@@ -225,38 +225,6 @@ export async function storeDemoRecommendations(
     }
   }
   success && showSuccessNotif("Success", "Demo recommendations were loaded.");
-  return success;
-}
-
-export async function storeDemoTopTracks(
-  updateProgressBar: () => void
-): Promise<boolean> {
-  let success = true;
-
-  // Get first 50 to simulate getting 50 from Spotify's API
-  const first50 = demoTopTracks.slice(0, 50);
-
-  // Add each track to the IDB library
-  for (let i = 0; i < first50.length; i++) {
-    const track = first50[i][1].track;
-    const trackFeatures = first50[i][1].features;
-    try {
-      await setInStore("topTracks", {
-        track: track,
-        features: trackFeatures,
-        order: i,
-      });
-      updateProgressBar(); // TODO: Update estimated fetches to align with demo library size rather than real library size
-    } catch (error) {
-      console.error(
-        `Error storing track ${first50[i][0]} in IndexedDB:`,
-        error
-      );
-      success = false;
-    }
-  }
-  success && showSuccessNotif("Success", "Demo top tracks were loaded.");
-
   return success;
 }
 

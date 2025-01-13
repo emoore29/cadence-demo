@@ -12,7 +12,9 @@ import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
   storeDemoLibrary,
   storeDemoRecommendations,
-  storeDemoTopTracks,
+  storeSavedTracksData,
+  storeTopArtists,
+  storeTopTracksData,
 } from "./helpers/indexedDbHelpers";
 import {
   getItemFromLocalStorage,
@@ -27,6 +29,7 @@ function App() {
   const [libSize, setLibSize] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
+  const [loadingDemoData, setLoadingDemoData] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
@@ -57,7 +60,7 @@ function App() {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "1",
+      source: "4",
       target: 5,
     },
   });
@@ -133,42 +136,29 @@ function App() {
     setLoadingDataProgress((prev) => prev + (1 / totalLoadActions) * 100);
   }
 
-  // Gets user's Spotify library, top tracks, top artists and stores in IDB
-  async function storeMyData(): Promise<void> {
+  // ↓ Pre-deprecation to retrieve actual Spotify data (track features reqs will return 400 errors) ↓
+  async function storeSpotifyData(): Promise<void> {
     setLoadingData(true);
 
-    // ↓ Code to retrieve actual Spotify data pre-deprecation ↓
-    // const savedTracks: boolean | null = await storeSavedTracksData(
-    //   updateProgressBar
-    // );
-    // const savedTopTracks: boolean | null = await storeTopTracksData(
-    //   updateProgressBar
-    // );
-    // const savedTopArtists: boolean | null = await storeTopArtists(
-    //   updateProgressBar
-    // );
-
-    // ↓ Code for demo version post-deprecation ↓
-
-    const savedTracks: boolean | null = await storeDemoLibrary(
+    const savedTracks: boolean | null = await storeSavedTracksData(
       updateProgressBar
     );
     if (!savedTracks) {
-      errorStoringData();
+      errorStoringData(false);
       return;
     }
-    const savedTopTracks: boolean | null = await storeDemoTopTracks(
+    const savedTopTracks: boolean | null = await storeTopTracksData(
       updateProgressBar
     );
     if (!savedTopTracks) {
-      errorStoringData();
+      errorStoringData(false);
       return;
     }
-    const recommendations: boolean | null = await storeDemoRecommendations(
+    const savedTopArtists: boolean | null = await storeTopArtists(
       updateProgressBar
     );
-    if (!recommendations) {
-      errorStoringData();
+    if (!savedTopArtists) {
+      errorStoringData(false);
       return;
     }
 
@@ -178,11 +168,43 @@ function App() {
     setLoadingDataProgress(0);
   }
 
-  function errorStoringData() {
-    setLoadingData(false);
-    setLibraryStored(false);
+  // ↓ Post-deprecation storing demo tracks in IDB ↓
+  async function storeDemoData(): Promise<void> {
+    setLoadingDemoData(true);
+
+    const demoTracks: boolean | null = await storeDemoLibrary(
+      updateProgressBar
+    );
+    if (!demoTracks) {
+      errorStoringData(true);
+      return;
+    }
+    const demoRecommendations: boolean | null = await storeDemoRecommendations(
+      updateProgressBar
+    );
+    if (!demoRecommendations) {
+      errorStoringData(true);
+      return;
+    }
+
+    setLoadingDemoData(false);
+    storeDataInLocalStorage("demo_library_was_stored", true);
+    setLibraryStored(true);
     setLoadingDataProgress(0);
-    showErrorNotif("Error", "Something went wrong while loading demo data.");
+  }
+
+  function errorStoringData(demo: boolean): void {
+    if (demo) {
+      setLoadingDemoData(false);
+      setLibraryStored(false);
+      setLoadingDataProgress(0);
+      showErrorNotif("Error", "Something went wrong while loading demo data.");
+    } else {
+      setLoadingData(false);
+      setLibraryStored(false);
+      setLoadingDataProgress(0);
+      showErrorNotif("Error", "Something went wrong while loading demo data.");
+    }
   }
 
   // Updates a track's saved status in state
@@ -342,7 +364,8 @@ function App() {
             setActiveSourceTab={setActiveSourceTab}
             loadingData={loadingData}
             loadingDataProgress={loadingDataProgress}
-            storeMyData={storeMyData}
+            storeDemoData={storeDemoData}
+            storeSpotifyData={storeSpotifyData}
             libraryStored={libraryStored}
             playlist={playlist}
             setPlaylist={setPlaylist}

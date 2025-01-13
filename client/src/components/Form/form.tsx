@@ -14,6 +14,7 @@ import {
   Select,
   Tabs,
   Tooltip,
+  Alert,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
@@ -26,7 +27,8 @@ interface FormProps {
   setActiveSourceTab: React.Dispatch<React.SetStateAction<string | null>>;
   loadingData: boolean;
   loadingDataProgress: number;
-  storeMyData: () => void;
+  storeDemoData: () => void;
+  storeSpotifyData: () => void;
   libraryStored: boolean;
   playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
@@ -49,7 +51,8 @@ export default function Form({
   setActiveSourceTab,
   loadingData,
   loadingDataProgress,
-  storeMyData,
+  storeDemoData,
+  storeSpotifyData,
   libraryStored,
   playlist,
   setPlaylist,
@@ -66,6 +69,7 @@ export default function Form({
     tracks: [],
     artists: [],
   });
+  const icon = <IconInfoCircle />;
 
   async function handleSubmit(
     values: FormValues,
@@ -233,25 +237,43 @@ export default function Form({
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
                 {!libraryStored ? (
-                  <div className={styles.loadLibrary}>
-                    <p style={{ fontSize: "14px" }}>
-                      {!loadingData ? "Load " : "Loading "}demo data
-                    </p>
-                    {!loadingData ? (
-                      <Button
-                        onClick={storeMyData}
-                        style={{ maxWidth: "100%", whiteSpace: "wrap" }}
-                      >
-                        Load demo data
-                      </Button>
-                    ) : (
-                      <Progress
-                        value={loadingDataProgress}
-                        size="lg"
-                        transitionDuration={200}
-                      />
-                    )}
-                  </div>
+                  <>
+                    <Alert
+                      variant="light"
+                      color="grape"
+                      title="Spotify API deprecation"
+                      icon={icon}
+                      style={{ marginBottom: "20px" }}
+                    >
+                      Spotify has deprecated the endpoints needed to load your
+                      Spotify library features. To view demo functionality, load
+                      demo tracks. Read more{" "}
+                      <a href="https://github.com/emoore29/cadence-demo">
+                        here
+                      </a>
+                      .
+                    </Alert>
+
+                    <div className={styles.loadLibrary}>
+                      <p style={{ fontSize: "14px" }}>
+                        {!loadingData ? "Load " : "Loading "}demo data
+                      </p>
+                      {!loadingData ? (
+                        <Button
+                          onClick={storeDemoData}
+                          style={{ maxWidth: "100%", whiteSpace: "wrap" }}
+                        >
+                          Load demo data
+                        </Button>
+                      ) : (
+                        <Progress
+                          value={loadingDataProgress}
+                          size="lg"
+                          transitionDuration={200}
+                        />
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <Radio.Group
                     name="source"
@@ -266,13 +288,25 @@ export default function Form({
                         textAlign: "left",
                       }}
                     >
-                      <Radio value={"1"} icon={CheckIcon} label="Saved Songs" />
-                      <Radio value={"2"} icon={CheckIcon} label="Top Tracks" />
-                      {/*DEPRECATED <Radio
-                          value={"3"}
-                          icon={CheckIcon}
-                          label="Recommendations"
-                        /> */}
+                      <Radio
+                        value={"1"}
+                        icon={CheckIcon}
+                        label="Saved Songs"
+                        disabled
+                      />
+                      <Radio
+                        value={"2"}
+                        icon={CheckIcon}
+                        label="Top Tracks"
+                        disabled
+                      />
+                      <Radio
+                        value={"3"}
+                        icon={CheckIcon}
+                        label="Recommendations"
+                        disabled
+                      />
+                      <Radio value={"4"} icon={CheckIcon} label="Demo Tracks" />
                     </Group>
                   </Radio.Group>
                 )}
@@ -332,17 +366,6 @@ export default function Form({
         <Accordion.Item value="Advanced">
           <Accordion.Control>Advanced</Accordion.Control>
           <Accordion.Panel>
-            {/* <Alert
-                variant="light"
-                color="grape"
-                title="Spotify API deprecation"
-                icon={icon}
-                style={{ marginBottom: "20px" }}
-              >
-                Spotify has deprecated the endpoints needed for this feature.
-                Values selected below will be ignored in filters. Read more{" "}
-                <a href="https://github.com/emoore29/cadence-demo">here</a>.
-              </Alert> */}
             <Tooltip
               multiline
               w={220}
