@@ -19,3 +19,8 @@
   color: rgba(255, 255, 255);
   border: 1px solid rgba(255, 255, 255);
 }
+
+.table {
+  margin-top: 16px;
+  table-layout: fixed; /* Prevents table overflowing page on mobiles */
+}

@@ -15,3 +15,8 @@
 .trackActionsMenu:hover {
   background-color: transparent;
 }
+
+.table {
+  margin-top: 16px;
+  table-layout: fixed; /* Prevents table overflowing page on mobiles */
+}

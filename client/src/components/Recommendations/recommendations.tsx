@@ -172,7 +172,7 @@ export default function Recommendations({
         withRowBorders={false}
         withColumnBorders={false}
         highlightOnHover
-        style={{ tableLayout: "fixed" }}
+        className={styles.table}
       >
         <TableHead type="recommended" />
         <Table.Tbody>

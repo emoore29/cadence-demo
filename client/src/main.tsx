@@ -13,19 +13,6 @@ import { ModalsProvider } from "@mantine/modals";
 import "@mantine/notifications/styles.css";
 import { Notifications } from "@mantine/notifications";
 
-const colors: MantineColorsTuple = [
-  "#faf0f4",
-  "#efdde5",
-  "#e0b7c9",
-  "#d28eac",
-  "#c66c94",
-  "#c05785",
-  "#bd4b7d",
-  "#a73d6b",
-  "#95355f",
-  "#832a53",
-];
-
 const theme = createTheme({
   components: {
     Table: {
@@ -51,19 +38,19 @@ const theme = createTheme({
       "#ecdfe3",
       "#dbbbc5",
       "#b2647e",
-      "#bd748c",
-      "#b5607b", //b5607b
-      "#7c324a", //7c324a
+      "#844358", // form accordion borders, input borders
+      "#b5607b",
+      "#66293C", // input background colors
       "#9c4661",
-      "#8c3d56",
+      "#8c3d56", // active tab border, button backgrounds
       "#7c324a",
     ],
     darkPink: [
       "#f9f0f3",
       "#ecdfe3",
       "#dbbbc5",
-      "#cb94a6",
-      "#bd748c",
+      "#b2647e", //cb94a6
+      "#bd748c", //bd748c
       "#b5607b",
       "#7c324a",
       "#9c4661",

@@ -221,7 +221,6 @@ export default function Form({
       )}
       onReset={form.onReset}
     >
-      <h2>Filters</h2>
       <Accordion defaultValue="Tracks Source">
         <Accordion.Item value="Tracks Source">
           <Accordion.Control>Tracks Source</Accordion.Control>
@@ -362,19 +361,16 @@ export default function Form({
         <Accordion.Item value="Advanced">
           <Accordion.Control>Advanced</Accordion.Control>
           <Accordion.Panel>
-            <Tooltip
-              multiline
-              w={220}
-              label="Advanced filters may significantly limit results."
-              events={{ hover: true, focus: true, touch: false }}
-              position="right"
+            <Alert
+              variant="light"
+              color="grape"
+              title="Note"
+              icon={icon}
+              style={{ marginBottom: "20px" }}
             >
-              <IconInfoCircle
-                style={{ color: "rgba(255,255,255,0.6)" }}
-                size={22}
-                stroke={2}
-              />
-            </Tooltip>
+              Advanced filters may significantly limit results.
+            </Alert>
+
             {[
               "Valence",
               "Danceability",
