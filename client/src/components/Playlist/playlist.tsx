@@ -1,6 +1,6 @@
 import { calculatePlaylistTime } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
-import { Button, Group, Menu, Table } from "@mantine/core";
+import { Button, Group, Menu, Table, UnstyledButton } from "@mantine/core";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
 import SavePlaylistModal from "../SavePlaylist/savePlaylist";
@@ -101,7 +101,7 @@ export default function Playlist({
           width={100}
         >
           <Menu.Target>
-            <Button
+            <UnstyledButton
               ref={(el) => (trackMenuRefs.current[track[1].track.id] = el)}
               className={`${styles.trackActionsMenu} ${
                 track[1].track.id === openTrackMenuId ? styles.opened : ""
@@ -109,7 +109,7 @@ export default function Playlist({
               onClick={() => handleTrackMenuClick(track[1].track.id)}
             >
               <IconDotsVertical stroke={2} size={16} />
-            </Button>
+            </UnstyledButton>
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Item

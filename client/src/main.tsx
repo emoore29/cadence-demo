@@ -21,6 +21,17 @@ const theme = createTheme({
         },
       },
     },
+    Button: {
+      styles: {
+        root: { backgroundColor: "rgba(0,0,0,0.25)" },
+        label: { color: "rgba(255,255,255,0.8)" },
+      },
+    },
+    Tabs: {
+      styles: {
+        tab: {},
+      },
+    },
   },
   headings: {
     fontFamily: "Greycliff CF, sans-serif",

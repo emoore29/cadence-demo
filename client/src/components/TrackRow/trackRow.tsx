@@ -2,7 +2,7 @@ import { msToTrackTime } from "@/helpers/general";
 import LikeIcon from "@/components/LikeIcon/LikeIcon";
 import LikedIcon from "@/components/LikedIcon/LikedIcon";
 import { TrackObject } from "@/types/types";
-import { Button, Loader, Table } from "@mantine/core";
+import { Button, Loader, Table, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconPinFilled } from "@tabler/icons-react";
 import React from "react";
@@ -97,7 +97,7 @@ export default function TrackRow({
       )}
       {!isMobile && (
         <Table.Td className={styles.centerTd}>
-          <Button
+          <UnstyledButton
             type="button"
             className={styles.trackActionButton}
             disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
@@ -110,7 +110,7 @@ export default function TrackRow({
             ) : (
               <LikeIcon size={16} />
             )}
-          </Button>
+          </UnstyledButton>
         </Table.Td>
       )}
       <Table.Td

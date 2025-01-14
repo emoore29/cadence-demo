@@ -226,6 +226,7 @@ export default function Form({
           <Accordion.Control>Tracks Source</Accordion.Control>
           <Accordion.Panel>
             <Tabs
+              variant="pills"
               defaultValue="mySpotify"
               value={activeSourceTab}
               onChange={setActiveSourceTab}
