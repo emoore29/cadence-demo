@@ -12,6 +12,7 @@ import "./index.css";
 import { ModalsProvider } from "@mantine/modals";
 import "@mantine/notifications/styles.css";
 import { Notifications } from "@mantine/notifications";
+import GradientBackground from "./components/GradientBackground/gradientBackground.tsx";
 
 const theme = createTheme({
   components: {
@@ -66,7 +67,9 @@ createRoot(document.getElementById("root")!).render(
     <MantineProvider defaultColorScheme="dark" theme={theme}>
       <Notifications />
       <ModalsProvider>
-        <App />
+        <GradientBackground>
+          <App />
+        </GradientBackground>
       </ModalsProvider>
     </MantineProvider>
   </StrictMode>

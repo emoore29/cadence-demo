@@ -5,7 +5,7 @@
 body {
   height: 100vh;
   margin: 0;
-  background: #6b243f;
+  /* background: #6b243f; */
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -17,17 +17,18 @@ button {
 #root {
   width: 100%;
   height: 100vh;
-  background: radial-gradient(
+  /* background: radial-gradient(
       circle farthest-side at bottom left,
       #5c1c37 400px,
       #6b243f
     ),
     radial-gradient(
-      circle 600px farthest-corner at bottom right,
-      #8f3c3c 400px,
+      circle farthest-corner at bottom right,
+      #8f3c3c 300px,
       #6b243f 400px
     ),
-    radial-gradient(circle farthest-corner at 15% 20%, #35171f #6b243f);
+    radial-gradient(circle farthest-corner at 15% 20%, #35171f, #6b243f);
+  background-attachment: scroll; */
 }
 
 a {
