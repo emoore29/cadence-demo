@@ -8,12 +8,16 @@
   height: fit-content;
 }
 
-.loadLibrary {
+.mySpotify {
   display: flex;
   flex-direction: column;
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 5px;
-  border-radius: 10px;
+  gap: 5px;
+  padding-top: 5px;
+}
+
+.loadLibraryBtn {
+  max-width: 100%;
+  white-space: wrap;
 }
 
 .bpm {

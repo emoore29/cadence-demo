@@ -10,6 +10,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { AsyncAutocomplete } from "../AsyncAutocomplete/asyncAutocomplete";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
+import styles from "./customFilters.module.css";
 
 interface CustomFiltersProps {
   setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
@@ -49,21 +50,16 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
       {!user ? (
         "Sign in to add custom playlist seeds."
       ) : (
-        <>
-          <Alert
-            variant="light"
-            color="grape"
-            title="Demo only"
-            icon={icon}
-            style={{ marginBottom: "20px" }}
-          >
-            Recommendations are now deprecated. Read more{" "}
+        <div className={styles.customFilters}>
+          <Alert variant="light" color="grape" title="Demo only" icon={icon}>
+            Recommendations are now deprecated: using this feature will not
+            return any matching tracks. Read more{" "}
             <a href="https://github.com/emoore29/cadence-demo" target="_blank">
               here
             </a>
             .
           </Alert>
-          <p style={{ fontSize: "14px", padding: "5px 0" }}>
+          <p style={{ fontSize: "14px", padding: "0" }}>
             Add up to five seeds to get customised recommendations.
           </p>
           <SearchableMultiSelect
@@ -72,7 +68,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
           />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
-        </>
+        </div>
       )}
     </div>
   );

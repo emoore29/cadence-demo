@@ -237,13 +237,12 @@ export default function Form({
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
                 {!libraryStored ? (
-                  <>
+                  <div className={styles.mySpotify}>
                     <Alert
                       variant="light"
                       color="grape"
-                      title="Spotify API deprecation"
+                      title="Demo only"
                       icon={icon}
-                      style={{ marginBottom: "20px" }}
                     >
                       Spotify has deprecated the endpoints needed to load your
                       Spotify library features. To view demo functionality, load
@@ -253,27 +252,24 @@ export default function Form({
                       </a>
                       .
                     </Alert>
-
-                    <div className={styles.loadLibrary}>
-                      <p style={{ fontSize: "14px" }}>
-                        {!loadingData ? "Load " : "Loading "}demo data
-                      </p>
-                      {!loadingData ? (
-                        <Button
-                          onClick={storeDemoData}
-                          style={{ maxWidth: "100%", whiteSpace: "wrap" }}
-                        >
-                          Load demo data
-                        </Button>
-                      ) : (
-                        <Progress
-                          value={loadingDataProgress}
-                          size="lg"
-                          transitionDuration={200}
-                        />
-                      )}
-                    </div>
-                  </>
+                    <p style={{ fontSize: "14px" }}>
+                      {!loadingData ? "Load " : "Loading "}demo data
+                    </p>
+                    {!loadingData ? (
+                      <Button
+                        onClick={storeDemoData}
+                        className={styles.loadLibraryBtn}
+                      >
+                        Load demo data
+                      </Button>
+                    ) : (
+                      <Progress
+                        value={loadingDataProgress}
+                        size="lg"
+                        transitionDuration={200}
+                      />
+                    )}
+                  </div>
                 ) : (
                   <Radio.Group
                     name="source"

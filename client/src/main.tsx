@@ -1,4 +1,9 @@
-import { createTheme, MantineProvider, rem } from "@mantine/core";
+import {
+  createTheme,
+  MantineColorsTuple,
+  MantineProvider,
+  rem,
+} from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -7,6 +12,19 @@ import "./index.css";
 import { ModalsProvider } from "@mantine/modals";
 import "@mantine/notifications/styles.css";
 import { Notifications } from "@mantine/notifications";
+
+const colors: MantineColorsTuple = [
+  "#faf0f4",
+  "#efdde5",
+  "#e0b7c9",
+  "#d28eac",
+  "#c66c94",
+  "#c05785",
+  "#bd4b7d",
+  "#a73d6b",
+  "#95355f",
+  "#832a53",
+];
 
 const theme = createTheme({
   components: {
