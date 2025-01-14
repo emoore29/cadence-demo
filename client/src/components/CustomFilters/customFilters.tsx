@@ -51,7 +51,13 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
         "Sign in to add custom playlist seeds."
       ) : (
         <div className={styles.customFilters}>
-          <Alert variant="light" color="grape" title="Demo only" icon={icon}>
+          <Alert
+            variant="light"
+            color="grape"
+            title="Demo only"
+            icon={icon}
+            className={styles.alert}
+          >
             Recommendations are now deprecated: using this feature will not
             return any matching tracks. Read more{" "}
             <a href="https://github.com/emoore29/cadence-demo" target="_blank">

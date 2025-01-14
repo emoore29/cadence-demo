@@ -188,7 +188,7 @@ export default function Recommendations({
         </Table.Tbody>
       </Table>
       {recommendations.size === 0 && <div>No recommendations found.</div>}
-      <Group justify="flex-end" mt="md">
+      <Group className={styles.playlistButtons} justify="flex-end" mt="md">
         <Button onClick={handleRefreshRecs}>Refresh</Button>
       </Group>
     </>

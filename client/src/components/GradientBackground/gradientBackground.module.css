@@ -11,20 +11,10 @@
   background-repeat: no-repeat;
   background-attachment: fixed;
   background: radial-gradient(
-      circle 1200px at top left,
-      rgb(88, 10, 58) 0%,
-      rgba(107, 36, 63, 1)
-    ),
-    radial-gradient(
-      circle 600px at bottom right,
-      rgba(116, 42, 48, 1) 0%,
-      rgba(107, 36, 63, 0)
-    ),
-    radial-gradient(
-      circle 500px at top right,
-      rgb(116, 42, 61) 0%,
-      rgba(107, 36, 63, 0)
-    );
+    circle farthest-corner at top left,
+    rgb(87, 11, 55) 0%,
+    rgb(107, 36, 63)
+  );
   background-color: rgb(107, 36, 63);
   z-index: -1;
   animation: animateGradient 2s infinite alternate;

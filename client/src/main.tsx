@@ -1,9 +1,4 @@
-import {
-  createTheme,
-  MantineColorsTuple,
-  MantineProvider,
-  rem,
-} from "@mantine/core";
+import { createTheme, MantineProvider, rem } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -41,9 +36,9 @@ const theme = createTheme({
       "#b2647e",
       "#844358", // form accordion borders, input borders
       "#b5607b",
-      "#66293C", // input background colors
-      "#9c4661",
-      "#8c3d56", // active tab border, button backgrounds
+      "#6c2248", // input background colors
+      "#3e0c26", // pills color
+      "#8c3d56",
       "#7c324a",
     ],
     darkPink: [
@@ -55,7 +50,7 @@ const theme = createTheme({
       "#b5607b",
       "#7c324a",
       "#9c4661",
-      "#8c3d56",
+      "#8E2855", // active tab border, button backgrounds
       "#7c324a",
     ],
   },

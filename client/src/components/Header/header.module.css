@@ -16,6 +16,10 @@
   margin-top: 0.3rem;
 }
 
+.demo {
+  opacity: 0.6;
+}
+
 .userImg {
   object-fit: cover;
   border-radius: 50%;

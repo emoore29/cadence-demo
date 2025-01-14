@@ -82,7 +82,9 @@ export default function Header({
     <div className={styles.header}>
       <div className={styles.titleAndLogo}>
         <IconMetronome className={styles.metronomeIcon} size={32} stroke={2} />
-        <h1>cadence</h1>
+        <h1>
+          cadence<span className={styles.demo}> demo</span>
+        </h1>
       </div>
       {user ? (
         <Menu position="bottom-end" offset={1} shadow="md" width={200}>

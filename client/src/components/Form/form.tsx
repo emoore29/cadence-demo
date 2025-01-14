@@ -242,6 +242,7 @@ export default function Form({
                       color="grape"
                       title="Demo only"
                       icon={icon}
+                      className={styles.alert}
                     >
                       Spotify has deprecated the endpoints needed to load your
                       Spotify library features. To view demo functionality, load
@@ -362,6 +363,7 @@ export default function Form({
           <Accordion.Control>Advanced</Accordion.Control>
           <Accordion.Panel>
             <Alert
+              className={styles.alert}
               variant="light"
               color="grape"
               title="Note"

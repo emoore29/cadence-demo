@@ -63,6 +63,10 @@
   margin: auto;
 }
 
+.trackActionButton:hover {
+  background-color: transparent;
+}
+
 tr:hover .trackActionButton {
   display: block;
 }

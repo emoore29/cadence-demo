@@ -173,54 +173,49 @@ export function AsyncAutocomplete({
       store={combobox}
     >
       <Combobox.DropdownTarget>
-        <PillsInput onClick={() => combobox.openDropdown()}>
+        <PillsInput
+          rightSection={loading && <Loader size={18} />}
+          onClick={() => combobox.openDropdown()}
+        >
           <Pill.Group>
             {pillValues}
             <Combobox.EventsTarget>
-              <PillsInput
+              <PillsInput.Field
                 aria-label={
                   type === "track"
                     ? "Enter a track name"
                     : "Enter an artist name"
                 }
-                rightSection={loading && <Loader size={18} />}
-              >
-                <PillsInput.Field
-                  placeholder={
-                    type === "track" ? "Search tracks" : "Search artists"
-                  }
-                  value={search}
-                  onChange={(event) => {
-                    combobox.updateSelectedOptionIndex();
-                    setSearch(event.currentTarget.value);
+                style={{ padding: "0" }}
+                placeholder={
+                  type === "track" ? "Search tracks" : "Search artists"
+                }
+                value={search}
+                onChange={(event) => {
+                  combobox.updateSelectedOptionIndex();
+                  setSearch(event.currentTarget.value);
 
-                    if (event.currentTarget.value.length > 0) {
-                      fetchOptions(event.currentTarget.value);
-                    }
-
-                    combobox.resetSelectedOption();
-                    combobox.openDropdown();
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Backspace" && search.length === 0) {
-                      event.preventDefault();
-                      setSelectedValues((current) => {
-                        const newValues = [...current];
-                        newValues.pop();
-                        return newValues;
-                      });
-                    }
-                  }}
-                  onClick={() => combobox.openDropdown()}
-                  onFocus={() => combobox.openDropdown()}
-                  onBlur={() => combobox.closeDropdown()}
-                  aria-label={
-                    type === "track"
-                      ? "Enter track names"
-                      : "Enter artist names"
+                  if (event.currentTarget.value.length > 0) {
+                    fetchOptions(event.currentTarget.value);
                   }
-                />
-              </PillsInput>
+
+                  combobox.resetSelectedOption();
+                  combobox.openDropdown();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Backspace" && search.length === 0) {
+                    event.preventDefault();
+                    setSelectedValues((current) => {
+                      const newValues = [...current];
+                      newValues.pop();
+                      return newValues;
+                    });
+                  }
+                }}
+                onClick={() => combobox.openDropdown()}
+                onFocus={() => combobox.openDropdown()}
+                onBlur={() => combobox.closeDropdown()}
+              />
             </Combobox.EventsTarget>
           </Pill.Group>
         </PillsInput>

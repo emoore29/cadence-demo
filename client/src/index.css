@@ -17,18 +17,6 @@ button {
 #root {
   width: 100%;
   height: 100vh;
-  /* background: radial-gradient(
-      circle farthest-side at bottom left,
-      #5c1c37 400px,
-      #6b243f
-    ),
-    radial-gradient(
-      circle farthest-corner at bottom right,
-      #8f3c3c 300px,
-      #6b243f 400px
-    ),
-    radial-gradient(circle farthest-corner at 15% 20%, #35171f, #6b243f);
-  background-attachment: scroll; */
 }
 
 a {
@@ -38,6 +26,7 @@ a {
 
 a:hover {
   text-decoration: underline;
+  color: #bb476d;
 }
 
 h1,

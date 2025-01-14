@@ -197,7 +197,7 @@ export default function Playlist({
         openSavePlaylist={openSavePlaylist}
         setOpenSavePlaylist={setOpenSavePlaylist}
       />
-      <Group justify="flex-end" mt="md">
+      <Group className={styles.playlistButtons} justify="flex-end" mt="md">
         {matchingTracks && matchingTracks.size > 5 && (
           <Button type="button" onClick={showMoreResults}>
             Show more (+5)
