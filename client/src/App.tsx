@@ -19,6 +19,7 @@ import {
 import {
   getItemFromLocalStorage,
   storeDataInLocalStorage,
+  wasDemoStored,
   wasLibraryStoredInDatabase,
 } from "./helpers/localStorage";
 import { handleLogin, loginOccurred } from "./helpers/login";
@@ -30,9 +31,12 @@ function App() {
   const [libSize, setLibSize] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
+  const [demoLibraryStored, setDemoLibraryStored] = useState<boolean>(false);
   const [loadingDemoData, setLoadingDemoData] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
+  const [loadingDemoDataProgress, setLoadingDemoDataProgress] =
+    useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
   const [estimatedFetches, setEstimatedFetches] = useState<number>(0);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
@@ -101,6 +105,7 @@ function App() {
       if (loginOccurred()) {
         handleLogin(setLibSize, setUser, setEstimatedFetches);
         setLibraryStored(wasLibraryStoredInDatabase());
+        setDemoLibraryStored(wasDemoStored());
       }
 
       // Set user, libSize, lib stored, etc in state if user has already logged in
@@ -113,15 +118,16 @@ function App() {
         );
         libSize && setLibSize(libSize);
 
+        // Calculate estimated number fetches based on user's library size
         const estimatedFetches = (3 * libSize) / 100 + 16;
         setEstimatedFetches(estimatedFetches);
         setLibraryStored(wasLibraryStoredInDatabase());
+        setDemoLibraryStored(wasDemoStored());
         await handleTokens();
-        // localStorage.setItem(
-        //   "access_token",
-        //   "BQB-ryf74dxIUn_7W2aCKbRaGDzllZ6wDBr_Da-1_6emM7g3Ff4-oenlRs03n9N5YXuQwKwEB1lXDuNch8-3DtJo3MbaUTMOD-u3byvsioRLAE1YK6tPS159J1vYnQT-_pOsg2TGAi69bhng2VHEXq_PLueO2Yu5qJd0ai8Lj_EpH1NxsVD2KHbL4dcIOG88fJ1SHR46gpwAeH9ZdVhEIL8Wip1SoolYOOhZnOCiXPFM-Vjc7xQOmooRGV_1zoShLG2ZK0GJw_r9kJbJLRI74Y6cZ1a-cIg4pViqAAloqsul9K_dhhxPMZrUPIxQNO4bsaUn5LDrEG0"
-        // );
       }
+
+      setLibraryStored(wasLibraryStoredInDatabase());
+      setDemoLibraryStored(wasDemoStored());
 
       // Handle token expiry every hour
       const interval = setInterval(handleTokens, 3600000);
@@ -135,7 +141,12 @@ function App() {
 
   // Adds % to progress bar for every successful fetch of new track data
   function updateProgressBar() {
-    setLoadingDataProgress((prev) => prev + (1 / totalLoadActions) * 100);
+    setLoadingDataProgress((prev) => prev + (1 / estimatedFetches) * 100);
+  }
+
+  // Add % for every successfully loaded demo track
+  function updateDemoProgressBar() {
+    setLoadingDemoDataProgress((prev) => prev + (1 / totalLoadActions) * 100);
   }
 
   // ↓ Pre-deprecation to retrieve actual Spotify data (track features reqs will return 400 errors) ↓
@@ -175,14 +186,14 @@ function App() {
     setLoadingDemoData(true);
 
     const demoTracks: boolean | null = await storeDemoLibrary(
-      updateProgressBar
+      updateDemoProgressBar
     );
     if (!demoTracks) {
       errorStoringData(true);
       return;
     }
     const demoRecommendations: boolean | null = await storeDemoRecommendations(
-      updateProgressBar
+      updateDemoProgressBar
     );
     if (!demoRecommendations) {
       errorStoringData(true);
@@ -350,6 +361,8 @@ function App() {
         />
         <div className={styles.main}>
           <Form
+            loadingDemoData={loadingDemoData}
+            loadingDemoDataProgress={loadingDemoDataProgress}
             setHasSearched={setHasSearched}
             activeSourceTab={activeSourceTab}
             setActiveSourceTab={setActiveSourceTab}
@@ -358,6 +371,7 @@ function App() {
             storeDemoData={storeDemoData}
             storeSpotifyData={storeSpotifyData}
             libraryStored={libraryStored}
+            demoLibraryStored={demoLibraryStored}
             playlist={playlist}
             setPlaylist={setPlaylist}
             matchingTracks={matchingTracks}

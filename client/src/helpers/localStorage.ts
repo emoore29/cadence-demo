@@ -18,6 +18,18 @@ export function wasLibraryStoredInDatabase(): boolean {
   }
 }
 
+export function wasDemoStored(): boolean {
+  const stored: string | null = localStorage.getItem("demo_library_was_stored");
+  if (stored === "true") {
+    console.log("demo library was stored");
+    return true;
+  } else {
+    console.log("demo library was not stored");
+
+    return false;
+  }
+}
+
 // Stores tokens and expiry in local storage
 export function storeTokens(
   access: string,

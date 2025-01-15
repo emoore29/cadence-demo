@@ -27,10 +27,13 @@ interface FormProps {
   activeSourceTab: string | null;
   setActiveSourceTab: React.Dispatch<React.SetStateAction<string | null>>;
   loadingData: boolean;
+  loadingDemoData: boolean;
   loadingDataProgress: number;
+  loadingDemoDataProgress: number;
   storeDemoData: () => void;
   storeSpotifyData: () => void;
   libraryStored: boolean;
+  demoLibraryStored: boolean;
   playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
   matchingTracks: Map<string, TrackObject>;
@@ -52,10 +55,13 @@ export default function Form({
   activeSourceTab,
   setActiveSourceTab,
   loadingData,
+  loadingDemoData,
   loadingDataProgress,
+  loadingDemoDataProgress,
   storeDemoData,
   storeSpotifyData,
   libraryStored,
+  demoLibraryStored,
   playlist,
   setPlaylist,
   setMatchingTracks,
@@ -239,7 +245,7 @@ export default function Form({
                 <Tabs.Tab value="custom">Custom</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
-                {!libraryStored ? (
+                {!demoLibraryStored ? (
                   <div className={styles.mySpotify}>
                     <Alert
                       variant="light"
@@ -257,9 +263,9 @@ export default function Form({
                       .
                     </Alert>
                     <p style={{ fontSize: "14px" }}>
-                      {!loadingData ? "Load " : "Loading "}demo data
+                      {!loadingDemoData ? "Load " : "Loading "}demo data
                     </p>
-                    {!loadingData ? (
+                    {!loadingDemoData ? (
                       <Button
                         onClick={storeDemoData}
                         className={styles.loadLibraryBtn}
@@ -268,7 +274,7 @@ export default function Form({
                       </Button>
                     ) : (
                       <Progress
-                        value={loadingDataProgress}
+                        value={loadingDemoDataProgress}
                         size="lg"
                         transitionDuration={200}
                       />
@@ -277,35 +283,34 @@ export default function Form({
                 ) : (
                   <Radio.Group
                     name="source"
-                    label="Source"
+                    label="Track Source"
                     {...form.getInputProps("source")}
                   >
-                    <Group
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        textAlign: "left",
-                      }}
-                    >
-                      <Radio
-                        value={"1"}
-                        icon={CheckIcon}
-                        label="Saved Songs"
-                        disabled
-                      />
-                      <Radio
-                        value={"2"}
-                        icon={CheckIcon}
-                        label="Top Tracks"
-                        disabled
-                      />
-                      <Radio
-                        value={"3"}
-                        icon={CheckIcon}
-                        label="Recommendations"
-                        disabled
-                      />
+                    <Group className={styles.source}>
+                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable">
+                        <Radio
+                          value={"1"}
+                          icon={CheckIcon}
+                          label="Saved Songs"
+                          disabled
+                        />
+                      </Tooltip>
+                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable">
+                        <Radio
+                          value={"2"}
+                          icon={CheckIcon}
+                          label="Top Tracks"
+                          disabled
+                        />
+                      </Tooltip>
+                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable">
+                        <Radio
+                          value={"3"}
+                          icon={CheckIcon}
+                          label="Recommendations"
+                          disabled
+                        />
+                      </Tooltip>
                       <Radio value={"4"} icon={CheckIcon} label="Demo Tracks" />
                     </Group>
                   </Radio.Group>
