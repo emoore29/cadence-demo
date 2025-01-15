@@ -1,0 +1,15 @@
+.footer {
+  margin-top: auto;
+  padding: 30px 0;
+}
+
+.footerInfo {
+  font-size: 12px;
+}
+
+.spotifyLogo {
+  width: 25px;
+  height: 25px;
+  margin-left: 6px;
+  transform: translateY(7px);
+}

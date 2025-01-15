@@ -5,7 +5,7 @@ export default function Welcome() {
   return (
     <div className={styles.welcome}>
       <h1>Welcome!</h1>
-      <p>Use the filters to the left to get started.</p>
+      <p>Use the filters to search for your preferred tracks.</p>
       <IconSearch className={styles.searchIcon} stroke={2} size={300} />
     </div>
   );

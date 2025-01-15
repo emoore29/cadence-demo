@@ -185,7 +185,7 @@ export default function Form({
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
-    // setLoadingPlaylist(false);
+    setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matches);
 

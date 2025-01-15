@@ -26,6 +26,7 @@ import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
 import Welcome from "./components/Welcome/welcome";
+import Footer from "./components/Footer/footer";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -351,86 +352,85 @@ function App() {
 
   return (
     <div className={styles.container}>
-      <>
-        <Header
+      <Header
+        setPlaylist={setPlaylist}
+        setRecommendations={setRecommendations}
+        user={user}
+        setUser={setUser}
+        setLibSize={setLibSize}
+        setLibraryStored={setLibraryStored}
+      />
+      <div className={styles.main}>
+        <Form
+          loadingDemoData={loadingDemoData}
+          loadingDemoDataProgress={loadingDemoDataProgress}
+          setHasSearched={setHasSearched}
+          activeSourceTab={activeSourceTab}
+          setActiveSourceTab={setActiveSourceTab}
+          loadingData={loadingData}
+          loadingDataProgress={loadingDataProgress}
+          storeDemoData={storeDemoData}
+          storeSpotifyData={storeSpotifyData}
+          libraryStored={libraryStored}
+          demoLibraryStored={demoLibraryStored}
+          playlist={playlist}
           setPlaylist={setPlaylist}
+          matchingTracks={matchingTracks}
+          setMatchingTracks={setMatchingTracks}
           setRecommendations={setRecommendations}
-          user={user}
-          setUser={setUser}
-          setLibSize={setLibSize}
-          setLibraryStored={setLibraryStored}
+          setLoadingPlaylist={setLoadingPlaylist}
+          setLoadingRecs={setLoadingRecs}
+          form={form}
+          anyTempo={anyTempo}
+          setAnyTempo={setAnyTempo}
         />
-        <div className={styles.main}>
-          <Form
-            loadingDemoData={loadingDemoData}
-            loadingDemoDataProgress={loadingDemoDataProgress}
-            setHasSearched={setHasSearched}
-            activeSourceTab={activeSourceTab}
-            setActiveSourceTab={setActiveSourceTab}
-            loadingData={loadingData}
-            loadingDataProgress={loadingDataProgress}
-            storeDemoData={storeDemoData}
-            storeSpotifyData={storeSpotifyData}
-            libraryStored={libraryStored}
-            demoLibraryStored={demoLibraryStored}
-            playlist={playlist}
-            setPlaylist={setPlaylist}
-            matchingTracks={matchingTracks}
-            setMatchingTracks={setMatchingTracks}
-            setRecommendations={setRecommendations}
-            setLoadingPlaylist={setLoadingPlaylist}
-            setLoadingRecs={setLoadingRecs}
-            form={form}
-            anyTempo={anyTempo}
-            setAnyTempo={setAnyTempo}
-          />
-          {hasSearched ? (
-            <div className={styles.playlistAndRecsContainer}>
-              <h2>Results</h2>
-              {loadingPlaylist ? (
-                <LoadingPlaylist targetTracks={5} />
-              ) : (
-                <Playlist
-                  setMatchingTracks={setMatchingTracks}
-                  matchingTracks={matchingTracks}
-                  playlist={playlist}
-                  setPlaylist={setPlaylist}
-                  handleSaveClick={handleSaveClick}
-                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                  playTrackPreview={playTrackPreview}
-                  playingTrackId={playingTrackId}
-                  audioRefs={audioRefs}
-                  circleOffsets={circleOffsets}
-                />
-              )}
-              {loadingRecs ? (
-                <>
-                  <h2>Suggestions</h2>
-                  <LoadingPlaylist targetTracks={3} />
-                </>
-              ) : (
-                <Recommendations
-                  setLoadingRecs={setLoadingRecs}
-                  playlist={playlist}
-                  setPlaylist={setPlaylist}
-                  recommendations={recommendations}
-                  setRecommendations={setRecommendations}
-                  handleSaveClick={handleSaveClick}
-                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                  playTrackPreview={playTrackPreview}
-                  playingTrackId={playingTrackId}
-                  audioRefs={audioRefs}
-                  circleOffsets={circleOffsets}
-                  form={form}
-                  anyTempo={anyTempo}
-                />
-              )}
-            </div>
-          ) : (
-            <Welcome />
-          )}
-        </div>
-      </>
+        {hasSearched ? (
+          <div className={styles.playlistAndRecsContainer}>
+            <h2>Results</h2>
+            {loadingPlaylist ? (
+              <LoadingPlaylist targetTracks={5} />
+            ) : (
+              <Playlist
+                setMatchingTracks={setMatchingTracks}
+                matchingTracks={matchingTracks}
+                playlist={playlist}
+                setPlaylist={setPlaylist}
+                handleSaveClick={handleSaveClick}
+                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                playTrackPreview={playTrackPreview}
+                playingTrackId={playingTrackId}
+                audioRefs={audioRefs}
+                circleOffsets={circleOffsets}
+              />
+            )}
+            {loadingRecs ? (
+              <>
+                <h2>Suggestions</h2>
+                <LoadingPlaylist targetTracks={3} />
+              </>
+            ) : (
+              <Recommendations
+                setLoadingRecs={setLoadingRecs}
+                playlist={playlist}
+                setPlaylist={setPlaylist}
+                recommendations={recommendations}
+                setRecommendations={setRecommendations}
+                handleSaveClick={handleSaveClick}
+                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                playTrackPreview={playTrackPreview}
+                playingTrackId={playingTrackId}
+                audioRefs={audioRefs}
+                circleOffsets={circleOffsets}
+                form={form}
+                anyTempo={anyTempo}
+              />
+            )}
+          </div>
+        ) : (
+          <Welcome />
+        )}
+      </div>
+      <Footer />
     </div>
   );
 }
