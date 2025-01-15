@@ -248,6 +248,7 @@ function App() {
     trackObj: TrackObject,
     saved: boolean
   ) {
+    console.log("handle save clicked");
     // Add trackId to loading list
     setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]);
 

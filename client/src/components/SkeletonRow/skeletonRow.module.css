@@ -28,3 +28,10 @@
 .trackTimeSkeleton {
   margin-left: auto;
 }
+
+.albumArtSkeleton,
+.titleAndArtistSkeleton,
+.trackDisplaySkeleton,
+.trackTimeSkeleton {
+  color: white;
+}

@@ -40,9 +40,8 @@
 .trackArtist,
 .trackAlbum {
   white-space: nowrap;
-  text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 100%;
+  text-overflow: ellipsis;
 }
 
 .trackArtist,
@@ -75,10 +74,12 @@ tr:hover .trackActionButton {
   text-align: right;
 }
 
-.titleAndArtist {
+.titleAndArtist,
+.albumWrapper {
   display: flex;
   flex-direction: column;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }

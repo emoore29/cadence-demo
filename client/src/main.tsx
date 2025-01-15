@@ -1,4 +1,4 @@
-import { createTheme, MantineProvider, rem } from "@mantine/core";
+import { createTheme, MantineProvider, rem, Skeleton } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -26,7 +26,16 @@ const theme = createTheme({
     },
     Tabs: {
       styles: {
-        tab: {},
+        panel: {
+          margin: "20px 0",
+        },
+      },
+    },
+    RadioGroup: {
+      styles: {
+        label: {
+          visibility: "hidden",
+        },
       },
     },
   },
@@ -41,10 +50,10 @@ const theme = createTheme({
       "#f9f0f3",
       "#ecdfe3",
       "#dbbbc5",
-      "#b2647e",
+      "#aa7687", // inactive radio button label
       "#844358", // form accordion borders, input borders
-      "#b5607b",
-      "#6c2248", // input background colors
+      "#aa7687", // inactive radio button background
+      "#6c2248", // input background colors, dropdown menu background color
       "#4b102e", // pills color, tab 'invisible' bottom border color
       "#8c3d56",
       "#7c324a",
@@ -53,13 +62,13 @@ const theme = createTheme({
       "#f9f0f3",
       "#ecdfe3",
       "#dbbbc5",
-      "#b2647e", //cb94a6
-      "#bd748c", //bd748c
+      "#b2647e",
+      "#bd748c",
       "#b5607b",
       "#7c324a",
       "#9c4661",
       "#8E2855", // active tab border, button backgrounds
-      "#7c324a",
+      "#a62f64", // button hover background
     ],
   },
   primaryColor: "darkPink",

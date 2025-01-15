@@ -185,7 +185,7 @@ export default function Form({
       newPlaylist = new Map([...newPlaylist, ...newMap]);
     }
 
-    setLoadingPlaylist(false);
+    // setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matches);
 
@@ -230,8 +230,8 @@ export default function Form({
       )}
       onReset={form.onReset}
     >
-      <Accordion defaultValue="Tracks Source">
-        <Accordion.Item value="Tracks Source">
+      <Accordion defaultValue="Track Source">
+        <Accordion.Item value="Track Source">
           <Accordion.Control>Tracks Source</Accordion.Control>
           <Accordion.Panel>
             <Tabs
@@ -287,7 +287,7 @@ export default function Form({
                     {...form.getInputProps("source")}
                   >
                     <Group className={styles.source}>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable">
+                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
                         <Radio
                           value={"1"}
                           icon={CheckIcon}
@@ -295,7 +295,7 @@ export default function Form({
                           disabled
                         />
                       </Tooltip>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable">
+                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
                         <Radio
                           value={"2"}
                           icon={CheckIcon}
@@ -303,7 +303,7 @@ export default function Form({
                           disabled
                         />
                       </Tooltip>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable">
+                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
                         <Radio
                           value={"3"}
                           icon={CheckIcon}

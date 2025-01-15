@@ -75,7 +75,6 @@ export default function TrackRow({
                 {track.track.name}
               </a>
             </div>
-
             <a
               className={styles.trackArtist}
               href={track.track.artists[0].external_urls.spotify}
@@ -87,12 +86,14 @@ export default function TrackRow({
       </Table.Td>
       {!isMobile && (
         <Table.Td>
-          <a
-            className={styles.trackAlbum}
-            href={track.track.album.external_urls.spotify}
-          >
-            {track.track.album.name}
-          </a>
+          <div className={styles.albumWrapper}>
+            <a
+              className={styles.trackAlbum}
+              href={track.track.album.external_urls.spotify}
+            >
+              {track.track.album.name}
+            </a>
+          </div>
         </Table.Td>
       )}
       {!isMobile && (

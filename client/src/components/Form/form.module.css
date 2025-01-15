@@ -28,6 +28,7 @@
 
 .bpm {
   display: flex;
+  gap: 5px;
 }
 
 .alert {

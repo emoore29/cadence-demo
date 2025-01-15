@@ -48,7 +48,9 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
   return (
     <div>
       {!user ? (
-        "Sign in to add custom playlist seeds."
+        <p className={styles.signInPrompt}>
+          Sign in to add custom playlist seeds.
+        </p>
       ) : (
         <div className={styles.customFilters}>
           <Alert

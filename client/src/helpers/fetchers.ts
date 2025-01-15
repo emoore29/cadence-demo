@@ -376,7 +376,10 @@ export async function updateSavedStatus(
   saved: boolean
 ): Promise<string | null> {
   const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (!accessToken) return null;
+  if (!accessToken) {
+    showErrorNotif("No access token", "Please sign in to access this feature.");
+    return null;
+  }
 
   // Check if track is saved in IDB
   // Note: if user has deleted it via Spotify,
