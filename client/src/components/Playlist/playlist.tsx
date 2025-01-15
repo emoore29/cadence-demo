@@ -189,9 +189,7 @@ export default function Playlist({
         <TableHead type="playlist" />
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      {playlist.size === 0 && (
-        <div>No matches found / enter your preferences.</div>
-      )}
+      {playlist.size === 0 && <div>No matches found.</div>}
       <SavePlaylistModal
         playlist={playlist}
         openSavePlaylist={openSavePlaylist}

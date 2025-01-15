@@ -24,6 +24,7 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
+import Welcome from "./components/Welcome/welcome";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -34,6 +35,7 @@ function App() {
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
   const [estimatedFetches, setEstimatedFetches] = useState<number>(0);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [matchingTracks, setMatchingTracks] = useState<
     Map<string, TrackObject>
   >(new Map());
@@ -346,20 +348,9 @@ function App() {
           setLibSize={setLibSize}
           setLibraryStored={setLibraryStored}
         />
-        {/* <Alert
-          variant="light"
-          color="grape"
-          title="Spotify API deprecation"
-          icon={icon}
-          style={{ marginBottom: "20px" }}
-        >
-          Spotify has deprecated the endpoints Cadence required to function.
-          This app now uses a small set of sample track data for demonstration
-          purposes only. Read more{" "}
-          <a href="https://github.com/emoore29/cadence-demo">here</a>.
-        </Alert> */}
         <div className={styles.main}>
           <Form
+            setHasSearched={setHasSearched}
             activeSourceTab={activeSourceTab}
             setActiveSourceTab={setActiveSourceTab}
             loadingData={loadingData}
@@ -378,47 +369,51 @@ function App() {
             anyTempo={anyTempo}
             setAnyTempo={setAnyTempo}
           />
-          <div className={styles.playlistAndRecsContainer}>
-            <h2>Results</h2>
-            {loadingPlaylist ? (
-              <LoadingPlaylist targetTracks={5} />
-            ) : (
-              <Playlist
-                setMatchingTracks={setMatchingTracks}
-                matchingTracks={matchingTracks}
-                playlist={playlist}
-                setPlaylist={setPlaylist}
-                handleSaveClick={handleSaveClick}
-                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                playTrackPreview={playTrackPreview}
-                playingTrackId={playingTrackId}
-                audioRefs={audioRefs}
-                circleOffsets={circleOffsets}
-              />
-            )}
-            {loadingRecs ? (
-              <>
-                <h2>Suggestions</h2>
-                <LoadingPlaylist targetTracks={3} />
-              </>
-            ) : (
-              <Recommendations
-                setLoadingRecs={setLoadingRecs}
-                playlist={playlist}
-                setPlaylist={setPlaylist}
-                recommendations={recommendations}
-                setRecommendations={setRecommendations}
-                handleSaveClick={handleSaveClick}
-                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                playTrackPreview={playTrackPreview}
-                playingTrackId={playingTrackId}
-                audioRefs={audioRefs}
-                circleOffsets={circleOffsets}
-                form={form}
-                anyTempo={anyTempo}
-              />
-            )}
-          </div>
+          {hasSearched ? (
+            <div className={styles.playlistAndRecsContainer}>
+              <h2>Results</h2>
+              {loadingPlaylist ? (
+                <LoadingPlaylist targetTracks={5} />
+              ) : (
+                <Playlist
+                  setMatchingTracks={setMatchingTracks}
+                  matchingTracks={matchingTracks}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  playTrackPreview={playTrackPreview}
+                  playingTrackId={playingTrackId}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                />
+              )}
+              {loadingRecs ? (
+                <>
+                  <h2>Suggestions</h2>
+                  <LoadingPlaylist targetTracks={3} />
+                </>
+              ) : (
+                <Recommendations
+                  setLoadingRecs={setLoadingRecs}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  recommendations={recommendations}
+                  setRecommendations={setRecommendations}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  playTrackPreview={playTrackPreview}
+                  playingTrackId={playingTrackId}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                  form={form}
+                  anyTempo={anyTempo}
+                />
+              )}
+            </div>
+          ) : (
+            <Welcome />
+          )}
         </div>
       </>
     </div>

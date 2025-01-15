@@ -23,6 +23,7 @@ import CustomFilters from "../CustomFilters/customFilters";
 import styles from "./form.module.css";
 
 interface FormProps {
+  setHasSearched: React.Dispatch<React.SetStateAction<boolean>>;
   activeSourceTab: string | null;
   setActiveSourceTab: React.Dispatch<React.SetStateAction<string | null>>;
   loadingData: boolean;
@@ -47,6 +48,7 @@ interface FormProps {
 }
 
 export default function Form({
+  setHasSearched,
   activeSourceTab,
   setActiveSourceTab,
   loadingData,
@@ -76,6 +78,7 @@ export default function Form({
     anyTempo: boolean,
     activeSourceTab: string | null
   ) {
+    setHasSearched(true);
     // Mark playlist and recs as loading so that loading components are displayed
     setLoadingPlaylist(true);
 
