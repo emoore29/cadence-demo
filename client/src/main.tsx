@@ -7,8 +7,29 @@ import "./index.css";
 import { ModalsProvider } from "@mantine/modals";
 import "@mantine/notifications/styles.css";
 import { Notifications } from "@mantine/notifications";
+import GradientBackground from "./components/GradientBackground/gradientBackground.tsx";
 
 const theme = createTheme({
+  components: {
+    Table: {
+      styles: {
+        td: {
+          padding: "5px 0",
+        },
+        th: {
+          padding: "5px 0",
+        },
+      },
+    },
+    Button: {
+      styles: {},
+    },
+    Tabs: {
+      styles: {
+        tab: {},
+      },
+    },
+  },
   headings: {
     fontFamily: "Greycliff CF, sans-serif",
     sizes: {
@@ -21,10 +42,10 @@ const theme = createTheme({
       "#ecdfe3",
       "#dbbbc5",
       "#b2647e",
-      "#bd748c",
-      "#b5607b", //b5607b
-      "#7c324a", //7c324a
-      "#9c4661",
+      "#844358", // form accordion borders, input borders
+      "#b5607b",
+      "#6c2248", // input background colors
+      "#4b102e", // pills color, tab 'invisible' bottom border color
       "#8c3d56",
       "#7c324a",
     ],
@@ -32,12 +53,12 @@ const theme = createTheme({
       "#f9f0f3",
       "#ecdfe3",
       "#dbbbc5",
-      "#cb94a6",
-      "#bd748c",
+      "#b2647e", //cb94a6
+      "#bd748c", //bd748c
       "#b5607b",
       "#7c324a",
       "#9c4661",
-      "#8c3d56",
+      "#8E2855", // active tab border, button backgrounds
       "#7c324a",
     ],
   },
@@ -49,7 +70,9 @@ createRoot(document.getElementById("root")!).render(
     <MantineProvider defaultColorScheme="dark" theme={theme}>
       <Notifications />
       <ModalsProvider>
-        <App />
+        <GradientBackground>
+          <App />
+        </GradientBackground>
       </ModalsProvider>
     </MantineProvider>
   </StrictMode>

@@ -1,15 +1,16 @@
 import { getAvailableGenreSeeds } from "@/helpers/fetchers";
-import { ChosenSeeds } from "@/types/types";
-import { useEffect, useState } from "react";
-import { AsyncAutocomplete } from "./asyncAutocomplete";
-import { SearchableMultiSelect } from "./searchableMultiSelect";
-import { handleTokens } from "@/helpers/tokens";
 import {
   getItemFromLocalStorage,
   storeDataInLocalStorage,
 } from "@/helpers/localStorage";
+import { handleTokens } from "@/helpers/tokens";
+import { ChosenSeeds } from "@/types/types";
 import { Alert } from "@mantine/core";
 import { IconInfoCircle } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { AsyncAutocomplete } from "../AsyncAutocomplete/asyncAutocomplete";
+import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
+import styles from "./customFilters.module.css";
 
 interface CustomFiltersProps {
   setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
@@ -49,27 +50,31 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
       {!user ? (
         "Sign in to add custom playlist seeds."
       ) : (
-        <>
-          <p style={{ fontSize: "14px", padding: "5px 0" }}>
-            Add up to five seeds to get customised recommendations.
-          </p>
-          {/* <Alert
+        <div className={styles.customFilters}>
+          <Alert
             variant="light"
             color="grape"
             title="Demo only"
             icon={icon}
-            style={{ marginBottom: "20px" }}
+            className={styles.alert}
           >
-            Recommendations are now deprecated. Read more{" "}
-            <a href="https://github.com/emoore29/cadence-demo">here</a>.
-          </Alert> */}
+            Recommendations are now deprecated: using this feature will not
+            return any matching tracks. Read more{" "}
+            <a href="https://github.com/emoore29/cadence-demo" target="_blank">
+              here
+            </a>
+            .
+          </Alert>
+          <p style={{ fontSize: "14px", padding: "0" }}>
+            Add up to five seeds to get customised recommendations.
+          </p>
           <SearchableMultiSelect
             data={availableGenreSeeds}
             setChosenSeeds={setChosenSeeds}
           />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
-        </>
+        </div>
       )}
     </div>
   );

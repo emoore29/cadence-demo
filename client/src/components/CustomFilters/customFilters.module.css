@@ -1,0 +1,9 @@
+.customFilters {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.alert {
+  margin: 20px 0 10px 0;
+}

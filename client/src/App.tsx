@@ -1,19 +1,17 @@
 import { useForm } from "@mantine/form";
-
 import { useEffect, useRef, useState } from "react";
-import "./App.css";
-import Form from "./components/form";
-import Header from "./components/header";
-import LoadingPlaylist from "./components/loadingPlaylist";
-import Playlist from "./components/playlist";
-import Recommendations from "./components/recommendations";
-import { getAllFromStore, setUpDatabase, StoreName } from "./helpers/database";
+import styles from "./App.module.css";
+import Form from "./components/Form/form";
+import Header from "./components/Header/header";
+import LoadingPlaylist from "./components/LoadingPlaylist/loadingPlaylist";
+import Playlist from "./components/Playlist/playlist";
+import Recommendations from "./components/Recommendations/recommendations";
+import { setUpDatabase } from "./helpers/database";
 import { updateSavedStatus } from "./helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
   storeDemoLibrary,
   storeDemoRecommendations,
-  storeDemoTopTracks,
   storeSavedTracksData,
   storeTopArtists,
   storeTopTracksData,
@@ -26,18 +24,18 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
-import Welcome from "./components/welcome";
-import { Alert } from "@mantine/core";
-import { IconInfoCircle } from "@tabler/icons-react";
+import Welcome from "./components/Welcome/welcome";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
+  const [loadingDemoData, setLoadingDemoData] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
   const [estimatedFetches, setEstimatedFetches] = useState<number>(0);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [matchingTracks, setMatchingTracks] = useState<
     Map<string, TrackObject>
   >(new Map());
@@ -64,7 +62,7 @@ function App() {
       targetEnergy: "Any",
       targetInstrumentalness: "Any",
       targetAcousticness: "Any",
-      source: "1",
+      source: "4",
       target: 5,
     },
   });
@@ -140,42 +138,29 @@ function App() {
     setLoadingDataProgress((prev) => prev + (1 / totalLoadActions) * 100);
   }
 
-  // Gets user's Spotify library, top tracks, top artists and stores in IDB
-  async function storeMyData(): Promise<void> {
+  // ↓ Pre-deprecation to retrieve actual Spotify data (track features reqs will return 400 errors) ↓
+  async function storeSpotifyData(): Promise<void> {
     setLoadingData(true);
 
-    // ↓ Code to retrieve actual Spotify data pre-deprecation ↓
-    // const savedTracks: boolean | null = await storeSavedTracksData(
-    //   updateProgressBar
-    // );
-    // const savedTopTracks: boolean | null = await storeTopTracksData(
-    //   updateProgressBar
-    // );
-    // const savedTopArtists: boolean | null = await storeTopArtists(
-    //   updateProgressBar
-    // );
-
-    // ↓ Code for demo version post-deprecation ↓
-
-    const savedTracks: boolean | null = await storeDemoLibrary(
+    const savedTracks: boolean | null = await storeSavedTracksData(
       updateProgressBar
     );
     if (!savedTracks) {
-      errorStoringData();
+      errorStoringData(false);
       return;
     }
-    const savedTopTracks: boolean | null = await storeDemoTopTracks(
+    const savedTopTracks: boolean | null = await storeTopTracksData(
       updateProgressBar
     );
     if (!savedTopTracks) {
-      errorStoringData();
+      errorStoringData(false);
       return;
     }
-    const recommendations: boolean | null = await storeDemoRecommendations(
+    const savedTopArtists: boolean | null = await storeTopArtists(
       updateProgressBar
     );
-    if (!recommendations) {
-      errorStoringData();
+    if (!savedTopArtists) {
+      errorStoringData(false);
       return;
     }
 
@@ -185,11 +170,43 @@ function App() {
     setLoadingDataProgress(0);
   }
 
-  function errorStoringData() {
-    setLoadingData(false);
-    setLibraryStored(false);
+  // ↓ Post-deprecation storing demo tracks in IDB ↓
+  async function storeDemoData(): Promise<void> {
+    setLoadingDemoData(true);
+
+    const demoTracks: boolean | null = await storeDemoLibrary(
+      updateProgressBar
+    );
+    if (!demoTracks) {
+      errorStoringData(true);
+      return;
+    }
+    const demoRecommendations: boolean | null = await storeDemoRecommendations(
+      updateProgressBar
+    );
+    if (!demoRecommendations) {
+      errorStoringData(true);
+      return;
+    }
+
+    setLoadingDemoData(false);
+    storeDataInLocalStorage("demo_library_was_stored", true);
+    setLibraryStored(true);
     setLoadingDataProgress(0);
-    showErrorNotif("Error", "Something went wrong while loading demo data.");
+  }
+
+  function errorStoringData(demo: boolean): void {
+    if (demo) {
+      setLoadingDemoData(false);
+      setLibraryStored(false);
+      setLoadingDataProgress(0);
+      showErrorNotif("Error", "Something went wrong while loading demo data.");
+    } else {
+      setLoadingData(false);
+      setLibraryStored(false);
+      setLoadingDataProgress(0);
+      showErrorNotif("Error", "Something went wrong while loading demo data.");
+    }
   }
 
   // Updates a track's saved status in state
@@ -321,7 +338,7 @@ function App() {
   }
 
   return (
-    <div className="container">
+    <div className={styles.container}>
       <>
         <Header
           setPlaylist={setPlaylist}
@@ -331,25 +348,15 @@ function App() {
           setLibSize={setLibSize}
           setLibraryStored={setLibraryStored}
         />
-        {/* <Alert
-          variant="light"
-          color="grape"
-          title="Spotify API deprecation"
-          icon={icon}
-          style={{ marginBottom: "20px" }}
-        >
-          Spotify has deprecated the endpoints Cadence required to function.
-          This app now uses a small set of sample track data for demonstration
-          purposes only. Read more{" "}
-          <a href="https://github.com/emoore29/cadence-demo">here</a>.
-        </Alert> */}
-        <div className="main">
+        <div className={styles.main}>
           <Form
+            setHasSearched={setHasSearched}
             activeSourceTab={activeSourceTab}
             setActiveSourceTab={setActiveSourceTab}
             loadingData={loadingData}
             loadingDataProgress={loadingDataProgress}
-            storeMyData={storeMyData}
+            storeDemoData={storeDemoData}
+            storeSpotifyData={storeSpotifyData}
             libraryStored={libraryStored}
             playlist={playlist}
             setPlaylist={setPlaylist}
@@ -362,47 +369,51 @@ function App() {
             anyTempo={anyTempo}
             setAnyTempo={setAnyTempo}
           />
-          <div className="playlistAndRecsContainer">
-            <h2>Results</h2>
-            {loadingPlaylist ? (
-              <LoadingPlaylist targetTracks={5} />
-            ) : (
-              <Playlist
-                setMatchingTracks={setMatchingTracks}
-                matchingTracks={matchingTracks}
-                playlist={playlist}
-                setPlaylist={setPlaylist}
-                handleSaveClick={handleSaveClick}
-                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                playTrackPreview={playTrackPreview}
-                playingTrackId={playingTrackId}
-                audioRefs={audioRefs}
-                circleOffsets={circleOffsets}
-              />
-            )}
-            {loadingRecs ? (
-              <>
-                <h2>Suggestions</h2>
-                <LoadingPlaylist targetTracks={3} />
-              </>
-            ) : (
-              <Recommendations
-                setLoadingRecs={setLoadingRecs}
-                playlist={playlist}
-                setPlaylist={setPlaylist}
-                recommendations={recommendations}
-                setRecommendations={setRecommendations}
-                handleSaveClick={handleSaveClick}
-                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                playTrackPreview={playTrackPreview}
-                playingTrackId={playingTrackId}
-                audioRefs={audioRefs}
-                circleOffsets={circleOffsets}
-                form={form}
-                anyTempo={anyTempo}
-              />
-            )}
-          </div>
+          {hasSearched ? (
+            <div className={styles.playlistAndRecsContainer}>
+              <h2>Results</h2>
+              {loadingPlaylist ? (
+                <LoadingPlaylist targetTracks={5} />
+              ) : (
+                <Playlist
+                  setMatchingTracks={setMatchingTracks}
+                  matchingTracks={matchingTracks}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  playTrackPreview={playTrackPreview}
+                  playingTrackId={playingTrackId}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                />
+              )}
+              {loadingRecs ? (
+                <>
+                  <h2>Suggestions</h2>
+                  <LoadingPlaylist targetTracks={3} />
+                </>
+              ) : (
+                <Recommendations
+                  setLoadingRecs={setLoadingRecs}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  recommendations={recommendations}
+                  setRecommendations={setRecommendations}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  playTrackPreview={playTrackPreview}
+                  playingTrackId={playingTrackId}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                  form={form}
+                  anyTempo={anyTempo}
+                />
+              )}
+            </div>
+          ) : (
+            <Welcome />
+          )}
         </div>
       </>
     </div>

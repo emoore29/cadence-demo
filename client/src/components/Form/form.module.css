@@ -1,0 +1,34 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: rgb(75, 16, 46);
+  padding: 10px;
+  height: fit-content;
+}
+
+.mySpotify {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.loadLibraryBtn {
+  max-width: 100%;
+  white-space: wrap;
+}
+
+.bpm {
+  display: flex;
+}
+
+.alert {
+  margin: 20px 0 10px 0;
+}
+
+@media screen and (min-width: 1000px) {
+  .form {
+    min-width: 300px;
+    width: 300px;
+  }
+}

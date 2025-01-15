@@ -7,7 +7,8 @@ export type StoreName =
   | "library"
   | "topArtists"
   | "topTracks"
-  | "recommendations";
+  | "recommendations"
+  | "demoTracks";
 
 interface MyDB extends DBSchema {
   library: {
@@ -30,6 +31,13 @@ interface MyDB extends DBSchema {
     };
   };
   recommendations: {
+    key: string; // track id
+    value: {
+      track: Track;
+      features: TrackFeatures;
+    };
+  };
+  demoTracks: {
     key: string; // track id
     value: {
       track: Track;
@@ -62,6 +70,11 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
       // Create an object store for recommendations
       if (!db.objectStoreNames.contains("recommendations")) {
         db.createObjectStore("recommendations", { keyPath: "track.id" });
+      }
+
+      // Create an object store for demo tracks
+      if (!db.objectStoreNames.contains("demoTracks")) {
+        db.createObjectStore("demoTracks", { keyPath: "track.id" });
       }
     },
   });

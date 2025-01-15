@@ -1,13 +1,13 @@
 import { msToTrackTime } from "@/helpers/general";
-import LikeIcon from "@/icons/LikeIcon";
-import LikedIcon from "@/icons/LikedIcon";
+import LikeIcon from "@/components/LikeIcon/LikeIcon";
+import LikedIcon from "@/components/LikedIcon/LikedIcon";
 import { TrackObject } from "@/types/types";
-import { Button, Loader, Table } from "@mantine/core";
-import React from "react";
-import TrackPreview from "./trackPreview";
+import { Button, Loader, Table, UnstyledButton } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconPinFilled } from "@tabler/icons-react";
-import { transform } from "lodash";
+import React from "react";
+import TrackPreview from "../TrackPreview/trackPreview";
+import styles from "./trackRow.module.css";
 
 type TrackRowProps = {
   pinToPlaylist?: (trackId: string) => void;
@@ -40,8 +40,8 @@ export default function TrackRow({
   return (
     <>
       <Table.Td>
-        <div className="trackDisplay">
-          <div className="artAndPreview">
+        <div className={styles.trackDisplay}>
+          <div className={styles.artAndPreview}>
             <TrackPreview
               audioRefs={audioRefs}
               track={track}
@@ -52,14 +52,14 @@ export default function TrackRow({
             <img
               src={track.track.album.images[0].url}
               alt={`${track.track.album.name} album art`}
-              className="albumArt"
+              className={styles.albumArt}
             />
           </div>
-          <div className="titleAndArtist">
-            <div className="pinAndTitle">
+          <div className={styles.titleAndArtist}>
+            <div className={styles.pinAndTitle}>
               {pinToPlaylist && track.pinned === true && (
                 <button
-                  className="pin"
+                  className={styles.pin}
                   onClick={() => pinToPlaylist(track.track.id)}
                 >
                   <IconPinFilled
@@ -68,13 +68,16 @@ export default function TrackRow({
                   />
                 </button>
               )}
-              <a className="trackName" href={track.track.external_urls.spotify}>
+              <a
+                className={styles.trackName}
+                href={track.track.external_urls.spotify}
+              >
                 {track.track.name}
               </a>
             </div>
 
             <a
-              className="trackArtist"
+              className={styles.trackArtist}
               href={track.track.artists[0].external_urls.spotify}
             >
               {track.track.artists[0].name}
@@ -85,7 +88,7 @@ export default function TrackRow({
       {!isMobile && (
         <Table.Td>
           <a
-            className="trackAlbum"
+            className={styles.trackAlbum}
             href={track.track.album.external_urls.spotify}
           >
             {track.track.album.name}
@@ -93,10 +96,10 @@ export default function TrackRow({
         </Table.Td>
       )}
       {!isMobile && (
-        <Table.Td className="centerTd">
+        <Table.Td className={styles.centerTd}>
           <Button
             type="button"
-            className="trackActionButton displayOnTrackHover"
+            className={styles.trackActionButton}
             disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
             onClick={() => handleSaveClick(listType, track, track.saved!)}
           >
@@ -111,7 +114,7 @@ export default function TrackRow({
         </Table.Td>
       )}
       <Table.Td
-        className="rightTd"
+        className={styles.rightTd}
         style={{
           paddingRight: "5px",
         }}

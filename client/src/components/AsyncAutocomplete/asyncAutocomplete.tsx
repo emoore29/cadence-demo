@@ -1,16 +1,15 @@
 import { searchForArtist, searchForTrack } from "@/helpers/fetchers";
 import { showWarnNotif } from "@/helpers/general";
-import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { Artist, ChosenSeeds, Track } from "@/types/types";
 import {
   CheckIcon,
   Combobox,
   Group,
+  Loader,
   Pill,
   PillsInput,
   ScrollArea,
   useCombobox,
-  Loader,
 } from "@mantine/core";
 import { debounce } from "lodash";
 import { useEffect, useRef, useState } from "react";
@@ -174,49 +173,49 @@ export function AsyncAutocomplete({
       store={combobox}
     >
       <Combobox.DropdownTarget>
-        <PillsInput onClick={() => combobox.openDropdown()}>
+        <PillsInput
+          rightSection={loading && <Loader size={18} />}
+          onClick={() => combobox.openDropdown()}
+        >
           <Pill.Group>
             {pillValues}
             <Combobox.EventsTarget>
-              <PillsInput
+              <PillsInput.Field
                 aria-label={
                   type === "track"
                     ? "Enter a track name"
                     : "Enter an artist name"
                 }
-                rightSection={loading && <Loader size={18} />}
-              >
-                <PillsInput.Field
-                  placeholder={
-                    type === "track" ? "Search tracks" : "Search artists"
+                style={{ padding: "0" }}
+                placeholder={
+                  type === "track" ? "Search tracks" : "Search artists"
+                }
+                value={search}
+                onChange={(event) => {
+                  combobox.updateSelectedOptionIndex();
+                  setSearch(event.currentTarget.value);
+
+                  if (event.currentTarget.value.length > 0) {
+                    fetchOptions(event.currentTarget.value);
                   }
-                  value={search}
-                  onChange={(event) => {
-                    combobox.updateSelectedOptionIndex();
-                    setSearch(event.currentTarget.value);
 
-                    if (event.currentTarget.value.length > 0) {
-                      fetchOptions(event.currentTarget.value);
-                    }
-
-                    combobox.resetSelectedOption();
-                    combobox.openDropdown();
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Backspace" && search.length === 0) {
-                      event.preventDefault();
-                      setSelectedValues((current) => {
-                        const newValues = [...current];
-                        newValues.pop();
-                        return newValues;
-                      });
-                    }
-                  }}
-                  onClick={() => combobox.openDropdown()}
-                  onFocus={() => combobox.openDropdown()}
-                  onBlur={() => combobox.closeDropdown()}
-                />
-              </PillsInput>
+                  combobox.resetSelectedOption();
+                  combobox.openDropdown();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Backspace" && search.length === 0) {
+                    event.preventDefault();
+                    setSelectedValues((current) => {
+                      const newValues = [...current];
+                      newValues.pop();
+                      return newValues;
+                    });
+                  }
+                }}
+                onClick={() => combobox.openDropdown()}
+                onFocus={() => combobox.openDropdown()}
+                onBlur={() => combobox.closeDropdown()}
+              />
             </Combobox.EventsTarget>
           </Pill.Group>
         </PillsInput>

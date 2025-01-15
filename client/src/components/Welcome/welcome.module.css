@@ -1,0 +1,13 @@
+.searchIcon {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.welcome {
+  width: 100%;
+  min-height: 600px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

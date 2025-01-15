@@ -28,9 +28,11 @@ export async function startSearch(
       case "2":
         return await filterFromStore("topTracks", formValues, anyTempo);
 
-      // Deprecated
-      // case "3":
-      //   return await getRecommendations(formValues, { anyTempo });
+      case "3":
+        return await getRecommendations(formValues, { anyTempo });
+
+      case "4":
+        return await filterFromStore("demoTracks", formValues, anyTempo);
 
       default:
         return null;

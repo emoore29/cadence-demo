@@ -1,11 +1,11 @@
-:root {
-  --subtle-border: rgba(255, 255, 255, 0.1);
+* {
+  box-sizing: border-box;
 }
 
 body {
   height: 100vh;
   margin: 0;
-  background: #6b243f;
+  /* background: #6b243f; */
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -15,26 +15,8 @@ button {
 }
 
 #root {
-  box-sizing: border-box;
-  padding: 0;
-  background: radial-gradient(
-      circle farthest-side at bottom left,
-      #5c1c37 400px,
-      #6b243f
-    ),
-    radial-gradient(
-      circle 600px farthest-corner at bottom right,
-      #8f3c3c 400px,
-      #6b243f 400px
-    ),
-    radial-gradient(circle farthest-corner at 15% 20%, #35171f #6b243f);
-}
-
-.container {
-  max-width: 2400px;
-  margin: 0 auto;
-  padding: 0 20px;
-  text-align: left;
+  width: 100%;
+  height: 100vh;
 }
 
 a {
@@ -46,422 +28,31 @@ a:hover {
   text-decoration: underline;
 }
 
-h1 {
-  font-size: 2em;
-  margin: 0;
-}
+/* .mantine-Tabs-list::before {
+  border: none;
+} */
 
-h2 {
-  margin: 0;
-  font-size: 1.2em;
-  padding: 0 0;
-}
-
-h2#filters {
-  padding: 0 10px;
-}
-
+h1,
+h2,
 p {
   margin: 0;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+h1 {
+  font-size: 1.5em;
 }
 
-.title-and-logo {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1rem;
+h2 {
+  font-size: 1.2em;
+  padding: 0 0;
 }
 
-.metronome-icon {
-  margin-top: 0.3rem;
-}
-
-#user-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 50%;
-  border: none;
-  background: none;
-}
-
-.user-img {
-  object-fit: cover;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 5px solid transparent; /* Set initial border as transparent */
-}
-
-.user-img:hover {
-  border-color: rgba(0, 0, 0, 0.2); /* Change border color on hover */
-}
-
-#user-menu {
-  display: flex;
-  flex-direction: column;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  border-radius: 10px;
-  height: fit-content;
-}
-
-.playlistForm {
-  width: 100%;
-  margin-bottom: 50px;
-}
-
-.playlistContainer {
-  margin-bottom: 50px;
-  max-width: 100%;
-}
-
-.addButton {
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.mobileAddButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.addButton:hover {
-  color: rgba(255, 255, 255);
-  border: 1px solid rgba(255, 255, 255);
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  gap: 50px;
-  margin-bottom: 6rem;
-}
-
-.playlistAndRecsContainer {
-  width: 100%;
-}
-
-.albumArtSkeleton {
-  width: 40px;
-  height: 40px;
-  max-width: 40px;
-  max-height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-}
-
-.skeletonTable {
-  margin-bottom: 50px;
-}
-
-.bpm {
-  display: flex;
-}
-
-.albumArt {
-  width: 40px;
-  height: 40px;
-  border-radius: 10%;
-}
-
-.trackDisplay,
-.trackDisplaySkeleton {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 100%;
-}
-
-.titleAndArtist,
-.titleAndArtistSkeleton {
-  display: flex;
-  flex-direction: column;
-  /* width: 20px; */
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pinAndTitle {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.titleAndArtistSkeleton {
-  gap: 5px;
-}
-
-.emptyPinned {
-  width: 18px;
-}
-
-.mantine-Table-th,
-.mantine-Table-td {
-  padding: 5px 0;
-  max-height: 40px;
-}
-
-.mantine-Table-tr {
-  height: 40px;
-  max-height: 40px;
-}
-
-.welcome {
-  width: 100%;
-  text-align: center;
-}
-
-.centerContent {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  vertical-align: middle;
-}
-
-.centerTd {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.rightTd {
-  text-align: right;
-}
-
-.trackName {
-  color: white;
-  font-weight: 600;
-}
-
-.trackArtist,
-.trackAlbum {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Prevent text from overflowing or wrapping td */
-.trackName,
-.trackArtist,
-.trackAlbum {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 100%;
-}
-
-.m_b23fa0ef .mantine-Table-table {
-  max-width: 100%;
-}
-
-.loadLibraryOverlay {
-  display: flex;
-  flex-direction: column;
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 5px;
-  border-radius: 10px;
-}
-
-tr:hover .trackPreview {
-  border-radius: 10%;
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.7);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-tr:hover .trackActionButton {
-  display: block;
-}
-
-.trackActionsMenu.opened {
-  display: block;
-}
-
-.trackTimeSkeleton {
-  margin-left: auto;
-}
-
-.trackActionsMenu {
+td {
   padding: 0;
-  background-color: transparent;
-}
-
-.trackActionsMenu:hover {
-  background-color: transparent;
-}
-
-.activeTrackPreview {
-  border-radius: 10%;
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.7);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.trackPreview {
-  display: none;
-}
-
-.previewCircle {
-  position: absolute;
-  transform: rotate(-90deg);
-}
-
-.artAndPreview {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.playButtonCircle {
-  width: 50px;
-  height: 50px;
-  color: white;
-}
-
-.testBlockBtn {
-  display: block;
-}
-
-.trackActionButton {
-  display: none;
-  background-color: transparent;
-  padding: 0;
-  color: rgba(255, 255, 255, 0.8);
-  margin: auto;
-}
-
-.pin {
-  color: rgba(255, 255, 255);
-  padding: 0 2px 0 0;
-  cursor: pointer;
-}
-
-.alwaysVisibleTrackActionButton {
-  position: absolute;
-  display: block;
-  top: 0;
-  left: 0;
-  background-color: transparent;
-  padding: 0;
-  color: rgba(255, 255, 255, 0.8);
-  margin: auto;
-}
-
-.trackActionButton:hover,
-.alwaysVisibleTrackActionButton:hover {
-  background-color: transparent;
-}
-
-.mantine-Radio-label[data-disabled] {
-  color: rgba(219, 219, 219, 0.6);
-}
-
-.mantine-Radio-radio[disabled] {
-  background-color: rgb(139, 139, 139, 0);
-}
-
-.mantine-Radio-radio {
-  background-color: rgba(180, 180, 180, 0);
-  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.4);
-}
-
-.mantine-Input-input {
-  background-color: rgba(180, 180, 180, 0);
-  border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
-}
-
-.mantine-Checkbox-input {
-  background-color: rgba(180, 180, 180, 0);
-  border: calc(0.0625rem * var(--mantine-scale)) solid rgba(255, 255, 255, 0.4);
-}
-
-.mantine-NumberInput-control:hover {
-  background-color: #6b243f;
-}
-
-.mantine-NumberInput-control {
-  border-left: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
-}
-
-.mantine-Accordion-control {
-  padding: 10px;
-}
-
-.mantine-Accordion-label {
-  display: flex;
-  align-items: center;
-  padding: 0;
-}
-
-.mantine-Accordion-content {
-  padding: 10px 10px 20px 10px;
-}
-
-.mantine-Accordion-item {
-  border-bottom: 1px solid var(--subtle-border);
-}
-
-.mantine-Popover-dropdown,
-.mantine-Menu-dropdown {
-  background-color: rgb(110, 45, 66);
-  border: calc(0.0625rem * var(--mantine-scale)) solid var(--subtle-border);
-}
-
-.mantine-Menu-item:hover {
-  background-color: var(--mantine-color-darkPink-9);
-}
-
-.customSeedResults {
-  display: flex;
-  flex-direction: column;
-}
-
-.multiselectsContainer {
-  margin-bottom: 1000px;
 }
 
 @media screen and (min-width: 1000px) {
-  .header {
-    margin-bottom: 2rem;
-  }
-
-  .container {
-    padding: 30px 50px;
-    max-width: 1440px;
-  }
-
-  .main {
-    flex-direction: row;
-    margin-bottom: 2rem;
-  }
-
-  .form {
-    min-width: 300px;
-    width: 300px;
+  h1 {
+    font-size: 2em;
   }
 }

@@ -1,11 +1,12 @@
-import { Button } from "@mantine/core";
-import PreviewCircle from "@/icons/PreviewCircle";
+import PreviewCircle from "@/components/PreviewCircle/PreviewCircle";
+import { TrackObject } from "@/types/types";
+import { Button, UnstyledButton } from "@mantine/core";
 import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
   IconPlaylistOff,
 } from "@tabler/icons-react";
-import { TrackObject } from "@/types/types";
+import styles from "./trackPreview.module.css";
 
 interface TrackPreviewProps {
   audioRefs: React.MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
@@ -26,8 +27,8 @@ export default function TrackPreview({
     <div
       className={
         playingTrackId === track.track.id
-          ? "activeTrackPreview"
-          : "trackPreview"
+          ? styles.activeTrackPreviewOverlay
+          : styles.trackPreviewOverlay
       }
     >
       {!track.track.preview_url ? (
@@ -50,7 +51,11 @@ export default function TrackPreview({
           />
           <Button
             type="button"
-            className="trackActionButton"
+            className={
+              playingTrackId === track.track.id
+                ? styles.activeTrackPreviewButton
+                : styles.trackPreviewButton
+            }
             onClick={() => playTrackPreview(track.track.id)}
           >
             {playingTrackId === track.track.id ? (

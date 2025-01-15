@@ -1,13 +1,14 @@
 import { getRecommendations } from "@/helpers/playlist";
+import LikeIcon from "@/components/LikeIcon/LikeIcon";
 import { FormValues, TrackObject } from "@/types/types";
 import { Button, Group, Table } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
-import { MutableRefObject } from "react";
-import SkeletonRow from "./skeletonRow";
-import TableHead from "./tableHead";
-import TrackRow from "./trackRow";
 import { useMediaQuery } from "@mantine/hooks";
-import LikeIcon from "@/icons/LikeIcon";
+import { MutableRefObject } from "react";
+import SkeletonRow from "../SkeletonRow/skeletonRow";
+import TableHead from "../TableHead/tableHead";
+import TrackRow from "../TrackRow/trackRow";
+import styles from "./recommendations.module.css";
 
 interface RecommendationsProps {
   playlist: Map<string, TrackObject>;
@@ -82,7 +83,6 @@ export default function Recommendations({
       }
 
       // TODO: If recsMap 0 or low due to filter restraints, fetch more with new set of artists/tracks/genres?
-
       setRecommendations((prevRecs) => {
         // Init newRecs Map for adding newRecs to prevRecs
         const newRecs = new Map([...(prevRecs ?? []), ...recs]); // prevRecs as [] if there are no prevRecs
@@ -93,10 +93,8 @@ export default function Recommendations({
 
   async function handleRefreshRecs() {
     let updatedRecs = new Map(recommendations); // Copy current state to avoid mutating
-    const tempArray = Array.from(updatedRecs).slice(2, -1); // Remove first 3 tracks from current recs
+    const tempArray = Array.from(updatedRecs).slice(3, -1); // Remove first 3 tracks from current recs
     updatedRecs = new Map(tempArray); // Add newly sliced recs to map
-
-    console.log("updated recs", updatedRecs);
 
     let newlyFetchedRecs: Map<string, TrackObject> | null; // Initialise Map to store newly fetched recs
 
@@ -142,10 +140,10 @@ export default function Recommendations({
           strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
         />
 
-        <Table.Td className="rightTd">
+        <Table.Td className={styles.rightTd}>
           {!isMobile ? (
             <Button
-              className="addButton"
+              className={styles.addButton}
               variant="outline"
               size="compact-xs"
               radius="xl"
@@ -155,7 +153,7 @@ export default function Recommendations({
             </Button>
           ) : (
             <button
-              className="mobileAddButton"
+              className={styles.mobileAddButton}
               onClick={() => addRecToPlaylist(track[1])}
             >
               <LikeIcon size={16} />
@@ -174,9 +172,7 @@ export default function Recommendations({
         withRowBorders={false}
         withColumnBorders={false}
         highlightOnHover
-        horizontalSpacing="xs"
-        verticalSpacing="xs"
-        style={{ tableLayout: "fixed" }}
+        className={styles.table}
       >
         <TableHead type="recommended" />
         <Table.Tbody>

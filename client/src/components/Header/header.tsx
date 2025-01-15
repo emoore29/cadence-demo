@@ -1,10 +1,11 @@
 import { deleteDatabase } from "@/helpers/database";
 import { showSuccessNotif } from "@/helpers/general";
+import { storeDataInLocalStorage } from "@/helpers/localStorage";
 import { Menu, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { IconMetronome } from "@tabler/icons-react";
-import { TrackObject, User } from "../types/types";
-import { storeDataInLocalStorage } from "@/helpers/localStorage";
+import { TrackObject, User } from "../../types/types";
+import styles from "./header.module.css";
 
 interface HeaderProps {
   user: User | null;
@@ -78,25 +79,33 @@ export default function Header({
     });
 
   return (
-    <div className="header">
-      <div className="title-and-logo">
-        <IconMetronome className="metronome-icon" size={32} stroke={2} />
-        <h1>cadence</h1>
+    <div className={styles.header}>
+      <div className={styles.titleAndLogo}>
+        <IconMetronome className={styles.metronomeIcon} size={32} stroke={2} />
+        <h1>
+          cadence<span className={styles.demo}> demo</span>
+        </h1>
       </div>
       {user ? (
-        <Menu position="bottom-end" offset={1} shadow="md" width={200}>
+        <Menu position="bottom-end" offset={1} shadow="md" width={120}>
           <Menu.Target>
             <img
-              className="user-img"
+              className={styles.userImg}
               src={user.images[1].url}
               alt="Spotify account profile image."
             />
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item onClick={openConfirmClearDataModal}>
+            <Menu.Item
+              className={styles.menuItem}
+              onClick={openConfirmClearDataModal}
+            >
               Clear my data
             </Menu.Item>
-            <Menu.Item color="red" onClick={openConfirmLogoutModal}>
+            <Menu.Item
+              className={styles.menuItem}
+              onClick={openConfirmLogoutModal}
+            >
               Log out
             </Menu.Item>
           </Menu.Dropdown>

@@ -1,0 +1,49 @@
+.activeTrackPreviewOverlay,
+.trackPreviewOverlay {
+  border-radius: 10%;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.activeTrackPreviewOverlay {
+  display: flex;
+}
+
+.trackPreviewOverlay {
+  display: none;
+}
+
+tr:hover .trackPreviewOverlay {
+  display: flex;
+}
+
+.activeTrackPreviewButton {
+  display: block;
+  background-color: transparent;
+}
+
+tr:hover .activeTrackPreviewButton {
+  background-color: transparent;
+}
+
+.trackPreviewButton {
+  display: flex;
+  background-color: transparent;
+}
+
+.activeTrackPreviewButton,
+.trackPreviewButton {
+  background-color: transparent;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.8);
+  margin: auto;
+}
+
+tr:hover .trackPreviewButton {
+  display: block;
+  background-color: transparent;
+}
