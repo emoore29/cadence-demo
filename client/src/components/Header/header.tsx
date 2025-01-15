@@ -87,7 +87,7 @@ export default function Header({
         </h1>
       </div>
       {user ? (
-        <Menu position="bottom-end" offset={1} shadow="md" width={200}>
+        <Menu position="bottom-end" offset={1} shadow="md" width={120}>
           <Menu.Target>
             <img
               className={styles.userImg}
@@ -96,10 +96,16 @@ export default function Header({
             />
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item onClick={openConfirmClearDataModal}>
+            <Menu.Item
+              className={styles.menuItem}
+              onClick={openConfirmClearDataModal}
+            >
               Clear my data
             </Menu.Item>
-            <Menu.Item color="red" onClick={openConfirmLogoutModal}>
+            <Menu.Item
+              className={styles.menuItem}
+              onClick={openConfirmLogoutModal}
+            >
               Log out
             </Menu.Item>
           </Menu.Dropdown>

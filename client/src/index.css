@@ -28,6 +28,10 @@ a:hover {
   text-decoration: underline;
 }
 
+/* .mantine-Tabs-list::before {
+  border: none;
+} */
+
 h1,
 h2,
 p {
@@ -35,7 +39,7 @@ p {
 }
 
 h1 {
-  font-size: 2em;
+  font-size: 1.5em;
 }
 
 h2 {
@@ -45,4 +49,10 @@ h2 {
 
 td {
   padding: 0;
+}
+
+@media screen and (min-width: 1000px) {
+  h1 {
+    font-size: 2em;
+  }
 }

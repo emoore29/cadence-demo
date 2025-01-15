@@ -31,7 +31,8 @@ tr:hover .activeTrackPreviewButton {
 }
 
 .trackPreviewButton {
-  display: none;
+  display: flex;
+  background-color: transparent;
 }
 
 .activeTrackPreviewButton,

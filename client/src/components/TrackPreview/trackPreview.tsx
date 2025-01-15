@@ -1,6 +1,6 @@
 import PreviewCircle from "@/components/PreviewCircle/PreviewCircle";
 import { TrackObject } from "@/types/types";
-import { Button } from "@mantine/core";
+import { Button, UnstyledButton } from "@mantine/core";
 import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,

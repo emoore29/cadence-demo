@@ -101,7 +101,7 @@ export default function Playlist({
           width={100}
         >
           <Menu.Target>
-            <UnstyledButton
+            <Button
               ref={(el) => (trackMenuRefs.current[track[1].track.id] = el)}
               className={`${styles.trackActionsMenu} ${
                 track[1].track.id === openTrackMenuId ? styles.opened : ""
@@ -109,7 +109,7 @@ export default function Playlist({
               onClick={() => handleTrackMenuClick(track[1].track.id)}
             >
               <IconDotsVertical stroke={2} size={16} />
-            </UnstyledButton>
+            </Button>
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Item
@@ -197,7 +197,7 @@ export default function Playlist({
         openSavePlaylist={openSavePlaylist}
         setOpenSavePlaylist={setOpenSavePlaylist}
       />
-      <Group className={styles.playlistButtons} justify="flex-end" mt="md">
+      <Group justify="flex-end" mt="md">
         {matchingTracks && matchingTracks.size > 5 && (
           <Button type="button" onClick={showMoreResults}>
             Show more (+5)

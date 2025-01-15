@@ -97,7 +97,7 @@ export default function TrackRow({
       )}
       {!isMobile && (
         <Table.Td className={styles.centerTd}>
-          <UnstyledButton
+          <Button
             type="button"
             className={styles.trackActionButton}
             disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
@@ -110,7 +110,7 @@ export default function TrackRow({
             ) : (
               <LikeIcon size={16} />
             )}
-          </UnstyledButton>
+          </Button>
         </Table.Td>
       )}
       <Table.Td

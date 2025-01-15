@@ -49,6 +49,7 @@ export default function SavePlaylistModal({
       onClose={() => setOpenSavePlaylist(false)}
       fullScreen={isMobile}
       centered
+      size={"md"}
     >
       <Modal.Overlay />
       <Modal.Content>

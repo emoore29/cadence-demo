@@ -226,7 +226,7 @@ export default function Form({
           <Accordion.Control>Tracks Source</Accordion.Control>
           <Accordion.Panel>
             <Tabs
-              variant="pills"
+              variant="outline"
               defaultValue="mySpotify"
               value={activeSourceTab}
               onChange={setActiveSourceTab}
@@ -369,7 +369,6 @@ export default function Form({
               color="grape"
               title="Note"
               icon={icon}
-              style={{ marginBottom: "20px" }}
             >
               Advanced filters may significantly limit results.
             </Alert>

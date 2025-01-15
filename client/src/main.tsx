@@ -22,10 +22,7 @@ const theme = createTheme({
       },
     },
     Button: {
-      styles: {
-        root: { backgroundColor: "rgba(0,0,0,0.25)" },
-        label: { color: "rgba(255,255,255,0.8)" },
-      },
+      styles: {},
     },
     Tabs: {
       styles: {
@@ -48,7 +45,7 @@ const theme = createTheme({
       "#844358", // form accordion borders, input borders
       "#b5607b",
       "#6c2248", // input background colors
-      "#3e0c26", // pills color
+      "#4b102e", // pills color, tab 'invisible' bottom border color
       "#8c3d56",
       "#7c324a",
     ],
