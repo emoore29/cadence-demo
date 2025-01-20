@@ -1,8 +1,5 @@
 Basic Features:
 
-- Clarify user login and load data flow
-  --- Allow guests to use form without signing in, prompt sign in on "save playlist" click
-- Custom recommendation filters for artists/tracks/genres
 - Pin all / unpin all buttons
 - Update IDB library based on Spotify library (check for new saved tracks utilising date added)
 - Spotify icon somewhere
