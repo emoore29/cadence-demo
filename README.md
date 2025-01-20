@@ -1,47 +1,45 @@
 # Cadence Demo
 
-A demo web app that simulates filtering your Spotify library, top tracks, and getting Spotify recommendations based on BPM and other track features.
-
-Cadence development started on 24 October 2024. On 27 November 2024, [Spotify deprecated the following endpoints overnight](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api) on which Cadence relied:
+Cadence was originally intended to be accessible for all Spotify users to create customised playlists from their personal Spotify libraries. Unfortunately, in November 2024 towards the end of Cadence's development, [Spotify deprecated the following endpoints without warning](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api), which were needed for Cadence to function as intended:
 
 - Recommendations
 - Audio Features
 - 30-second preview URLs in multi-get responses
 - Get available genre seeds
 
-These are no longer available to existing apps that are still in development mode without a pending extension request, which applies to Cadence.
+These are no longer available to existing apps that are still in development mode without a pending extension request, which applies to Cadence. It's difficult to find APIs that offer similar data. [Deezer](https://developers.deezer.com/myapps) has an API that provides track BPM, but currently isn't accepting new developer applications. AcousticBrainz, which offers similar features to Spotify, including track BPM, is unfortunately no longer collecting data as of 2022. Their database of over 7 million unique tracks is [available for download](https://acousticbrainz.org/download).
 
-The original codebase is still theoretically functional, but the access token granted by Cadence's Client ID will not provide access to those endpoints anymore, so fetch requests to Spotify will return 403 or 404 status codes.
+I started Cadence to practice working with APIs, and I knew I would use its features to create my own running playlists. It's disappointing to not be able to complete a fully-functioning app, but I think I've learned as much as I can from this project, and it's time to move on to something new. Therefore, in the interests of finalising the project, I've created a demo using a small set of sample track data.
 
-Because of this, demo data is now used for saved tracks, top tracks, and recommendations, to demonstrate how the app would function if the API endpoints were still accessible. Users can still interact with and create playlists with Cadence, but sadly, only with a limited database of tracks purely for demonstration purposes, not with their own Spotify libraries as was intended.
+The original codebase is all still there and is theoretically functional, but the user access tokens granted by Cadence's Client ID will not provide access to the above endpoints anymore, so fetch requests will return 403 or 404 status codes.
+
+Where possible, demo data is used to demonstrate how the app would function if the API endpoints were still accessible. Users can still interact with and create playlists with Cadence, but sadly, only with a limited amount of tracks for demonstration purposes.
 
 If you are interested in creating playlists based on track features from your actual Spotify data, I recommend [Sort Your Music](http://sortyourmusic.playlistmachinery.com/), which is a web app that was approved pre-deprecation and offers similar functionality using the same API endpoints Cadence relied on.
 
-## How it works/worked
+## How it worked
 
-Cadence has multiple options for sources to filter tracks from.
+Cadence has multiple "sources" of tracks, which users can filter by features such as tempo (BPM).
 
-A user can choose to load their Spotify saved tracks, top tracks, and top artists. If they do so, their Spotify data are saved in IndexedDB stores as follows:
+Pre-deprecation, a user could choose to load their Spotify saved tracks, top tracks, and top artists. When the user's saved and top tracks were fetched, fetches would also be made to get each track's features. Then, the fetched data would be saved in IndexedDB stores as follows:
 
-- "library" - a user's saved tracks
-- "topTracks" - a user's top 500 tracks from the last 12 months
+- "library" - a user's saved tracks (and features)
+- "topTracks" - a user's top 500 tracks (and features) from the last 12 months
 - "topArtists" - a user's top 50 artists from the last 12 months
 
-Stored track data is stored alongside a track's features, fetched from the Audio Features Spotify Web API endpoint.
+The user could then choose to filter through their saved tracks or top tracks based on track features such as tempo, valence, instrumentalness, and more.
 
-The user can then filter through their saved tracks or top tracks based on track features such as tempo, valence, instrumentalness, and more.
+This has now been replaced with a button to "load demo data", which loads a set of sample tracks and their features into IndexedDB which is now the only "source" users can filter. Users don't need to be logged in to load the demo data.
 
-A user also has the option to get recommendations from Spotify based on custom "seeds", such as a user's favourite genre(s), track(s), and/or artist(s). They can also filter these recommendations based on the aforementioned features.
+Users also had the option to get recommendations from Spotify based on custom "seeds", such as their favourite genre(s), track(s), and/or artist(s), alongside any desired track features. Now, the input fields to search for these seeds are still functional, but as there is no way to demonstrate this feature with sample data, clicking submit will display an error notification and won't return any tracks.
 
-### Access Token
+## Authorization Code Flow
 
-To fetch their Spotify data, create playlists, and update their saved tracks, users need to "log in" and authorize Cadence to access their Spotify data.
+To make any requests to the Spotify API, users need an access token. For this, users need to "log in" and authorize Cadence to access their Spotify data, and this will grant them an access token.
 
-The code uses the [Authorization Code Flow](https://developer.spotify.com/documentation/web-api/tutorials/code-flow), whereby an access token and refresh token is provided to the client.
+The code uses the [Authorization Code Flow](https://developer.spotify.com/documentation/web-api/tutorials/code-flow). After the user authorizes Cadence, they are redirected back to the app with access and refresh tokens. These tokens are stored in browser local storage, and a refresh request is sent every hour just before the current access token expires.
 
-These tokens are stored in browser local storage, and a refresh request is sent every hour before the current access token expires.
-
-As described above, as of 27 November 2024, an access token obtained in this manner will not provide access to the deprecated endpoints, unless you have a pre-existing client ID and secret from an app that was approved by Spotify before these changes were made.
+Post-deprecation, this is still functional, so users can "log in" to Cadence. This means that when the playlist tracks are displayed, each track's saved status will match the track's saved status in that user's Spotify account and the user can save or unsave a track if they want to. If the user doesn't log in, a warning indicates that the saved statuses may not match their Spotify library and they won't be able to save or unsave any tracks. They also won't be able to save any playlists created with the demo data unless they are logged in.
 
 ## How to run locally
 
