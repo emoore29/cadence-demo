@@ -1,9 +1,10 @@
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
-import { filterFromStore, startSearch } from "@/helpers/playlist";
+import { startSearch } from "@/helpers/playlist";
 import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
 import {
   Accordion,
+  Alert,
   Button,
   Checkbox,
   CheckIcon,
@@ -14,7 +15,6 @@ import {
   Select,
   Tabs,
   Tooltip,
-  Alert,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
@@ -30,7 +30,6 @@ interface FormProps {
   loadingDemoData: boolean;
   loadingDataProgress: number;
   loadingDemoDataProgress: number;
-  storeDemoData: () => void;
   storeSpotifyData: () => void;
   libraryStored: boolean;
   demoLibraryStored: boolean;
@@ -58,7 +57,6 @@ export default function Form({
   loadingDemoData,
   loadingDataProgress,
   loadingDemoDataProgress,
-  storeDemoData,
   storeSpotifyData,
   libraryStored,
   demoLibraryStored,
@@ -192,34 +190,33 @@ export default function Form({
     // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
     // Note: Spotify is not guaranteed to return 100
     // Commented out as fetching recommendations no longer functions due to API deprecation.
+    // if (activeSourceTab === "mySpotify") {
+    //   setLoadingRecs(true);
+    //   // const recs: Map<string, TrackObject> | null = await getRecommendations(
+    //   //   values,
+    //   //   { anyTempo, targetRecs: 100 }
+    //   // );
 
-    if (activeSourceTab === "mySpotify") {
-      setLoadingRecs(true);
-      // const recs: Map<string, TrackObject> | null = await getRecommendations(
-      //   values,
-      //   { anyTempo, targetRecs: 100 }
-      // );
+    //   // Replace above with filtering demo recommendations
+    //   const recs: Map<string, TrackObject> | null = await filterFromStore(
+    //     "recommendations",
+    //     values,
+    //     anyTempo
+    //   );
 
-      // Replace above with filtering demo recommendations
-      const recs: Map<string, TrackObject> | null = await filterFromStore(
-        "recommendations",
-        values,
-        anyTempo
-      );
-
-      // Remove any tracks that are already in the playlist
-      if (recs) {
-        for (const key of recs.keys()) {
-          if (playlist?.get(key)) {
-            recs.delete(key);
-          }
-        }
-        if (recs.size > 0) {
-          setRecommendations(recs);
-          setLoadingRecs(false);
-        }
-      }
-    }
+    //   // Remove any tracks that are already in the playlist
+    //   if (recs) {
+    //     for (const key of recs.keys()) {
+    //       if (playlist?.get(key)) {
+    //         recs.delete(key);
+    //       }
+    //     }
+    //     if (recs.size > 0) {
+    //       setRecommendations(recs);
+    //       setLoadingRecs(false);
+    //     }
+    //   }
+    // }
   }
 
   return (
@@ -245,7 +242,7 @@ export default function Form({
                 <Tabs.Tab value="custom">Custom</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
-                {!demoLibraryStored ? (
+                {!libraryStored ? (
                   <div className={styles.mySpotify}>
                     <Alert
                       variant="light"
@@ -263,18 +260,18 @@ export default function Form({
                       .
                     </Alert>
                     <p style={{ fontSize: "14px" }}>
-                      {!loadingDemoData ? "Load " : "Loading "}demo data
+                      {!loadingData ? "Load " : "Loading "}your track data
                     </p>
-                    {!loadingDemoData ? (
+                    {!loadingData ? (
                       <Button
-                        onClick={storeDemoData}
+                        onClick={storeSpotifyData}
                         className={styles.loadLibraryBtn}
                       >
-                        Load demo data
+                        Load your track data
                       </Button>
                     ) : (
                       <Progress
-                        value={loadingDemoDataProgress}
+                        value={loadingDataProgress}
                         size="lg"
                         transitionDuration={200}
                       />
@@ -287,22 +284,12 @@ export default function Form({
                     {...form.getInputProps("source")}
                   >
                     <Group className={styles.source}>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
-                        <Radio
-                          value={"1"}
-                          icon={CheckIcon}
-                          label="Saved Songs"
-                          disabled
-                        />
-                      </Tooltip>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
-                        <Radio
-                          value={"2"}
-                          icon={CheckIcon}
-                          label="Top Tracks"
-                          disabled
-                        />
-                      </Tooltip>
+                      <Radio
+                        value={"1"}
+                        icon={CheckIcon}
+                        label="Saved Tracks"
+                      />
+                      <Radio value={"2"} icon={CheckIcon} label="Top Tracks" />
                       <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
                         <Radio
                           value={"3"}
@@ -311,7 +298,12 @@ export default function Form({
                           disabled
                         />
                       </Tooltip>
-                      <Radio value={"4"} icon={CheckIcon} label="Demo Tracks" />
+                      <Radio
+                        value={"4"}
+                        icon={CheckIcon}
+                        label="Demo Tracks"
+                        disabled
+                      />
                     </Group>
                   </Radio.Group>
                 )}

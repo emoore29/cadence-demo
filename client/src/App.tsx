@@ -1,17 +1,16 @@
 import { useForm } from "@mantine/form";
 import { useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
+import Footer from "./components/Footer/footer";
 import Form from "./components/Form/form";
 import Header from "./components/Header/header";
 import LoadingPlaylist from "./components/LoadingPlaylist/loadingPlaylist";
 import Playlist from "./components/Playlist/playlist";
-import Recommendations from "./components/Recommendations/recommendations";
+import Welcome from "./components/Welcome/welcome";
 import { setUpDatabase } from "./helpers/database";
 import { updateSavedStatus } from "./helpers/fetchers";
 import { showErrorNotif, showSuccessNotif } from "./helpers/general";
 import {
-  storeDemoLibrary,
-  storeDemoRecommendations,
   storeSavedTracksData,
   storeTopArtists,
   storeTopTracksData,
@@ -25,8 +24,6 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
-import Welcome from "./components/Welcome/welcome";
-import Footer from "./components/Footer/footer";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -183,29 +180,29 @@ function App() {
   }
 
   // ↓ Post-deprecation storing demo tracks in IDB ↓
-  async function storeDemoData(): Promise<void> {
-    setLoadingDemoData(true);
+  // async function storeDemoData(): Promise<void> {
+  //   setLoadingDemoData(true);
 
-    const demoTracks: boolean | null = await storeDemoLibrary(
-      updateDemoProgressBar
-    );
-    if (!demoTracks) {
-      errorStoringData(true);
-      return;
-    }
-    const demoRecommendations: boolean | null = await storeDemoRecommendations(
-      updateDemoProgressBar
-    );
-    if (!demoRecommendations) {
-      errorStoringData(true);
-      return;
-    }
+  //   const demoTracks: boolean | null = await storeDemoLibrary(
+  //     updateDemoProgressBar
+  //   );
+  //   if (!demoTracks) {
+  //     errorStoringData(true);
+  //     return;
+  //   }
+  //   const demoRecommendations: boolean | null = await storeDemoRecommendations(
+  //     updateDemoProgressBar
+  //   );
+  //   if (!demoRecommendations) {
+  //     errorStoringData(true);
+  //     return;
+  //   }
 
-    setLoadingDemoData(false);
-    storeDataInLocalStorage("demo_library_was_stored", true);
-    setLibraryStored(true);
-    setLoadingDataProgress(0);
-  }
+  //   setLoadingDemoData(false);
+  //   storeDataInLocalStorage("demo_library_was_stored", true);
+  //   setLibraryStored(true);
+  //   setLoadingDataProgress(0);
+  // }
 
   function errorStoringData(demo: boolean): void {
     if (demo) {
@@ -369,7 +366,6 @@ function App() {
           setActiveSourceTab={setActiveSourceTab}
           loadingData={loadingData}
           loadingDataProgress={loadingDataProgress}
-          storeDemoData={storeDemoData}
           storeSpotifyData={storeSpotifyData}
           libraryStored={libraryStored}
           demoLibraryStored={demoLibraryStored}
@@ -403,7 +399,7 @@ function App() {
                 circleOffsets={circleOffsets}
               />
             )}
-            {loadingRecs ? (
+            {/* {loadingRecs ? (
               <>
                 <h2>Suggestions</h2>
                 <LoadingPlaylist targetTracks={3} />
@@ -424,7 +420,7 @@ function App() {
                 form={form}
                 anyTempo={anyTempo}
               />
-            )}
+            )} */}
           </div>
         ) : (
           <Welcome />

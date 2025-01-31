@@ -1,17 +1,16 @@
-import { getAllFromStore, StoreName } from "@/helpers/database";
+import { getAllFromStore } from "@/helpers/database";
 import {
+  ChosenSeeds,
   FormValues,
   NumericFeatures,
   PlaylistData,
-  TrackObject,
+  StoreName,
   TrackFeatures,
-  ChosenSeeds,
-  GetRecommendationsOptions,
+  TrackObject,
 } from "@/types/types";
 import axios from "axios";
-import { fetchRecommendations } from "./fetchers";
-import { getItemFromLocalStorage } from "./localStorage";
 import { showErrorNotif } from "./general";
+import { getItemFromLocalStorage } from "./localStorage";
 
 export async function startSearch(
   formValues: FormValues,
@@ -23,22 +22,14 @@ export async function startSearch(
   if (activeSourceTab === "mySpotify") {
     switch (store) {
       case "1":
-        return await filterFromStore("library", formValues, anyTempo);
+        return await filterFromStore("savedTracks", formValues, anyTempo);
 
       case "2":
         return await filterFromStore("topTracks", formValues, anyTempo);
 
-      case "3":
-        return await getRecommendations(formValues, { anyTempo });
-
-      case "4":
-        return await filterFromStore("demoTracks", formValues, anyTempo);
-
       default:
         return null;
     }
-  } else if (activeSourceTab === "custom") {
-    return await getRecommendations(formValues, { anyTempo, chosenSeeds });
   }
 }
 
@@ -70,50 +61,6 @@ export async function filterFromStore(
     console.error(`Error fetching tracks from IDB ${storeName}`, error);
     return null;
   }
-}
-
-// Gets recommendations from Spotify based on filters
-// Used for user "Get Recommendations"/"Custom" search, or used to populate Suggestions table
-export async function getRecommendations(
-  formValues: FormValues,
-  options: GetRecommendationsOptions
-): Promise<Map<string, TrackObject> | null> {
-  const { source, target, ...filters } = formValues;
-  const { anyTempo, targetRecs, chosenSeeds } = options;
-
-  // Convert String selections (Any, Low, Med, High) to target numbers
-  const targetValence: number | null = convertToNumber(filters.targetValence);
-  const targetDanceability: number | null = convertToNumber(
-    filters.targetDanceability
-  );
-  const targetEnergy: number | null = convertToNumber(filters.targetEnergy);
-  const targetInstrumentalness: number | null = convertToNumber(
-    filters.targetInstrumentalness
-  );
-  const targetAcousticness: number | null = convertToNumber(
-    filters.targetAcousticness
-  );
-
-  // Create object with numeric filters to pass to fetchRecommendations
-  const numericFilters = {
-    ...(!anyTempo && { minTempo: filters.minTempo }),
-    ...(!anyTempo && { maxTempo: filters.maxTempo }),
-    ...(targetValence !== null && { targetValence }),
-    ...(targetDanceability !== null && { targetDanceability }),
-    ...(targetEnergy !== null && { targetEnergy }),
-    ...(targetInstrumentalness !== null && { targetInstrumentalness }),
-    ...(targetAcousticness !== null && { targetAcousticness }),
-  };
-
-  // If a target is specified when passed to getRecs, use that (e.g. for fetching recommended below playlist)
-  // otherwise, use the target from the form filters (e.g. user is searching with 'get recommendations' filter)
-  const recs: Map<string, TrackObject> | null = await fetchRecommendations(
-    numericFilters,
-    targetRecs ? targetRecs : target,
-    chosenSeeds
-  );
-  if (!recs) return null;
-  return recs;
 }
 
 function convertToNumber(level: string): number | null {
