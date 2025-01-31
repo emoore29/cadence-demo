@@ -1,6 +1,6 @@
 import { ChosenSeeds, NumericFilters, TrackObject } from "@/types/types";
 import { notifications } from "@mantine/notifications";
-import { deleteFromStore, getFromStore, setInStore } from "./database";
+import { deleteFromStore, getTrackFromStore, setInStore } from "./database";
 import {
   getShuffledTopArtists,
   getShuffledTopTracks,
@@ -44,7 +44,7 @@ export async function syncSpotifyAndIdb(
 ): Promise<number> {
   // Check if the track exists in the IDB library
   // Although getFromStore may return Track or Artist, we know it always returns a TrackObject from the "library"
-  const savedInDb = (await getFromStore("library", track.track.id)) as
+  const savedInDb = (await getTrackFromStore("savedTracks", track.track.id)) as
     | TrackObject
     | undefined;
 
@@ -53,11 +53,11 @@ export async function syncSpotifyAndIdb(
   // (e.g. a top track that wasn't saved when the database was initially loaded,
   // but the user has since saved it in Spotify)
   if (saved && !savedInDb) {
-    await setInStore("library", track);
+    await setInStore("savedTracks", track);
     return 1;
   } else if (!saved && savedInDb) {
     // If song not saved in Spotify but saved in IDB, rm from IDB
-    await deleteFromStore("library", track.track.id);
+    await deleteFromStore("savedTracks", track.track.id);
     console.log("removed track from IDB");
     // if it's removed, remove it from matching tracks as well if user is filtering "saved tracks"
     return -1;
@@ -190,4 +190,22 @@ export function parseFilters(filters: NumericFilters): Record<string, string> {
         String(value),
       ])
   );
+}
+
+interface tag {
+  count: number;
+  name: string;
+}
+
+// Returns a sorted array of a recording's tags based on count
+export function extractTags(tags: tag[]): string[] {
+  // Sort tags in descending order by count
+  tags.sort((a, b) => b.count - a.count);
+
+  const tagNames: string[] = [];
+  for (const tag of tags) {
+    tagNames.push(tag.name);
+  }
+
+  return tagNames;
 }

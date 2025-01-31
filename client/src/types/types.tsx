@@ -138,6 +138,19 @@ export interface TrackFeatures {
   valence: number;
 }
 
+export interface AcousticBrainzFeatures {
+  bpm: number;
+  chordsKey: string;
+  chordsScale: string;
+}
+
+export interface MetaBrainzFeatures {
+  tags: string[];
+  bpm: number;
+  chordsKey: string;
+  chordsScale: string;
+}
+
 export interface StoredTrack {
   track: Track;
   features: TrackFeatures;
@@ -247,9 +260,20 @@ export interface ArtistSeedForm {
 
 export interface TrackObject {
   track: Track;
-  features: TrackFeatures;
+  features: AcousticBrainzFeatures;
   saved?: boolean;
   pinned?: boolean;
+}
+
+export type StoreName = "savedTracks" | "topArtists" | "topTracks";
+
+export type TrackStoreName = "savedTracks" | "topTracks";
+
+export interface TopTrackObject {
+  track: Track;
+  features: AcousticBrainzFeatures;
+  saved?: boolean;
+  order?: number;
 }
 
 export interface Filters {

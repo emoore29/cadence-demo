@@ -1,17 +1,18 @@
 import {
+  AcousticBrainzFeatures,
   Artist,
+  MetaBrainzFeatures,
   SavedTrack,
   StoredTrack,
   Track,
-  TrackFeatures,
 } from "@/types/types";
 import { getAllFromStore, setInStore } from "./database";
 import {
   fetchSavedTracks,
-  fetchSavedTracksFeatures,
   fetchTopArtists,
-  fetchTopTrackFeatures,
   fetchTopTracks,
+  fetchTrackABFeatures,
+  fetchTrackMBIDandTags,
 } from "./fetchers";
 import {
   showErrorNotif,
@@ -19,9 +20,6 @@ import {
   showWarnNotif,
   shuffleArray,
 } from "./general";
-import { demoLibrary } from "@/demoData/demoLibrary";
-import { demoTopTracks } from "@/demoData/demoTopTracks";
-import { demoRecommendations } from "@/demoData/demoRecommendations";
 
 export async function storeTopArtists(
   updateProgressBar: () => void
@@ -56,175 +54,115 @@ export async function storeTopArtists(
 export async function storeTopTracksData(
   updateProgressBar: () => void
 ): Promise<boolean | null> {
-  const topTracks: Track[] | null = await fetchTopTracks(updateProgressBar);
+  let topTracks: Track[] | null = await fetchTopTracks(updateProgressBar);
   if (!topTracks) return null;
 
-  const topTrackFeatures: TrackFeatures[] | null = await fetchTopTrackFeatures(
-    topTracks,
-    updateProgressBar
-  );
-  if (!topTrackFeatures) return null;
+  let success = true;
 
-  const success = storeUserTopTrackData(topTracks, topTrackFeatures);
+  // Remove any tracks that do not have an isrc
+  topTracks = topTracks.filter(
+    (topTrack) => topTrack.external_ids.isrc !== undefined
+  );
+
+  // Add each top track and its features to IDB
+  for (const [index, topTrack] of topTracks.entries()) {
+    // assert that isrc is not null (filtered out above)
+    const isrc: string = topTrack.external_ids.isrc!;
+    const trackMBIDandTags: [string, string[]] | null =
+      await fetchTrackMBIDandTags(isrc);
+    if (trackMBIDandTags) {
+      const mbid: string = trackMBIDandTags[0];
+      const abFeatures: AcousticBrainzFeatures | null =
+        await fetchTrackABFeatures(mbid);
+      const tags: string[] = trackMBIDandTags[1];
+
+      if (abFeatures) {
+        const mbFeatures: MetaBrainzFeatures = {
+          ...abFeatures,
+          tags,
+        };
+
+        try {
+          await setInStore("topTracks", {
+            track: topTrack,
+            features: mbFeatures,
+            order: index,
+          });
+        } catch (error) {
+          showErrorNotif(
+            "Error",
+            `Could not store track in IDB (${topTrack.id})`
+          );
+          success = false;
+        }
+      }
+    }
+  }
+
   return success;
 }
 
 // Stores user's saved tracks in IDB
-// Stores saved: true for all
+// Stores saved: true as default for all
 export async function storeSavedTracksData(
   updateProgressBar: () => void
 ): Promise<boolean | null> {
-  const lib: SavedTrack[] | null = await fetchSavedTracks(updateProgressBar);
-  if (!lib) return null;
-
-  const feats: TrackFeatures[] | null = await fetchSavedTracksFeatures(
-    lib,
+  let savedTracks: SavedTrack[] | null = await fetchSavedTracks(
     updateProgressBar
   );
-  if (!feats) return null;
+  if (!savedTracks) return null;
 
-  const success = storeUserLibraryAndFeatures(lib, feats);
-  return success;
-}
-
-export async function storeUserTopTrackData(
-  topTracks: Track[],
-  topTrackFeatures: TrackFeatures[]
-): Promise<boolean> {
   let success = true;
 
-  for (const [index, track] of topTracks.entries()) {
-    const trackId = track.id;
-    const trackFeatures = topTrackFeatures.find(
-      (features) => features.id === trackId
-    ); // Find corresponding features
+  // Remove any tracks that do not have a defined isrc
+  savedTracks = savedTracks.filter(
+    (savedTrack) => savedTrack.track.external_ids.isrc !== undefined
+  );
 
-    if (trackFeatures) {
-      // Save the track and its features to IndexedDB
-      try {
-        await setInStore("topTracks", {
-          track: track,
-          features: trackFeatures,
-          order: index, // Add order based on position in the topTracks array, so that the top of the top can be retrieved
-        });
-      } catch (error) {
-        console.warn(`Error storing track ${trackId} in IndexedDB:`, error);
-        success = false;
+  // Add each saved track and features to IDB individually
+  for (const [index, savedTrack] of savedTracks.entries()) {
+    // assert that isrc is not null (filtered out above)
+    const isrc: string = savedTrack.track.external_ids.isrc!;
+    const trackMBIDandTags: [string, string[]] | null =
+      await fetchTrackMBIDandTags(isrc);
+    if (trackMBIDandTags) {
+      const mbid: string = trackMBIDandTags[0];
+      const abFeatures: AcousticBrainzFeatures | null =
+        await fetchTrackABFeatures(mbid);
+      const tags: string[] = trackMBIDandTags[1];
+
+      if (abFeatures) {
+        const mbFeatures: MetaBrainzFeatures = {
+          ...abFeatures,
+          tags,
+        };
+
+        try {
+          await setInStore("savedTracks", {
+            track: savedTrack.track,
+            features: mbFeatures,
+            saved: true,
+            order: index,
+          });
+        } catch (error) {
+          showErrorNotif(
+            "Error",
+            `Could not store track in IDB (${savedTrack.track.id})`
+          );
+          success = false;
+        }
       }
-    } else {
-      console.warn(`No features found for track ID ${trackId}`);
-      success = false;
     }
   }
 
   if (success) {
     showSuccessNotif(
-      "Top tracks stored",
+      "Saved tracks and features stored",
       "Your top tracks were successfully stored."
     );
   } else {
-    showWarnNotif("Warning", "Some or all tracks could not be stored.");
+    showWarnNotif("Warning", "Some or all saved tracks could not be stored");
   }
-  return success;
-}
-
-// Populates the library in IndexedDB
-export async function storeUserLibraryAndFeatures(
-  library: SavedTrack[],
-  featuresLibrary: TrackFeatures[]
-): Promise<boolean> {
-  console.log("Storing songs and their features..");
-  let success = true;
-
-  for (const [index, track] of library.entries()) {
-    const trackId = track.track.id;
-    const trackFeatures = featuresLibrary.find(
-      (features) => features.id === trackId
-    ); // Find corresponding features
-
-    if (trackFeatures) {
-      // Save the track and its features to IndexedDB
-      try {
-        await setInStore("library", {
-          track: track.track,
-          features: trackFeatures,
-          saved: true,
-          order: index,
-        });
-      } catch (error) {
-        console.error(`Error storing track ${trackId} in IndexedDB:`, error);
-        success = false;
-      }
-    } else {
-      console.warn(`No features found for track ID ${trackId}`);
-      success = false;
-    }
-  }
-
-  if (success) {
-    console.log("All tracks successfully stored in IDB");
-  } else {
-    console.warn("Some or all tracks could not be stored in IndexedDB");
-  }
-
-  return success;
-}
-
-export async function storeDemoLibrary(
-  updateProgressBar: () => void
-): Promise<boolean> {
-  let success = true;
-
-  // Add each track to the IDB library
-  for (let i = 0; i < demoLibrary.length; i++) {
-    const track = demoLibrary[i][1].track;
-    const trackFeatures = demoLibrary[i][1].features;
-    try {
-      await setInStore("demoTracks", {
-        track: track,
-        features: trackFeatures,
-        saved: true,
-        order: i,
-      });
-      updateProgressBar(); // TODO: Update estimated fetches to align with demo library size rather than real library size
-    } catch (error) {
-      console.error(
-        `Error storing track ${demoLibrary[i][0]} in IndexedDB:`,
-        error
-      );
-      success = false;
-    }
-  }
-  success && showSuccessNotif("Success", "Demo saved tracks were loaded.");
-
-  return success;
-}
-
-export async function storeDemoRecommendations(
-  updateProgressBar: () => void
-): Promise<boolean> {
-  let success = true;
-
-  // Add each track to the IDB library
-  for (let i = 0; i < demoRecommendations.length; i++) {
-    const track = demoRecommendations[i][1].track;
-    const trackFeatures = demoRecommendations[i][1].features;
-    try {
-      await setInStore("recommendations", {
-        track: track,
-        features: trackFeatures,
-        order: i,
-      });
-      updateProgressBar();
-    } catch (error) {
-      console.error(
-        `Error storing track ${demoRecommendations[i][0]} in IndexedDB:`,
-        error
-      );
-      success = false;
-    }
-  }
-  success && showSuccessNotif("Success", "Demo recommendations were loaded.");
   return success;
 }
 
