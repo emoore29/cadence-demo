@@ -4,14 +4,14 @@ import { DBSchema, IDBPDatabase, openDB } from "idb";
 // Functions to set up and delete database, and store, delete, and retrieve items from database
 
 export type StoreName =
-  | "library"
+  | "savedTracks"
   | "topArtists"
   | "topTracks"
   | "recommendations"
   | "demoTracks";
 
 interface MyDB extends DBSchema {
-  library: {
+  savedTracks: {
     key: string; // track id
     value: {
       track: Track;
@@ -53,8 +53,8 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
   const db = await openDB<MyDB>("cadence", 1, {
     upgrade(db) {
       // Create an object store for songs
-      if (!db.objectStoreNames.contains("library")) {
-        db.createObjectStore("library", { keyPath: "track.id" });
+      if (!db.objectStoreNames.contains("savedTracks")) {
+        db.createObjectStore("savedTracks", { keyPath: "track.id" });
       }
 
       // Create an object store for top artists
