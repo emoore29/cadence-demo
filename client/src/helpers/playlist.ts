@@ -2,6 +2,7 @@ import { getAllFromStore } from "@/helpers/database";
 import {
   ChosenSeeds,
   FormValues,
+  MetaBrainzFeatures,
   NumericFeatures,
   PlaylistData,
   StoreName,
@@ -44,12 +45,17 @@ export async function filterFromStore(
 
   try {
     const tracks = await getAllFromStore(storeName);
-
     for (const track of tracks) {
-      const trackFeatures: TrackFeatures = track.features;
-      if (matches(trackFeatures, formValues, anyTempo)) {
-        // If track features match, add to map with id as key
-        matchingTracks.set(track.track.id, track);
+      console.log(track);
+      const trackFeatures: MetaBrainzFeatures = track.features;
+      if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
+        console.warn(`${track.track.name} is missing features.`);
+      } else {
+        const match: boolean = matches(trackFeatures, formValues, anyTempo);
+        if (match) {
+          // If track features match, add to map with id as key
+          matchingTracks.set(track.track.id, track);
+        }
       }
     }
     return matchingTracks;
@@ -78,79 +84,31 @@ function convertToNumber(level: string): number | null {
   }
 }
 
-// Shuffles the matched songs and returns an array of a given size
-// export function shuffleAndSlice(
-//   matchingTracks: TrackObject[],
-//   size: number
-// ): TrackObject[] {
-//   // Shuffles matches and returns a playlist the size requested
-//   for (let i: number = matchingTracks.length - 1; i > 0; i--) {
-//     const j: number = Math.floor(Math.random() * (i + 1));
-//     const temp = matchingTracks[i];
-//     matchingTracks[i] = matchingTracks[j];
-//     matchingTracks[j] = temp;
-//   }
-//   return matchingTracks.slice(0, size);
-// }
-
 // Checks if a given track's features match values requested by the user
 function matches(
-  trackFeatures: TrackFeatures,
+  trackFeatures: MetaBrainzFeatures,
   formValues: FormValues,
   anyTempo: boolean
 ): boolean {
-  const {
-    minTempo,
-    maxTempo,
-    targetValence,
-    targetDanceability,
-    targetEnergy,
-    targetInstrumentalness,
-    targetAcousticness,
-  } = formValues;
+  const { minTempo, maxTempo, key, mode } = formValues;
 
   if (
     !anyTempo &&
-    (trackFeatures.tempo <= minTempo || trackFeatures.tempo >= maxTempo)
+    (trackFeatures.bpm <= minTempo || trackFeatures.bpm >= maxTempo)
   ) {
     return false;
   }
 
-  // Define the feature to check and the target
-  const properties = [
-    { name: "valence", target: targetValence },
-    { name: "danceability", target: targetDanceability },
-    { name: "energy", target: targetEnergy },
-    { name: "instrumentalness", target: targetInstrumentalness },
-    { name: "acousticness", target: targetAcousticness },
-  ];
+  console.log("filter key", key);
+  console.log("track key", trackFeatures.key[0]);
+  console.log("track mode", trackFeatures.mode);
 
-  // Function to generate a target range based on low/med/high
-  function getRange(level: string) {
-    switch (level) {
-      case "Low":
-        return { min: 0, max: 0.333 };
-      case "Medium":
-        return { min: 0.333, max: 0.666 };
-      case "High":
-        return { min: 0.666, max: 1 };
-      default:
-        return { min: 0, max: 1 };
-    }
+  if (key != "Any" && key != trackFeatures.key[0]) {
+    return false;
   }
 
-  // Checks if a specific track feature (e.g. valence) is within range of the target level (low/med/high)
-  function isInRange(trackFeature: number, targetLevel: string) {
-    if (targetLevel === "Any") return true;
-    const range = getRange(targetLevel);
-    return trackFeature >= range.min && trackFeature < range.max;
-  }
-
-  // Loop through each feature to check if track is within the target range
-  for (const { name, target } of properties) {
-    if (!isInRange(trackFeatures[name as keyof NumericFeatures], target)) {
-      return false;
-    }
+  if (mode != "Any" && mode.toLowerCase() != trackFeatures.mode) {
+    return false;
   }
 
   return true;

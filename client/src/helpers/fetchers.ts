@@ -113,7 +113,7 @@ export async function fetchTrackMBIDandTags(
     };
   } catch (error) {
     console.error(
-      `Error fetching or processing result from MusicBrainz for track ${isrc}`,
+      `Error fetching or processing result from MusicBrainz for track ${isrc}. MusicBrainz Server may be busy.`,
       error
     );
     return null;
@@ -134,8 +134,8 @@ export async function fetchTrackABFeatures(
     );
 
     const bpm = res.data.rhythm.bpm;
-    const chordsKey = res.data.tonal.chords_key;
-    const chordsScale = res.data.tonal.chords_scale;
+    const key = res.data.tonal.key_key;
+    const mode = res.data.tonal.key_scale;
     const headersObj = res.headers;
     // AcousticBrainz uses lower case for the rate limit headers
     const remaining = headersObj["x-ratelimit-remaining"];
@@ -143,7 +143,7 @@ export async function fetchTrackABFeatures(
 
     return {
       rateLimit: [remaining, resetIn],
-      data: { bpm, chordsKey, chordsScale },
+      data: { bpm, key, mode },
     };
   } catch (error) {
     console.warn(`Could not fetch features for track MBID: ${mbid}`);

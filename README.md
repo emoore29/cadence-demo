@@ -4,12 +4,14 @@ Cadence was originally intended to be accessible for all Spotify users to create
 
 - Recommendations
 - Audio Features
-- 30-second preview URLs in multi-get responses
+- 30-second preview URLs
 - Get available genre seeds
 
 These are no longer available to existing apps that are still in development mode without a pending extension request, which applies to Cadence. The user access tokens granted by Cadence's Client ID will not provide access to the above endpoints anymore, so fetch requests will return 403 or 404 status codes.
 
-It's difficult to find APIs that offer similar data. [Deezer](https://developers.deezer.com/myapps) has an API that provides track BPM, but currently isn't accepting new developer applications. AcousticBrainz, which offers similar features to Spotify, including track BPM, is unfortunately no longer collecting data as of 2022. Their database of over 7 million unique tracks is [available for download](https://acousticbrainz.org/download).
+It's difficult to find APIs that offer similar data. [Deezer](https://developers.deezer.com/myapps) has an API that provides track BPM, but currently isn't accepting new developer applications. Even using the open API, it looks like many popular songs are missing BPM data.
+
+AcousticBrainz, which offers similar features to Spotify, including track BPM, is unfortunately no longer collecting data as of 2022. Their database of over 7 million unique tracks is [available for download](https://acousticbrainz.org/download).
 
 To finalise the project, I decided to use AcousticBrainz's data to retrieve track audio features. This results in a version of Cadence closest to what was originally intended, albeit with some track audio features unavailable.
 
@@ -36,6 +38,32 @@ To make any requests to the Spotify API, users need an access token. For this, u
 The code uses the [Authorization Code Flow](https://developer.spotify.com/documentation/web-api/tutorials/code-flow). After the user authorizes Cadence, they are redirected back to the app with access and refresh tokens. These tokens are stored in browser local storage, and a refresh request is sent every hour just before the current access token expires.
 
 Post-deprecation, this is still functional, so users can "log in" to Cadence. This means that when the playlist tracks are displayed, each track's saved status will match the track's saved status in that user's Spotify account and the user can save or unsave a track if they want to. If the user doesn't log in, a warning indicates that the saved statuses may not match their Spotify library and they won't be able to save or unsave any tracks. They also won't be able to save any playlists created with the demo data unless they are logged in.
+
+## Estimated time to load
+
+Calculated using an estimated number of actions. For example, a request to the Spotify API for 50 tracks is an action. Storing a track in IDB is an action.
+
+A user's saved tracks can be fetched 50 per request. Likewise, a user's top tracks can be fetched 50 per request. A user's top 50 artists can be fetched in one request.
+
+The total number of requests needed is therefore as follows:
+
+Let t = user's number of saved tracks
+
+(t/50) + (500/50) + 1 = (t + 550)/50
+
+Then, to fetch a track's features, a request is made to MusicBrainz to get the track's MBID, then to AcousticBrainz to get the track's features, then to IndexedDB to store the track. This sequence of requests is treated as one action, and must be done for every track.
+
+Therefore, the total number of actions to get all track features is simply the total number of tracks to be processed:
+
+t + 500
+
+So the total number of actions required is
+
+(51t + 1050)/50
+
+To get a percentage progress bar, every time an action is completed, the percentage worth of that action is added to the bar:
+
+progress + (1/estimatedActions) \* 100
 
 ## How to run locally
 

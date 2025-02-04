@@ -140,15 +140,15 @@ export interface TrackFeatures {
 
 export interface AcousticBrainzFeatures {
   bpm: number;
-  chordsKey: string;
-  chordsScale: string;
+  key: string;
+  mode: string;
 }
 
 export interface MetaBrainzFeatures {
   tags: string[];
   bpm: number;
-  chordsKey: string;
-  chordsScale: string;
+  key: string;
+  mode: string;
 }
 
 export interface StoredTrack {
@@ -235,11 +235,8 @@ export interface TopTracks {
 export interface FormValues {
   minTempo: number;
   maxTempo: number;
-  targetValence: string;
-  targetDanceability: string;
-  targetEnergy: string;
-  targetInstrumentalness: string;
-  targetAcousticness: string;
+  key: string;
+  mode: string;
   source: string;
   target: number;
 }

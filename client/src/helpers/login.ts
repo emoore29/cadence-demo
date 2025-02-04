@@ -34,7 +34,7 @@ export function loginOccurred(): boolean {
 export async function handleLogin(
   setLibSize: React.Dispatch<React.SetStateAction<number>>,
   setUser: React.Dispatch<React.SetStateAction<User | null>>,
-  setEstimatedFetches: React.Dispatch<React.SetStateAction<number>>
+  setEstimatedActions: React.Dispatch<React.SetStateAction<number>>
 ): Promise<void> {
   const { accessToken, refreshToken, expiresIn } = getTokensFromHash();
 
@@ -54,8 +54,8 @@ export async function handleLogin(
     if (libSize) {
       storeDataInLocalStorage("lib_size", libSize);
       setLibSize(libSize);
-      const estimatedFetches = (3 * libSize) / 100 + 16;
-      setEstimatedFetches(estimatedFetches);
+      const estimatedActions = (51 * libSize + 3000) / 50;
+      setEstimatedActions(estimatedActions);
     }
   }
 }

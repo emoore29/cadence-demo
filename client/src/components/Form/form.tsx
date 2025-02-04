@@ -190,20 +190,6 @@ export default function Form({
     setMatchingTracks(matches);
   }
 
-  async function testFunction() {
-    const result: MBIDResponseData | null = await fetchTrackMBIDandTags(
-      "USUG12004700"
-    );
-
-    ////USANG2009606
-    const abResult: ABFeaturesResponse | null = await fetchTrackABFeatures(
-      "5e5d14a9-e569-487c-ae99-b976b82a366c"
-    );
-
-    console.log(result);
-    console.log(abResult);
-  }
-
   return (
     <form
       className={styles.form}
@@ -212,9 +198,6 @@ export default function Form({
       )}
       onReset={form.onReset}
     >
-      <Button onClick={testFunction} className={styles.loadLibraryBtn}>
-        Test API
-      </Button>
       <Accordion defaultValue="Track Source">
         <Accordion.Item value="Track Source">
           <Accordion.Control>Tracks Source</Accordion.Control>
@@ -278,20 +261,6 @@ export default function Form({
                         label="Saved Tracks"
                       />
                       <Radio value={"2"} icon={CheckIcon} label="Top Tracks" />
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
-                        <Radio
-                          value={"3"}
-                          icon={CheckIcon}
-                          label="Recommendations"
-                          disabled
-                        />
-                      </Tooltip>
-                      <Radio
-                        value={"4"}
-                        icon={CheckIcon}
-                        label="Demo Tracks"
-                        disabled
-                      />
                     </Group>
                   </Radio.Group>
                 )}
@@ -326,6 +295,22 @@ export default function Form({
                 setAnyTempo(isChecked);
               }}
             />
+            <Checkbox
+              checked={anyTempo}
+              label="Include doubled BPM"
+              onChange={(event) => {
+                const isChecked = event.currentTarget.checked;
+                setAnyTempo(isChecked);
+              }}
+            />
+            <Checkbox
+              checked={anyTempo}
+              label="Include halved BPM"
+              onChange={(event) => {
+                const isChecked = event.currentTarget.checked;
+                setAnyTempo(isChecked);
+              }}
+            />
             <div className={styles.bpm}>
               <NumberInput
                 label="Min Tempo"
@@ -351,31 +336,20 @@ export default function Form({
         <Accordion.Item value="Advanced">
           <Accordion.Control>Advanced</Accordion.Control>
           <Accordion.Panel>
-            <Alert
-              className={styles.alert}
-              variant="light"
-              color="grape"
-              title="Note"
-              icon={icon}
-            >
-              Advanced filters may significantly limit results.
-            </Alert>
-
-            {[
-              "Valence",
-              "Danceability",
-              "Energy",
-              "Instrumentalness",
-              "Acousticness",
-            ].map((filter: string) => (
-              <Select
-                key={form.key(`target` + filter)}
-                {...form.getInputProps(`target` + filter)}
-                label={filter}
-                data={["Any", "Low", "Medium", "High"]}
-                allowDeselect={false}
-              />
-            ))}
+            <Select
+              key={form.key("key")}
+              {...form.getInputProps("key")}
+              label="Key"
+              data={["Any", "A", "B", "C", "D", "E", "F", "G"]}
+              allowDeselect={false}
+            />
+            <Select
+              key={form.key("mode")}
+              {...form.getInputProps("mode")}
+              label="Mode"
+              data={["Any", "Major", "Minor"]}
+              allowDeselect={false}
+            />
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>

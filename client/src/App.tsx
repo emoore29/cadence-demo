@@ -36,7 +36,7 @@ function App() {
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
-  const [estimatedFetches, setEstimatedFetches] = useState<number>(0);
+  const [estimatedActions, setEstimatedActions] = useState<number>(0);
   const [estimatedLoadTime, setEstimatedLoadTime] = useState<string>(
     "Log in to get an estimated load time"
   );
@@ -62,12 +62,9 @@ function App() {
     initialValues: {
       minTempo: 120,
       maxTempo: 135,
-      targetValence: "Any",
-      targetDanceability: "Any",
-      targetEnergy: "Any",
-      targetInstrumentalness: "Any",
-      targetAcousticness: "Any",
-      source: "4",
+      key: "Any",
+      mode: "Any",
+      source: "1",
       target: 5,
     },
   });
@@ -96,7 +93,7 @@ function App() {
     async function initialize() {
       // Store tokens, user data and library size on login
       if (loginOccurred()) {
-        handleLogin(setLibSize, setUser, setEstimatedFetches);
+        handleLogin(setLibSize, setUser, setEstimatedActions);
         setLibraryStored(wasLibraryStoredInDatabase());
       }
 
@@ -110,9 +107,9 @@ function App() {
         );
         libSize && setLibSize(libSize);
 
-        // Calculate estimated number fetches based on user's library size
-        const estimatedFetches = (51 * libSize + 3000) / 50;
-        setEstimatedFetches(estimatedFetches);
+        // Calculate estimated number actions based on user's library size
+        const estimatedActions = (51 * libSize + 1050) / 50;
+        setEstimatedActions(estimatedActions);
 
         // Calculate estimated time to load data
         const estimatedLoadTime: string = msToPlaylistTime(
@@ -138,7 +135,7 @@ function App() {
 
   // Adds % to progress bar for every successful fetch of new track data
   function updateProgressBar() {
-    setLoadingDataProgress((prev) => prev + (1 / estimatedFetches) * 100);
+    setLoadingDataProgress((prev) => prev + (1 / estimatedActions) * 100);
   }
 
   // ↓ Pre-deprecation to retrieve actual Spotify data (track features reqs will return 400 errors) ↓
