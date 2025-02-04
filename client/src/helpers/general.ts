@@ -78,7 +78,7 @@ export function calculatePlaylistTime(
   return msToPlaylistTime(totalTimeMs);
 }
 
-function msToPlaylistTime(ms: number): string {
+export function msToPlaylistTime(ms: number): string {
   // Convert ms to seconds, rounding
   let totalSeconds = Math.round(ms / 1000);
 

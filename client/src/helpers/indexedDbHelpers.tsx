@@ -8,11 +8,13 @@ import {
 } from "@/types/types";
 import { getAllFromStore, setInStore } from "./database";
 import {
+  ABFeaturesResponse,
   fetchSavedTracks,
   fetchTopArtists,
   fetchTopTracks,
   fetchTrackABFeatures,
   fetchTrackMBIDandTags,
+  MBIDResponseData,
 } from "./fetchers";
 import {
   showErrorNotif,
@@ -20,6 +22,11 @@ import {
   showWarnNotif,
   shuffleArray,
 } from "./general";
+import { storeDataInLocalStorage } from "./localStorage";
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export async function storeTopArtists(
   updateProgressBar: () => void
@@ -53,34 +60,55 @@ export async function storeTopArtists(
 // saved: not included
 export async function storeTopTracksData(
   updateProgressBar: () => void
-): Promise<boolean | null> {
+): Promise<number | null> {
   let topTracks: Track[] | null = await fetchTopTracks(updateProgressBar);
   if (!topTracks) return null;
 
+  const libSize: number = topTracks.length;
   let success = true;
+  let count = 0;
 
   // Remove any tracks that do not have an isrc
   topTracks = topTracks.filter(
     (topTrack) => topTrack.external_ids.isrc !== undefined
   );
 
+  // Initialise AcousticBrainz rate limit data
+  let abRemaining: number = 100;
+  let abResetIn: number = 5;
+
   // Add each top track and its features to IDB
   for (const [index, topTrack] of topTracks.entries()) {
+    console.log(`fetching top track ${index}`);
     // assert that isrc is not null (filtered out above)
     const isrc: string = topTrack.external_ids.isrc!;
-    const trackMBIDandTags: [string, string[]] | null =
-      await fetchTrackMBIDandTags(isrc);
-    if (trackMBIDandTags) {
-      const mbid: string = trackMBIDandTags[0];
-      const abFeatures: AcousticBrainzFeatures | null =
-        await fetchTrackABFeatures(mbid);
-      const tags: string[] = trackMBIDandTags[1];
 
-      if (abFeatures) {
+    // Fetch MBID and tags from MusicBrainz
+    const mbResponse: MBIDResponseData | null = await fetchTrackMBIDandTags(
+      isrc
+    );
+
+    if (mbResponse) {
+      // Relevant data
+      const mbid: string = mbResponse.data[0];
+      const tags: string[] = mbResponse.data[1];
+
+      // Fetch AcousticBrainz features for track
+      const abResponse: ABFeaturesResponse | null = await fetchTrackABFeatures(
+        mbid
+      );
+
+      // If features available, store in IDB
+      if (abResponse) {
+        const abFeatures: AcousticBrainzFeatures = abResponse.data;
         const mbFeatures: MetaBrainzFeatures = {
           ...abFeatures,
           tags,
         };
+
+        // Note rate limit for AcousticBrainz
+        abRemaining = abResponse.rateLimit[0];
+        abResetIn = abResponse.rateLimit[1];
 
         try {
           await setInStore("topTracks", {
@@ -88,6 +116,8 @@ export async function storeTopTracksData(
             features: mbFeatures,
             order: index,
           });
+
+          count += 1;
         } catch (error) {
           showErrorNotif(
             "Error",
@@ -97,46 +127,92 @@ export async function storeTopTracksData(
         }
       }
     }
+
+    // Set delay if AB rate limit reached
+    if (abRemaining == 0) {
+      console.log("Awaiting AcousticBrainz rate limit reset");
+      await delay(abResetIn * 1000);
+    }
+
+    // Await >1 second for MusicBrainz
+    await delay(1050);
+    updateProgressBar();
   }
 
-  return success;
+  if (success) {
+    showSuccessNotif(
+      "Top tracks and features stored",
+      "Your top tracks were successfully stored."
+    );
+  } else {
+    showWarnNotif("Warning", "Some or all top tracks could not be stored");
+  }
+
+  showSuccessNotif(
+    "Success",
+    `Features for ${count} out of ${libSize} were successfully retrieved.`
+  );
+
+  storeDataInLocalStorage("top_tracks_success_count", count);
+
+  return count;
 }
 
 // Stores user's saved tracks in IDB
 // Stores saved: true as default for all
 export async function storeSavedTracksData(
   updateProgressBar: () => void
-): Promise<boolean | null> {
+): Promise<number | null> {
   let savedTracks: SavedTrack[] | null = await fetchSavedTracks(
     updateProgressBar
   );
   if (!savedTracks) return null;
 
-  let success = true;
+  const libSize: number = savedTracks.length;
+  let success: boolean = true; // To track if any failures occur
+  let count: number = 0; // To track number of successes
 
   // Remove any tracks that do not have a defined isrc
   savedTracks = savedTracks.filter(
     (savedTrack) => savedTrack.track.external_ids.isrc !== undefined
   );
 
+  let abRemaining: number = 100;
+  let abResetIn: number = 5;
   // Add each saved track and features to IDB individually
   for (const [index, savedTrack] of savedTracks.entries()) {
+    console.log(`handling saved track ${index}...`);
+
     // assert that isrc is not null (filtered out above)
     const isrc: string = savedTrack.track.external_ids.isrc!;
-    const trackMBIDandTags: [string, string[]] | null =
-      await fetchTrackMBIDandTags(isrc);
-    if (trackMBIDandTags) {
-      const mbid: string = trackMBIDandTags[0];
-      const abFeatures: AcousticBrainzFeatures | null =
-        await fetchTrackABFeatures(mbid);
-      const tags: string[] = trackMBIDandTags[1];
 
-      if (abFeatures) {
+    // Fetch MBID + tags from MusicBrainz
+    const mbResponse: MBIDResponseData | null = await fetchTrackMBIDandTags(
+      isrc
+    );
+    if (mbResponse) {
+      // Relevant data
+      const mbid: string = mbResponse.data[0];
+      const tags: string[] = mbResponse.data[1];
+
+      // Fetch AcousticBrainz features for track
+      const abResponse: ABFeaturesResponse | null = await fetchTrackABFeatures(
+        mbid
+      );
+
+      if (abResponse) {
+        const abFeatures: AcousticBrainzFeatures = abResponse.data;
+        // Relevant data
         const mbFeatures: MetaBrainzFeatures = {
           ...abFeatures,
           tags,
         };
 
+        // Note rate limit for AcousticBrainz
+        abRemaining = abResponse.rateLimit[0];
+        abResetIn = abResponse.rateLimit[1];
+
+        // Add track and features to IDB
         try {
           await setInStore("savedTracks", {
             track: savedTrack.track,
@@ -144,26 +220,46 @@ export async function storeSavedTracksData(
             saved: true,
             order: index,
           });
+          console.log(`Stored track ${savedTrack.track.name}, +1 to count!`);
+          count += 1;
         } catch (error) {
           showErrorNotif(
             "Error",
             `Could not store track in IDB (${savedTrack.track.id})`
           );
-          success = false;
         }
       }
     }
+
+    // Set delay if AB rate limit reached
+    if (abRemaining == 0) {
+      console.log("Awaiting AcousticBrainz rate limit reset");
+      await delay(abResetIn * 1000);
+    }
+
+    // Await minimum 1 second for MusicBrainz (rate limits not accessible from API response headers
+    // Access-Control-Expose-Headers needs to be set by MB servers)
+    await delay(1050);
+    updateProgressBar();
   }
 
   if (success) {
     showSuccessNotif(
       "Saved tracks and features stored",
-      "Your top tracks were successfully stored."
+      "Your saved tracks were successfully stored."
     );
   } else {
     showWarnNotif("Warning", "Some or all saved tracks could not be stored");
   }
-  return success;
+
+  showSuccessNotif(
+    "Success",
+    `Features for ${count} out of ${libSize} were successfully retrieved.`
+  );
+
+  storeDataInLocalStorage("saved_tracks_success_count", count);
+
+  return count;
 }
 
 // Returns top 5 tracks from database

@@ -15,7 +15,7 @@ export interface Recording {
   "first-release-date": string;
   releases: Release[];
   isrcs: Isrc[];
-  tags: Tag[];
+  tags?: Tag[];
 }
 
 export interface ArtistCredit {

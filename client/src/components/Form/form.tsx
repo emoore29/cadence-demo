@@ -1,4 +1,10 @@
-import { syncTracksSavedStatus } from "@/helpers/fetchers";
+import {
+  ABFeaturesResponse,
+  fetchTrackABFeatures,
+  fetchTrackMBIDandTags,
+  MBIDResponseData,
+  syncTracksSavedStatus,
+} from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
 import { startSearch } from "@/helpers/playlist";
 import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
@@ -23,16 +29,14 @@ import CustomFilters from "../CustomFilters/customFilters";
 import styles from "./form.module.css";
 
 interface FormProps {
+  estimatedLoadTime: string;
   setHasSearched: React.Dispatch<React.SetStateAction<boolean>>;
   activeSourceTab: string | null;
   setActiveSourceTab: React.Dispatch<React.SetStateAction<string | null>>;
   loadingData: boolean;
-  loadingDemoData: boolean;
   loadingDataProgress: number;
-  loadingDemoDataProgress: number;
   storeSpotifyData: () => void;
   libraryStored: boolean;
-  demoLibraryStored: boolean;
   playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
   matchingTracks: Map<string, TrackObject>;
@@ -50,16 +54,14 @@ interface FormProps {
 }
 
 export default function Form({
+  estimatedLoadTime,
   setHasSearched,
   activeSourceTab,
   setActiveSourceTab,
   loadingData,
-  loadingDemoData,
   loadingDataProgress,
-  loadingDemoDataProgress,
   storeSpotifyData,
   libraryStored,
-  demoLibraryStored,
   playlist,
   setPlaylist,
   setMatchingTracks,
@@ -186,37 +188,20 @@ export default function Form({
     setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matches);
+  }
 
-    // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
-    // Note: Spotify is not guaranteed to return 100
-    // Commented out as fetching recommendations no longer functions due to API deprecation.
-    // if (activeSourceTab === "mySpotify") {
-    //   setLoadingRecs(true);
-    //   // const recs: Map<string, TrackObject> | null = await getRecommendations(
-    //   //   values,
-    //   //   { anyTempo, targetRecs: 100 }
-    //   // );
+  async function testFunction() {
+    const result: MBIDResponseData | null = await fetchTrackMBIDandTags(
+      "USUG12004700"
+    );
 
-    //   // Replace above with filtering demo recommendations
-    //   const recs: Map<string, TrackObject> | null = await filterFromStore(
-    //     "recommendations",
-    //     values,
-    //     anyTempo
-    //   );
+    ////USANG2009606
+    const abResult: ABFeaturesResponse | null = await fetchTrackABFeatures(
+      "5e5d14a9-e569-487c-ae99-b976b82a366c"
+    );
 
-    //   // Remove any tracks that are already in the playlist
-    //   if (recs) {
-    //     for (const key of recs.keys()) {
-    //       if (playlist?.get(key)) {
-    //         recs.delete(key);
-    //       }
-    //     }
-    //     if (recs.size > 0) {
-    //       setRecommendations(recs);
-    //       setLoadingRecs(false);
-    //     }
-    //   }
-    // }
+    console.log(result);
+    console.log(abResult);
   }
 
   return (
@@ -227,6 +212,9 @@ export default function Form({
       )}
       onReset={form.onReset}
     >
+      <Button onClick={testFunction} className={styles.loadLibraryBtn}>
+        Test API
+      </Button>
       <Accordion defaultValue="Track Source">
         <Accordion.Item value="Track Source">
           <Accordion.Control>Tracks Source</Accordion.Control>
@@ -251,14 +239,14 @@ export default function Form({
                       icon={icon}
                       className={styles.alert}
                     >
-                      Spotify has deprecated the endpoints needed to load your
-                      Spotify library features. To view demo functionality, load
-                      demo tracks. Read more{" "}
+                      Due to Spotify API deprecation, all track features may not
+                      be available. Read more{" "}
                       <a href="https://github.com/emoore29/cadence-demo">
                         here
                       </a>
                       .
                     </Alert>
+                    <p>Estimated load time: {estimatedLoadTime}</p>
                     <p style={{ fontSize: "14px" }}>
                       {!loadingData ? "Load " : "Loading "}your track data
                     </p>

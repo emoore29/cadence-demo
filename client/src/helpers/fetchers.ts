@@ -74,26 +74,60 @@ export async function fetchSavedTracks(
   }
 }
 
+export interface MBIDResponseData {
+  rateLimit: number[];
+  data: [string, string[]];
+}
+
 export async function fetchTrackMBIDandTags(
   isrc: string
-): Promise<[string, string[]] | null> {
+): Promise<MBIDResponseData | null> {
   // MusicBrainz Recording API
   try {
     const res = await axios.get<RecordingSearchResult>(
       `http://musicbrainz.org/ws/2/recording/?query=isrc:${isrc}&fmt=json`
     );
+
+    const numResults: number = res.data.count;
+    if (numResults == 0) {
+      console.warn(`Could not find mbid for track ISRC ${isrc}`);
+      return null;
+    }
+
     const mbid = res.data.recordings[0].id;
-    const tags = extractTags(res.data.recordings[0].tags);
-    return [mbid, tags];
+    let tags: string[] = [];
+    for (const recording of res.data.recordings) {
+      if (recording.tags) {
+        tags = extractTags(recording.tags);
+      }
+    }
+
+    const headersObj = res.headers;
+    // MusicBrainz uses camel case for the rate limit headers
+    const remaining = headersObj["X-RateLimit-Remaining"];
+    const resetTime = headersObj["X-RateLimit-Reset"];
+
+    return {
+      rateLimit: [remaining, resetTime],
+      data: [mbid, tags],
+    };
   } catch (error) {
-    showErrorNotif("Error", "There was an error fetching track MBID");
+    console.error(
+      `Error fetching or processing result from MusicBrainz for track ${isrc}`,
+      error
+    );
     return null;
   }
 }
 
+export interface ABFeaturesResponse {
+  rateLimit: number[];
+  data: AcousticBrainzFeatures;
+}
+
 export async function fetchTrackABFeatures(
   mbid: string
-): Promise<AcousticBrainzFeatures | null> {
+): Promise<ABFeaturesResponse | null> {
   try {
     const res = await axios.get<LowLevelFeatures>(
       `https://acousticbrainz.org/api/v1/${mbid}/low-level`
@@ -102,9 +136,17 @@ export async function fetchTrackABFeatures(
     const bpm = res.data.rhythm.bpm;
     const chordsKey = res.data.tonal.chords_key;
     const chordsScale = res.data.tonal.chords_scale;
-    return { bpm, chordsKey, chordsScale };
+    const headersObj = res.headers;
+    // AcousticBrainz uses lower case for the rate limit headers
+    const remaining = headersObj["x-ratelimit-remaining"];
+    const resetIn = headersObj["x-ratelimit-reset-in"];
+
+    return {
+      rateLimit: [remaining, resetIn],
+      data: { bpm, chordsKey, chordsScale },
+    };
   } catch (error) {
-    showErrorNotif("Error", "Could not fetch track's AcousticBrainz features.");
+    console.warn(`Could not fetch features for track MBID: ${mbid}`);
     return null;
   }
 }
