@@ -140,6 +140,7 @@ function App() {
 
   // ↓ Pre-deprecation to retrieve actual Spotify data (track features reqs will return 400 errors) ↓
   async function storeSpotifyData(): Promise<void> {
+    const start: number = Date.now();
     setLoadingData(true);
 
     // Fetch and store saved track data
@@ -173,6 +174,8 @@ function App() {
     storeDataInLocalStorage("library_was_stored", true);
     setLibraryStored(true);
     setLoadingDataProgress(0);
+    const ms = Date.now() - start;
+    console.log(`Time in seconds to load data: ${Math.floor(ms / 1000)} `);
   }
 
   function errorStoringData(): void {

@@ -24,7 +24,7 @@ import {
 } from "./general";
 import { storeDataInLocalStorage } from "./localStorage";
 
-function delay(ms: number) {
+export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -163,6 +163,7 @@ export async function storeTopTracksData(
 export async function storeSavedTracksData(
   updateProgressBar: () => void
 ): Promise<number | null> {
+  // Get saved tracks from Spotify
   let savedTracks: SavedTrack[] | null = await fetchSavedTracks(
     updateProgressBar
   );
@@ -177,10 +178,17 @@ export async function storeSavedTracksData(
     (savedTrack) => savedTrack.track.external_ids.isrc !== undefined
   );
 
+  // Get each track's features from MusicBrainz/AcousticBrainz
+  // Get each track's preview URL from Deezer
   let abRemaining: number = 100;
   let abResetIn: number = 5;
   // Add each saved track and features to IDB individually
   for (const [index, savedTrack] of savedTracks.entries()) {
+    if (count == 49) {
+      console.log("waiting 5 seconds for Deezer rate limit");
+      await delay(5000);
+      count = 0;
+    }
     console.log(`handling saved track ${index}...`);
 
     // assert that isrc is not null (filtered out above)
@@ -211,6 +219,29 @@ export async function storeSavedTracksData(
         // Note rate limit for AcousticBrainz
         abRemaining = abResponse.rateLimit[0];
         abResetIn = abResponse.rateLimit[1];
+
+        // Get preview URL for track from Deezer
+        try {
+          const response = await fetch(
+            `http://localhost:3000/search_deezer?trackName=${encodeURIComponent(
+              savedTrack.track.name
+            )}&trackArtist=${encodeURIComponent(
+              savedTrack.track.artists[0].name
+            )}`
+          );
+          const data = await response.json();
+          if (data.previewUrl) {
+            // Update track preview url
+            savedTrack.track.preview_url = data.previewUrl;
+            console.log(`Added preview URL for track ${savedTrack.track.id}`);
+          } else {
+            console.warn(
+              `No preview URL found for track ${savedTrack.track.id}`
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching Deezer track:", error);
+        }
 
         // Add track and features to IDB
         try {

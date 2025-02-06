@@ -4,6 +4,7 @@ const cors = require("cors");
 const crypto = require("crypto");
 const axios = require("axios");
 var cookieParser = require("cookie-parser");
+const { searchTrackDeezer } = require("./helpers/deezer");
 const port = 3000;
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -175,6 +176,17 @@ app.get("/refresh_token", async function (req, res) {
       "Something went wrong fetching new access token from Spotify.",
       error
     );
+  }
+});
+
+app.get("/search_deezer", async function (req, res) {
+  const { trackName, trackArtist } = req.query;
+  const previewUrl = await searchTrackDeezer(trackName, trackArtist);
+  if (previewUrl) {
+    console.log(previewUrl);
+    res.json({ previewUrl });
+  } else {
+    res.status(500).json({ error: "Unable to fetch Deezer track preview" });
   }
 });
 

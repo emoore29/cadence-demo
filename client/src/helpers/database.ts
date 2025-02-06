@@ -4,9 +4,7 @@ import {
   StoreName,
   TopTrackObject,
   Track,
-  TrackFeatures,
   TrackObject,
-  TrackStoreName,
 } from "@/types/types";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 

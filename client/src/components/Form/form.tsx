@@ -3,6 +3,7 @@ import {
   fetchTrackABFeatures,
   fetchTrackMBIDandTags,
   MBIDResponseData,
+  searchTrackDeezer,
   syncTracksSavedStatus,
 } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
@@ -27,6 +28,9 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { useState } from "react";
 import CustomFilters from "../CustomFilters/customFilters";
 import styles from "./form.module.css";
+import { getTrackFromStore, setInStore } from "@/helpers/database";
+import SavePlaylistModal from "../SavePlaylist/savePlaylist";
+import { delay } from "@/helpers/indexedDbHelpers";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -85,7 +89,6 @@ export default function Form({
     activeSourceTab: string | null
   ) {
     setHasSearched(true);
-    // Mark playlist and recs as loading so that loading components are displayed
     setLoadingPlaylist(true);
 
     // Search for matching tracks

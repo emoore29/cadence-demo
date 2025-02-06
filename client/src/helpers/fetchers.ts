@@ -15,6 +15,7 @@ import { extractTags, showErrorNotif, showWarnNotif } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
 import { RecordingSearchResult } from "@/types/musicBrainz/recording";
 import { LowLevelFeatures } from "@/types/acousticBrainz/lowlevel";
+import { SearchResult, TrackResult } from "@/types/deezer/search";
 
 // Fetches user data, returns User or null on failure
 export async function fetchUserData(): Promise<User | null> {
@@ -70,6 +71,30 @@ export async function fetchSavedTracks(
     return savedTracks;
   } catch (error) {
     showErrorNotif("Error", "There was an error fetching your saved tracks.");
+    return null;
+  }
+}
+
+export async function searchTrackDeezer(
+  trackName: string,
+  trackArtist: string
+): Promise<string | null> {
+  // Search for a track with name and artist, return preview_url if available
+  try {
+    const res = await axios.get<SearchResult>(
+      `https://api.deezer.com/search?q=artist:"${trackArtist}"track:"${trackName}"`
+    );
+    const numResults: number = res.data.total;
+    if (numResults == 0) {
+      console.warn(
+        `Could not find Deezer track for ${trackName} by ${trackArtist}`
+      );
+      return null;
+    }
+    const preview: string = res.data.data[0].preview;
+    return preview;
+  } catch (error) {
+    console.error(`Error searching for track in Deezer.`, error);
     return null;
   }
 }

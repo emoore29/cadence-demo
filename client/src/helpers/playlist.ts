@@ -46,7 +46,6 @@ export async function filterFromStore(
   try {
     const tracks = await getAllFromStore(storeName);
     for (const track of tracks) {
-      console.log(track);
       const trackFeatures: MetaBrainzFeatures = track.features;
       if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
         console.warn(`${track.track.name} is missing features.`);
@@ -98,10 +97,6 @@ function matches(
   ) {
     return false;
   }
-
-  console.log("filter key", key);
-  console.log("track key", trackFeatures.key[0]);
-  console.log("track mode", trackFeatures.mode);
 
   if (key != "Any" && key != trackFeatures.key[0]) {
     return false;
