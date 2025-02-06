@@ -16,6 +16,8 @@ import { getItemFromLocalStorage } from "./localStorage";
 export async function startSearch(
   formValues: FormValues,
   anyTempo: boolean,
+  halfTime: boolean,
+  doubleTime: boolean,
   activeSourceTab: string | null,
   chosenSeeds?: ChosenSeeds
 ): Promise<Map<string, TrackObject> | null | void> {
@@ -23,10 +25,22 @@ export async function startSearch(
   if (activeSourceTab === "mySpotify") {
     switch (store) {
       case "1":
-        return await filterFromStore("savedTracks", formValues, anyTempo);
+        return await filterFromStore(
+          "savedTracks",
+          formValues,
+          anyTempo,
+          halfTime,
+          doubleTime
+        );
 
       case "2":
-        return await filterFromStore("topTracks", formValues, anyTempo);
+        return await filterFromStore(
+          "topTracks",
+          formValues,
+          anyTempo,
+          halfTime,
+          doubleTime
+        );
 
       default:
         return null;
@@ -39,18 +53,29 @@ export async function startSearch(
 export async function filterFromStore(
   storeName: StoreName,
   formValues: FormValues,
-  anyTempo: boolean
+  anyTempo: boolean,
+  halfTime: boolean,
+  doubleTime: boolean
 ): Promise<Map<string, TrackObject> | null> {
   const matchingTracks = new Map<string, TrackObject>();
 
   try {
     const tracks = await getAllFromStore(storeName);
     for (const track of tracks) {
+      if (track.features.bpm <= 90 && track.features.bpm >= 80) {
+        console.log(track.track.name);
+      }
       const trackFeatures: MetaBrainzFeatures = track.features;
       if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
         console.warn(`${track.track.name} is missing features.`);
       } else {
-        const match: boolean = matches(trackFeatures, formValues, anyTempo);
+        const match: boolean = matches(
+          trackFeatures,
+          formValues,
+          anyTempo,
+          halfTime,
+          doubleTime
+        );
         if (match) {
           // If track features match, add to map with id as key
           matchingTracks.set(track.track.id, track);
@@ -72,15 +97,31 @@ export async function filterFromStore(
 function matches(
   trackFeatures: MetaBrainzFeatures,
   formValues: FormValues,
-  anyTempo: boolean
+  anyTempo: boolean,
+  halfTime: boolean,
+  doubleTime: boolean
 ): boolean {
   const { minTempo, maxTempo, key, mode } = formValues;
 
-  if (
-    !anyTempo &&
-    (trackFeatures.bpm <= minTempo || trackFeatures.bpm >= maxTempo)
-  ) {
-    return false;
+  // Check tempo ranges
+  if (!anyTempo) {
+    const isInActualRange = checkActualRange();
+    const isInHalfTimeRange = halfTime && checkTwinRange(0.5);
+    const isInDoubleTimeRange = doubleTime && checkTwinRange(2);
+
+    // Track passes if it's in the actual range OR in half/double time ranges (if selected)
+    if (!(isInActualRange || isInHalfTimeRange || isInDoubleTimeRange)) {
+      return false;
+    }
+  }
+  function checkActualRange(): boolean {
+    return trackFeatures.bpm >= minTempo && trackFeatures.bpm <= maxTempo;
+  }
+
+  function checkTwinRange(multiple: number): boolean {
+    const minRange = minTempo * multiple;
+    const maxRange = maxTempo * multiple;
+    return trackFeatures.bpm >= minRange && trackFeatures.bpm <= maxRange;
   }
 
   if (key != "Any" && key !== trackFeatures.key) {
@@ -90,8 +131,6 @@ function matches(
   if (mode != "Any" && mode.toLowerCase() !== trackFeatures.mode) {
     return false;
   }
-
-  console.log(trackFeatures.key);
 
   return true;
 }

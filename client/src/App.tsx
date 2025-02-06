@@ -52,15 +52,17 @@ function App() {
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      minTempo: 120,
-      maxTempo: 135,
+      minTempo: 80,
+      maxTempo: 90,
       key: "Any",
       mode: "Any",
       source: "1",
-      target: 5,
+      target: 8,
     },
   });
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
+  const [halfTime, setHalfTime] = useState<boolean>(false);
+  const [doubleTime, setDoubleTime] = useState<boolean>(false);
   const [activeSourceTab, setActiveSourceTab] = useState<string | null>(
     "mySpotify"
   );
@@ -258,7 +260,11 @@ function App() {
           setLoadingPlaylist={setLoadingPlaylist}
           form={form}
           anyTempo={anyTempo}
+          halfTime={halfTime}
+          doubleTime={doubleTime}
           setAnyTempo={setAnyTempo}
+          setHalfTime={setHalfTime}
+          setDoubleTime={setDoubleTime}
         />
         {hasSearched ? (
           <div className={styles.playlistAndRecsContainer}>

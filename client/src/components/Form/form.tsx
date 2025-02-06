@@ -39,7 +39,11 @@ interface FormProps {
   setLoadingPlaylist: React.Dispatch<React.SetStateAction<boolean>>;
   form: UseFormReturnType<FormValues>;
   anyTempo: boolean;
+  halfTime: boolean;
+  doubleTime: boolean;
   setAnyTempo: React.Dispatch<React.SetStateAction<boolean>>;
+  setHalfTime: React.Dispatch<React.SetStateAction<boolean>>;
+  setDoubleTime: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function Form({
@@ -57,7 +61,11 @@ export default function Form({
   setLoadingPlaylist,
   form,
   anyTempo,
+  halfTime,
+  doubleTime,
   setAnyTempo,
+  setHalfTime,
+  setDoubleTime,
 }: FormProps) {
   const [chosenSeeds, setChosenSeeds] = useState<ChosenSeeds>({
     genres: [],
@@ -69,6 +77,8 @@ export default function Form({
   async function handleSubmit(
     values: FormValues,
     anyTempo: boolean,
+    halfTime: boolean,
+    doubleTime: boolean,
     activeSourceTab: string | null
   ) {
     setHasSearched(true);
@@ -78,6 +88,8 @@ export default function Form({
     let matches: Map<string, TrackObject> | null | void = await startSearch(
       values,
       anyTempo,
+      halfTime,
+      doubleTime,
       activeSourceTab,
       chosenSeeds
     );
@@ -176,7 +188,7 @@ export default function Form({
     <form
       className={styles.form}
       onSubmit={form.onSubmit((values) =>
-        handleSubmit(values, anyTempo, activeSourceTab)
+        handleSubmit(values, anyTempo, halfTime, doubleTime, activeSourceTab)
       )}
       onReset={form.onReset}
     >
@@ -278,19 +290,21 @@ export default function Form({
               }}
             />
             <Checkbox
-              checked={anyTempo}
               label="Include half-time"
+              checked={halfTime}
+              disabled={anyTempo}
               onChange={(event) => {
                 const isChecked = event.currentTarget.checked;
-                setAnyTempo(isChecked);
+                setHalfTime(isChecked);
               }}
             />
             <Checkbox
-              checked={anyTempo}
               label="Include double-time"
+              checked={doubleTime}
+              disabled={anyTempo}
               onChange={(event) => {
                 const isChecked = event.currentTarget.checked;
-                setAnyTempo(isChecked);
+                setDoubleTime(isChecked);
               }}
             />
             <div className={styles.bpm}>
