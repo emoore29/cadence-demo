@@ -68,21 +68,6 @@ export async function filterFromStore(
   }
 }
 
-function convertToNumber(level: string): number | null {
-  switch (level) {
-    case "Any":
-      return null;
-    case "Low":
-      return 0.333;
-    case "Medium":
-      return 0.666;
-    case "High":
-      return 1;
-    default:
-      return null;
-  }
-}
-
 // Checks if a given track's features match values requested by the user
 function matches(
   trackFeatures: MetaBrainzFeatures,
@@ -98,13 +83,15 @@ function matches(
     return false;
   }
 
-  if (key != "Any" && key != trackFeatures.key[0]) {
+  if (key != "Any" && key !== trackFeatures.key) {
     return false;
   }
 
-  if (mode != "Any" && mode.toLowerCase() != trackFeatures.mode) {
+  if (mode != "Any" && mode.toLowerCase() !== trackFeatures.mode) {
     return false;
   }
+
+  console.log(trackFeatures.key);
 
   return true;
 }

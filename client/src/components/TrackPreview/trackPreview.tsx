@@ -20,7 +20,6 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
   const [circleOffset, setCircleOffset] = useState<number>(2 * Math.PI * 18);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Get playback context
   const { playingTrackId, setPlayingTrackId } = useContext(PlaybackContext);

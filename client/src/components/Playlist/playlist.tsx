@@ -2,7 +2,7 @@ import { calculatePlaylistTime } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
 import { Button, Group, Menu, Table } from "@mantine/core";
 import { IconDotsVertical } from "@tabler/icons-react";
-import { MutableRefObject, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import SavePlaylistModal from "../SavePlaylist/savePlaylist";
 import TableHead from "../TableHead/tableHead";
 import TrackRow from "../TrackRow/trackRow";

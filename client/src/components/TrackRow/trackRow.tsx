@@ -18,7 +18,6 @@ interface TrackRowProps {
 
 export default function TrackRow({
   pinToPlaylist,
-  listType,
   track,
   handleSaveClick,
   loadingSaveStatusTrackIds,

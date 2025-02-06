@@ -279,7 +279,7 @@ export default function Form({
             />
             <Checkbox
               checked={anyTempo}
-              label="Include doubled BPM"
+              label="Include half-time"
               onChange={(event) => {
                 const isChecked = event.currentTarget.checked;
                 setAnyTempo(isChecked);
@@ -287,7 +287,7 @@ export default function Form({
             />
             <Checkbox
               checked={anyTempo}
-              label="Include halved BPM"
+              label="Include double-time"
               onChange={(event) => {
                 const isChecked = event.currentTarget.checked;
                 setAnyTempo(isChecked);
@@ -322,7 +322,21 @@ export default function Form({
               key={form.key("key")}
               {...form.getInputProps("key")}
               label="Key"
-              data={["Any", "A", "B", "C", "D", "E", "F", "G"]}
+              data={[
+                "Any",
+                "A",
+                "A#",
+                "B",
+                "C",
+                "C#",
+                "D",
+                "D#",
+                "E",
+                "F",
+                "F#",
+                "G",
+                "G#",
+              ]}
               allowDeselect={false}
             />
             <Select

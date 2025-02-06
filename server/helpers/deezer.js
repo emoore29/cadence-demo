@@ -23,7 +23,14 @@ async function searchTrackDeezer(trackName, trackArtist, trackAlbum) {
       previewUrl = result.preview;
       break;
     }
-    return previewUrl;
+    if (previewUrl) {
+      return previewUrl;
+    } else {
+      console.error(
+        "Deezer search results don't match track title and artist."
+      );
+      return null;
+    }
   } catch (error) {
     console.error(`Error searching for track in Deezer.`, error);
     return null;
