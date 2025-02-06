@@ -53,7 +53,7 @@ function App() {
     string[]
   >([]);
   const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({}); // Object with track id references pointing to rendered audio elements
   const [circleOffsets, setCircleOffsets] = useState<Record<string, number>>(
     {}
   ); // Stores time left on each track in playlist
@@ -362,6 +362,7 @@ function App() {
                 playingTrackId={playingTrackId}
                 audioRefs={audioRefs}
                 circleOffsets={circleOffsets}
+                setPlayingTrackId={setPlayingTrackId}
               />
             )}
             {/* {loadingRecs ? (

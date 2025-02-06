@@ -25,6 +25,7 @@ interface PlaylistProps {
   playingTrackId: string;
   audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   circleOffsets: Record<string, number>;
+  setPlayingTrackId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function Playlist({
@@ -38,6 +39,7 @@ export default function Playlist({
   playingTrackId,
   audioRefs,
   circleOffsets,
+  setPlayingTrackId,
 }: PlaylistProps) {
   const [openTrackMenuId, setOpenTrackMenuId] = useState<string>();
   const [openSavePlaylist, setOpenSavePlaylist] = useState(false);
@@ -90,6 +92,7 @@ export default function Playlist({
         handleSaveClick={handleSaveClick}
         loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
         strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5} // Default offset to circumference of circle if not set in state
+        setPlayingTrackId={setPlayingTrackId}
       />
       <Table.Td>
         <Menu

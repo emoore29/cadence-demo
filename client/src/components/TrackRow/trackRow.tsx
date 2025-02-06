@@ -9,7 +9,7 @@ import React from "react";
 import TrackPreview from "../TrackPreview/trackPreview";
 import styles from "./trackRow.module.css";
 
-type TrackRowProps = {
+interface TrackRowProps {
   pinToPlaylist?: (trackId: string) => void;
   listType: string;
   track: TrackObject;
@@ -23,7 +23,8 @@ type TrackRowProps = {
   ) => void;
   loadingSaveStatusTrackIds: string[];
   strokeDashoffset: number;
-};
+  setPlayingTrackId: React.Dispatch<React.SetStateAction<string>>;
+}
 
 export default function TrackRow({
   pinToPlaylist,
@@ -35,6 +36,7 @@ export default function TrackRow({
   handleSaveClick,
   loadingSaveStatusTrackIds,
   strokeDashoffset,
+  setPlayingTrackId,
 }: TrackRowProps) {
   const isMobile = useMediaQuery("(max-width: 50em)");
   return (
@@ -48,6 +50,7 @@ export default function TrackRow({
               playingTrackId={playingTrackId}
               strokeDashoffset={strokeDashoffset}
               playTrackPreview={playTrackPreview}
+              setPlayingTrackId={setPlayingTrackId}
             />
             <img
               src={track.track.album.images[0].url}
