@@ -13,30 +13,20 @@ interface TrackRowProps {
   pinToPlaylist?: (trackId: string) => void;
   listType: string;
   track: TrackObject;
-  audioRefs: React.MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
-  playingTrackId: string | null;
-  playTrackPreview: (id: string) => void;
   handleSaveClick: (
     listType: string,
     trackObj: TrackObject,
     saved: boolean
   ) => void;
   loadingSaveStatusTrackIds: string[];
-  strokeDashoffset: number;
-  setPlayingTrackId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function TrackRow({
   pinToPlaylist,
   listType,
   track,
-  audioRefs,
-  playingTrackId,
-  playTrackPreview,
   handleSaveClick,
   loadingSaveStatusTrackIds,
-  strokeDashoffset,
-  setPlayingTrackId,
 }: TrackRowProps) {
   const isMobile = useMediaQuery("(max-width: 50em)");
   return (
@@ -44,14 +34,7 @@ export default function TrackRow({
       <Table.Td>
         <div className={styles.trackDisplay}>
           <div className={styles.artAndPreview}>
-            <TrackPreview
-              audioRefs={audioRefs}
-              track={track}
-              playingTrackId={playingTrackId}
-              strokeDashoffset={strokeDashoffset}
-              playTrackPreview={playTrackPreview}
-              setPlayingTrackId={setPlayingTrackId}
-            />
+            <TrackPreview track={track} />
             <img
               src={track.track.album.images[0].url}
               alt={`${track.track.album.name} album art`}

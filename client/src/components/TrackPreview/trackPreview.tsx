@@ -7,34 +7,29 @@ import {
   IconPlaylistOff,
 } from "@tabler/icons-react";
 import styles from "./trackPreview.module.css";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { showErrorNotif } from "@/helpers/general";
+import { PlaybackContext } from "@/contexts/trackPreviewContext";
 
 interface TrackPreviewProps {
-  audioRefs: React.MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   track: TrackObject;
-  playingTrackId: string | null;
-  strokeDashoffset: number;
-  playTrackPreview: (id: string) => void;
-  setPlayingTrackId: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function TrackPreview({
-  audioRefs,
-  track,
-  playingTrackId,
-  strokeDashoffset,
-  playTrackPreview,
-  setPlayingTrackId,
-}: TrackPreviewProps) {
+export default function TrackPreview({ track }: TrackPreviewProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [circleOffset, setCircleOffset] = useState<number | null>(null);
+  const [circleOffset, setCircleOffset] = useState<number>(2 * Math.PI * 5);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Get playback context
+  const { playingTrackId, setPlayingTrackId } = useContext(PlaybackContext);
+
+  // Get playing state of this component's track
+  const isPlaying = playingTrackId === track.track.id;
+
   const fetchPreviewUrl = async () => {
-    console.log("fetching preview url");
+    console.log("fetching preview url", track.track.name);
     setIsLoading(true);
     setError(null);
     try {
@@ -92,6 +87,13 @@ export default function TrackPreview({
     return () => audioElement.removeEventListener("timeupdate", updateProgress);
   }, []);
 
+  // Handle when another track starts playing
+  useEffect(() => {
+    if (playingTrackId !== track.track.id && audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [playingTrackId, track.track.id]);
+
   // Handle play/pause
   const handlePlayPause = async () => {
     const audioElement: HTMLAudioElement | null = audioRef.current;
@@ -99,18 +101,12 @@ export default function TrackPreview({
 
     await fetchPreviewUrl();
 
-    if (audioElement.paused) {
-      // Pause any other track that is playing
-      if (playingTrackId && playingTrackId != track.track.id) {
-        console.log(
-          "audio element was paused on click and playing track id does not match"
-        );
-      }
+    if (isPlaying) {
+      audioElement.pause();
+      setPlayingTrackId(null);
+    } else {
       setPlayingTrackId(track.track.id);
       audioElement.play();
-    } else {
-      setPlayingTrackId("");
-      audioElement.pause();
     }
 
     // Attach onended event handler to reset play/pause when track ends
@@ -146,7 +142,7 @@ export default function TrackPreview({
             trackId={track.track.id}
             playingTrackId={playingTrackId}
             size={28}
-            offset={strokeDashoffset}
+            offset={circleOffset}
           />
           <Button
             type="button"

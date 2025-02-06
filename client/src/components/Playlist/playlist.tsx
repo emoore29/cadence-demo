@@ -1,6 +1,6 @@
 import { calculatePlaylistTime } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
-import { Button, Group, Menu, Table, UnstyledButton } from "@mantine/core";
+import { Button, Group, Menu, Table } from "@mantine/core";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { MutableRefObject, useRef, useState } from "react";
 import SavePlaylistModal from "../SavePlaylist/savePlaylist";
@@ -21,11 +21,8 @@ interface PlaylistProps {
     saved: boolean
   ) => void;
   loadingSaveStatusTrackIds: string[];
-  playTrackPreview: (trackId: string) => void;
-  playingTrackId: string;
   audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
   circleOffsets: Record<string, number>;
-  setPlayingTrackId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function Playlist({
@@ -35,11 +32,8 @@ export default function Playlist({
   setPlaylist,
   handleSaveClick,
   loadingSaveStatusTrackIds,
-  playTrackPreview,
-  playingTrackId,
   audioRefs,
   circleOffsets,
-  setPlayingTrackId,
 }: PlaylistProps) {
   const [openTrackMenuId, setOpenTrackMenuId] = useState<string>();
   const [openSavePlaylist, setOpenSavePlaylist] = useState(false);
@@ -86,13 +80,8 @@ export default function Playlist({
         pinToPlaylist={pinToPlaylist}
         listType="Playlist"
         track={track[1]}
-        audioRefs={audioRefs}
-        playingTrackId={playingTrackId}
-        playTrackPreview={playTrackPreview}
         handleSaveClick={handleSaveClick}
         loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-        strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5} // Default offset to circumference of circle if not set in state
-        setPlayingTrackId={setPlayingTrackId}
       />
       <Table.Td>
         <Menu

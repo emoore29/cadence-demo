@@ -27,6 +27,7 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
+import PlaybackProvider from "./components/PlaybackProvider/PlaybackProvider";
 
 function App() {
   const [libSize, setLibSize] = useState<number>(0);
@@ -254,66 +255,6 @@ function App() {
       : showSuccessNotif("", "Added to Liked Songs");
   }
 
-  // Calculates dimensions of track preview circle as duration changes
-  function calculateOffset(timeLeft: number): number {
-    const circumference = 2 * Math.PI * 18;
-    let trackDuration = 29.712653;
-    // Calculate percentage of time left, offset dasharray by that amount.
-    const strokeDashoffset = (timeLeft / trackDuration) * circumference;
-    return strokeDashoffset;
-  }
-
-  // Handles user click on play preview button
-  function playTrackPreview(trackId: string) {
-    const audioElement = audioRefs.current[trackId];
-
-    if (!audioElement) return; // Early return if no audio element found
-    audioElement.volume = 0.3; // Set vol
-
-    // Attach timeupdate event to update circle preview (if one doesn't already exist)
-    if (!audioElement.ontimeupdate) {
-      audioElement.ontimeupdate = () => {
-        // Calculate remaining time in track audio preview
-        const remaining = audioElement.duration - audioElement.currentTime;
-        const offset = calculateOffset(remaining);
-
-        // Calculate offset from `remaining` and add to circleOffsets
-        setCircleOffsets((prev) => ({
-          ...prev,
-          [trackId]: offset,
-        }));
-      };
-    }
-
-    // Attach onended event handler to reset play/pause when track ends
-    if (!audioElement.onended) {
-      audioElement.onended = () => {
-        setPlayingTrackId(""); // remove track id from "playing track" state to reset play btn
-      };
-    }
-
-    // Handle pause/play of tracks
-    if (audioElement.paused) {
-      // Pause any other track that is playing
-      if (playingTrackId && playingTrackId !== trackId) {
-        audioRefs.current[playingTrackId]?.pause();
-      }
-
-      // Recalculate offset for new track being played
-      setCircleOffsets((prev) => ({
-        ...prev,
-        [trackId]: calculateOffset(
-          audioElement.duration - audioElement.currentTime
-        ),
-      }));
-      setPlayingTrackId(trackId);
-      audioElement.play();
-    } else {
-      setPlayingTrackId("");
-      audioElement.pause();
-    }
-  }
-
   return (
     <div className={styles.container}>
       <Header
@@ -351,42 +292,19 @@ function App() {
             {loadingPlaylist ? (
               <LoadingPlaylist targetTracks={5} />
             ) : (
-              <Playlist
-                setMatchingTracks={setMatchingTracks}
-                matchingTracks={matchingTracks}
-                playlist={playlist}
-                setPlaylist={setPlaylist}
-                handleSaveClick={handleSaveClick}
-                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                playTrackPreview={playTrackPreview}
-                playingTrackId={playingTrackId}
-                audioRefs={audioRefs}
-                circleOffsets={circleOffsets}
-                setPlayingTrackId={setPlayingTrackId}
-              />
+              <PlaybackProvider>
+                <Playlist
+                  setMatchingTracks={setMatchingTracks}
+                  matchingTracks={matchingTracks}
+                  playlist={playlist}
+                  setPlaylist={setPlaylist}
+                  handleSaveClick={handleSaveClick}
+                  loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
+                  audioRefs={audioRefs}
+                  circleOffsets={circleOffsets}
+                />
+              </PlaybackProvider>
             )}
-            {/* {loadingRecs ? (
-              <>
-                <h2>Suggestions</h2>
-                <LoadingPlaylist targetTracks={3} />
-              </>
-            ) : (
-              <Recommendations
-                setLoadingRecs={setLoadingRecs}
-                playlist={playlist}
-                setPlaylist={setPlaylist}
-                recommendations={recommendations}
-                setRecommendations={setRecommendations}
-                handleSaveClick={handleSaveClick}
-                loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                playTrackPreview={playTrackPreview}
-                playingTrackId={playingTrackId}
-                audioRefs={audioRefs}
-                circleOffsets={circleOffsets}
-                form={form}
-                anyTempo={anyTempo}
-              />
-            )} */}
           </div>
         ) : (
           <Welcome />
