@@ -187,7 +187,6 @@ app.get("/search_deezer", async function (req, res) {
     trackAlbum
   );
   if (previewUrl) {
-    console.log(previewUrl);
     res.json({ previewUrl });
   } else {
     res.status(500).json({ error: "Unable to fetch Deezer track preview" });

@@ -1,19 +1,15 @@
 import PreviewCircle from "@/components/PreviewCircle/PreviewCircle";
+import { PlaybackContext } from "@/contexts/trackPreviewContext";
+import { showErrorNotif } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
-import { Button, UnstyledButton } from "@mantine/core";
+import { Button, Loader } from "@mantine/core";
 import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
   IconPlaylistOff,
 } from "@tabler/icons-react";
-import styles from "./trackPreview.module.css";
 import { useContext, useEffect, useRef, useState } from "react";
-import { showErrorNotif } from "@/helpers/general";
-import { PlaybackContext } from "@/contexts/trackPreviewContext";
-import {
-  getItemFromLocalStorage,
-  storeDataInLocalStorage,
-} from "@/helpers/localStorage";
+import styles from "./trackPreview.module.css";
 
 interface TrackPreviewProps {
   track: TrackObject;
@@ -34,7 +30,6 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
 
   const fetchPreviewUrl = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const response = await fetch(
         `http://localhost:3000/search_deezer?trackName=${encodeURIComponent(
@@ -44,11 +39,19 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
         )}&trackAlbum=${encodeURIComponent(track.track.album.name)}`
       );
       const data = await response.json();
-      if (data.previewUrl) {
-        setPreviewUrl(data.previewUrl);
-        // Store expiry time
-        const expiry = data.previewUrl.match(/exp=(\d+)/)[1]; // get expiry from url with regex
-        localStorage.setItem(`expiry_${track.track.id}`, expiry);
+      const preview = data.previewUrl;
+      if (preview) {
+        setPreviewUrl(preview);
+        // Store expiry time and preview url
+        const expiry = preview.match(/exp=(\d+)/)[1]; // get expiry from url with regex
+        const previewData: { preview: string; expiry: string } = {
+          preview,
+          expiry,
+        };
+        sessionStorage.setItem(
+          `expiry_${track.track.id}`,
+          JSON.stringify(previewData)
+        );
       } else {
         showErrorNotif(
           "No preview available",
@@ -58,7 +61,7 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
       }
     } catch (error) {
       showErrorNotif(
-        "No preview available",
+        "Network error",
         `Could not retrieve preview for ${track.track.name}`
       );
     }
@@ -105,31 +108,45 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
   // Handle play/pause
   const handlePlayPause = async () => {
     const audioElement: HTMLAudioElement | null = audioRef.current;
-    if (!audioElement) return;
+    if (!audioElement) {
+      console.log("No audio element found");
+      return;
+    }
 
     if (isPlaying) {
       audioElement.pause();
       setPlayingTrackId(null);
     } else {
       // Check if preview has expired before fetching a new preview
-      let expiry: number = 0;
-      const expiryString = getItemFromLocalStorage(`expiry_${track.track.id}`);
-      console.log(expiryString);
-      if (!expiryString) {
-        console.log("No expiry stored");
+      const previewDataString = sessionStorage.getItem(
+        `expiry_${track.track.id}`
+      );
+
+      if (!previewDataString) {
+        console.log("No preview data stored");
         await fetchPreviewUrl();
       } else {
-        expiry = Number(expiryString);
+        const previewData = JSON.parse(previewDataString) as {
+          preview: string;
+          expiry: string;
+        };
+        const expiry: number = Number(previewData.expiry);
+        const previewUrl: string = previewData.preview;
         const now = Math.floor(Date.now() / 1000);
-        console.log("Now, expiry:", now, expiry);
         if (now > expiry) {
-          console.log("Track preview has expired. Fetching new preview");
+          console.warn("Track preview has expired. Fetching new preview");
           await fetchPreviewUrl();
+        } else {
+          setPreviewUrl(previewUrl);
         }
       }
 
       setPlayingTrackId(track.track.id);
-      audioElement.play();
+      try {
+        await audioElement.play();
+      } catch (error) {
+        console.error("Error playing audio:", error);
+      }
     }
 
     // Attach onended event handler to reset play/pause when track ends
@@ -143,7 +160,7 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
   return (
     <div
       className={
-        playingTrackId === track.track.id
+        playingTrackId === track.track.id || isLoading
           ? styles.activeTrackPreviewOverlay
           : styles.trackPreviewOverlay
       }
@@ -176,7 +193,9 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
             }
             onClick={() => handlePlayPause()}
           >
-            {playingTrackId === track.track.id ? (
+            {isLoading ? (
+              <Loader color="white" size={16} />
+            ) : playingTrackId === track.track.id ? (
               <IconPlayerPauseFilled size={16} />
             ) : (
               <IconPlayerPlayFilled size={16} />
