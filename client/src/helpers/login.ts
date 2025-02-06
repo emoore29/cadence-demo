@@ -32,7 +32,6 @@ export function loginOccurred(): boolean {
 
 // Sets and stores login tokens, user data, and library size
 export async function handleLogin(
-  setLibSize: React.Dispatch<React.SetStateAction<number>>,
   setUser: React.Dispatch<React.SetStateAction<User | null>>,
   setEstimatedActions: React.Dispatch<React.SetStateAction<number>>
 ): Promise<void> {
@@ -53,7 +52,6 @@ export async function handleLogin(
     const libSize: number | null = await fetchLibrarySize();
     if (libSize) {
       storeDataInLocalStorage("lib_size", libSize);
-      setLibSize(libSize);
       const estimatedActions = (51 * libSize + 3000) / 50;
       setEstimatedActions(estimatedActions);
     }

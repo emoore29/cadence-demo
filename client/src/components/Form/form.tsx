@@ -1,11 +1,4 @@
-import {
-  ABFeaturesResponse,
-  fetchTrackABFeatures,
-  fetchTrackMBIDandTags,
-  MBIDResponseData,
-  searchTrackDeezer,
-  syncTracksSavedStatus,
-} from "@/helpers/fetchers";
+import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
 import { startSearch } from "@/helpers/playlist";
 import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
@@ -21,16 +14,12 @@ import {
   Radio,
   Select,
   Tabs,
-  Tooltip,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useState } from "react";
 import CustomFilters from "../CustomFilters/customFilters";
 import styles from "./form.module.css";
-import { getTrackFromStore, setInStore } from "@/helpers/database";
-import SavePlaylistModal from "../SavePlaylist/savePlaylist";
-import { delay } from "@/helpers/indexedDbHelpers";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -47,11 +36,7 @@ interface FormProps {
   setMatchingTracks: React.Dispatch<
     React.SetStateAction<Map<string, TrackObject>>
   >;
-  setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject>>
-  >;
   setLoadingPlaylist: React.Dispatch<React.SetStateAction<boolean>>;
-  setLoadingRecs: React.Dispatch<React.SetStateAction<boolean>>;
   form: UseFormReturnType<FormValues>;
   anyTempo: boolean;
   setAnyTempo: React.Dispatch<React.SetStateAction<boolean>>;
@@ -69,9 +54,7 @@ export default function Form({
   playlist,
   setPlaylist,
   setMatchingTracks,
-  setRecommendations,
   setLoadingPlaylist,
-  setLoadingRecs,
   form,
   anyTempo,
   setAnyTempo,
@@ -104,10 +87,8 @@ export default function Form({
         "No tracks could be found that meet that criteria."
       );
       setPlaylist(new Map());
-      setRecommendations(new Map());
       setMatchingTracks(new Map());
       setLoadingPlaylist(false);
-      setLoadingRecs(false);
       return;
     }
 
@@ -153,10 +134,8 @@ export default function Form({
         "No tracks could be found that meet that criteria."
       );
       setPlaylist(new Map());
-      setRecommendations(new Map());
       setMatchingTracks(new Map());
       setLoadingPlaylist(false);
-      setLoadingRecs(false);
       return;
     }
 

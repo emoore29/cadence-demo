@@ -10,6 +10,10 @@ import styles from "./trackPreview.module.css";
 import { useContext, useEffect, useRef, useState } from "react";
 import { showErrorNotif } from "@/helpers/general";
 import { PlaybackContext } from "@/contexts/trackPreviewContext";
+import {
+  getItemFromLocalStorage,
+  storeDataInLocalStorage,
+} from "@/helpers/localStorage";
 
 interface TrackPreviewProps {
   track: TrackObject;
@@ -17,7 +21,7 @@ interface TrackPreviewProps {
 
 export default function TrackPreview({ track }: TrackPreviewProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [circleOffset, setCircleOffset] = useState<number>(2 * Math.PI * 5);
+  const [circleOffset, setCircleOffset] = useState<number>(2 * Math.PI * 18);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,19 +33,22 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
   const isPlaying = playingTrackId === track.track.id;
 
   const fetchPreviewUrl = async () => {
-    console.log("fetching preview url", track.track.name);
     setIsLoading(true);
     setError(null);
     try {
       const response = await fetch(
         `http://localhost:3000/search_deezer?trackName=${encodeURIComponent(
           track.track.name
-        )}&trackArtist=${encodeURIComponent(track.track.artists[0].name)}`
+        )}&trackArtist=${encodeURIComponent(
+          track.track.artists[0].name
+        )}&trackAlbum=${encodeURIComponent(track.track.album.name)}`
       );
       const data = await response.json();
       if (data.previewUrl) {
-        console.log("setting previewurl");
         setPreviewUrl(data.previewUrl);
+        // Store expiry time
+        const expiry = data.previewUrl.match(/exp=(\d+)/)[1]; // get expiry from url with regex
+        localStorage.setItem(`expiry_${track.track.id}`, expiry);
       } else {
         showErrorNotif(
           "No preview available",
@@ -60,7 +67,8 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
 
   // Calculates dimensions of track preview circle as duration changes
   function calculateOffset(timeLeft: number): number {
-    const circumference = 2 * Math.PI * 18; // Based on circle dimensions
+    const radius: number = 18; // Should match radius - strokeWidth in PreviewCircle
+    const circumference = 2 * Math.PI * radius; // Based on circle dimensions
     let trackDuration = 29.712653; // Based on Spotify preview times
 
     // Calculate percentage of time left, offset dasharray by that amount.
@@ -99,12 +107,27 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
     const audioElement: HTMLAudioElement | null = audioRef.current;
     if (!audioElement) return;
 
-    await fetchPreviewUrl();
-
     if (isPlaying) {
       audioElement.pause();
       setPlayingTrackId(null);
     } else {
+      // Check if preview has expired before fetching a new preview
+      let expiry: number = 0;
+      const expiryString = getItemFromLocalStorage(`expiry_${track.track.id}`);
+      console.log(expiryString);
+      if (!expiryString) {
+        console.log("No expiry stored");
+        await fetchPreviewUrl();
+      } else {
+        expiry = Number(expiryString);
+        const now = Math.floor(Date.now() / 1000);
+        console.log("Now, expiry:", now, expiry);
+        if (now > expiry) {
+          console.log("Track preview has expired. Fetching new preview");
+          await fetchPreviewUrl();
+        }
+      }
+
       setPlayingTrackId(track.track.id);
       audioElement.play();
     }

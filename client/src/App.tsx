@@ -1,10 +1,11 @@
 import { useForm } from "@mantine/form";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./App.module.css";
 import Footer from "./components/Footer/footer";
 import Form from "./components/Form/form";
 import Header from "./components/Header/header";
 import LoadingPlaylist from "./components/LoadingPlaylist/loadingPlaylist";
+import PlaybackProvider from "./components/PlaybackProvider/PlaybackProvider";
 import Playlist from "./components/Playlist/playlist";
 import Welcome from "./components/Welcome/welcome";
 import { setUpDatabase } from "./helpers/database";
@@ -27,13 +28,10 @@ import {
 import { handleLogin, loginOccurred } from "./helpers/login";
 import { handleTokens } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
-import PlaybackProvider from "./components/PlaybackProvider/PlaybackProvider";
 
 function App() {
-  const [libSize, setLibSize] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [libraryStored, setLibraryStored] = useState<boolean>(false);
-  const [loadingDemoData, setLoadingDemoData] = useState<boolean>(false);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const [loadingDataProgress, setLoadingDataProgress] = useState<number>(0);
   const [playlist, setPlaylist] = useState<Map<string, TrackObject>>(new Map());
@@ -45,19 +43,12 @@ function App() {
   const [matchingTracks, setMatchingTracks] = useState<
     Map<string, TrackObject>
   >(new Map());
-  const [recommendations, setRecommendations] = useState<
-    Map<string, TrackObject>
-  >(new Map());
+
   const [loadingPlaylist, setLoadingPlaylist] = useState<boolean>(false);
-  const [loadingRecs, setLoadingRecs] = useState<boolean>(false);
   const [loadingSaveStatusTrackIds, setLoadingSaveStatusTrackIds] = useState<
     string[]
   >([]);
-  const [playingTrackId, setPlayingTrackId] = useState<string>(""); // Id of current track being previewed
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({}); // Object with track id references pointing to rendered audio elements
-  const [circleOffsets, setCircleOffsets] = useState<Record<string, number>>(
-    {}
-  ); // Stores time left on each track in playlist
+
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
@@ -94,7 +85,7 @@ function App() {
     async function initialize() {
       // Store tokens, user data and library size on login
       if (loginOccurred()) {
-        handleLogin(setLibSize, setUser, setEstimatedActions);
+        handleLogin(setUser, setEstimatedActions);
         setLibraryStored(wasLibraryStoredInDatabase());
       }
 
@@ -106,7 +97,6 @@ function App() {
         const libSize: number | null = Number(
           getItemFromLocalStorage("lib_size")
         );
-        libSize && setLibSize(libSize);
 
         // Calculate estimated number actions based on user's library size
         const estimatedActions = (51 * libSize + 1050) / 50;
@@ -209,11 +199,7 @@ function App() {
 
   // Updates saved status in Spotify and IDB
   // Adds loading icon while awaiting Spotify API reqs
-  async function handleSaveClick(
-    list: string,
-    trackObj: TrackObject,
-    saved: boolean
-  ) {
+  async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
     console.log("handle save clicked");
     // Add trackId to loading list
     setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]);
@@ -234,16 +220,8 @@ function App() {
     }
 
     // On successful saved status update request,
-    // update track saved status in playlist/recommendations
-    if (list === "Playlist") {
-      setPlaylist((prev) =>
-        updateTrackSavedStatus(prev, trackObj, updateStatus)
-      );
-    } else if (list === "Recommendations") {
-      setRecommendations((prev) =>
-        updateTrackSavedStatus(prev, trackObj, updateStatus)
-      );
-    }
+    // update track saved status in playlist
+    setPlaylist((prev) => updateTrackSavedStatus(prev, trackObj, updateStatus));
 
     setLoadingSaveStatusTrackIds((prevIds) =>
       prevIds.filter((id) => id !== trackObj.track.id)
@@ -259,10 +237,8 @@ function App() {
     <div className={styles.container}>
       <Header
         setPlaylist={setPlaylist}
-        setRecommendations={setRecommendations}
         user={user}
         setUser={setUser}
-        setLibSize={setLibSize}
         setLibraryStored={setLibraryStored}
       />
       <div className={styles.main}>
@@ -279,9 +255,7 @@ function App() {
           setPlaylist={setPlaylist}
           matchingTracks={matchingTracks}
           setMatchingTracks={setMatchingTracks}
-          setRecommendations={setRecommendations}
           setLoadingPlaylist={setLoadingPlaylist}
-          setLoadingRecs={setLoadingRecs}
           form={form}
           anyTempo={anyTempo}
           setAnyTempo={setAnyTempo}
@@ -300,8 +274,6 @@ function App() {
                   setPlaylist={setPlaylist}
                   handleSaveClick={handleSaveClick}
                   loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-                  audioRefs={audioRefs}
-                  circleOffsets={circleOffsets}
                 />
               </PlaybackProvider>
             )}

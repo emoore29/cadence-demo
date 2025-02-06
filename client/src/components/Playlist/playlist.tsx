@@ -15,14 +15,8 @@ interface PlaylistProps {
   matchingTracks: Map<string, TrackObject>;
   playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
-  handleSaveClick: (
-    listType: string,
-    trackObj: TrackObject,
-    saved: boolean
-  ) => void;
+  handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
-  audioRefs: MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
-  circleOffsets: Record<string, number>;
 }
 
 export default function Playlist({
@@ -32,8 +26,6 @@ export default function Playlist({
   setPlaylist,
   handleSaveClick,
   loadingSaveStatusTrackIds,
-  audioRefs,
-  circleOffsets,
 }: PlaylistProps) {
   const [openTrackMenuId, setOpenTrackMenuId] = useState<string>();
   const [openSavePlaylist, setOpenSavePlaylist] = useState(false);

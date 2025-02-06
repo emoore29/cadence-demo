@@ -180,8 +180,12 @@ app.get("/refresh_token", async function (req, res) {
 });
 
 app.get("/search_deezer", async function (req, res) {
-  const { trackName, trackArtist } = req.query;
-  const previewUrl = await searchTrackDeezer(trackName, trackArtist);
+  const { trackName, trackArtist, trackAlbum } = req.query;
+  const previewUrl = await searchTrackDeezer(
+    trackName,
+    trackArtist,
+    trackAlbum
+  );
   if (previewUrl) {
     console.log(previewUrl);
     res.json({ previewUrl });
