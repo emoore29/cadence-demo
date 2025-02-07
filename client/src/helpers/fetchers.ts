@@ -61,8 +61,8 @@ export async function fetchSavedTracks(
   let savedTracks: SavedTrack[] = [];
   let nextUrl = "https://api.spotify.com/v1/me/tracks?limit=50";
   try {
-    // Total limit is 200 to prevent extremely long load times
-    while (nextUrl && savedTracks.length < 200) {
+    // Total limit is 1000 to prevent extremely long load times
+    while (nextUrl && savedTracks.length < 1000) {
       const res = await axios.get<Library>(nextUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });

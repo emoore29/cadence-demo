@@ -1,6 +1,5 @@
 import { getAllFromStore } from "@/helpers/database";
 import {
-  ChosenSeeds,
   FormValues,
   MetaBrainzFeatures,
   PlaylistData,
@@ -13,31 +12,33 @@ import { getItemFromLocalStorage } from "./localStorage";
 
 export async function startSearch(
   formValues: FormValues,
+  source: string,
   anyTempo: boolean,
   halfTime: boolean,
   doubleTime: boolean,
   activeSourceTab: string | null,
-  chosenSeeds?: ChosenSeeds
+  chosenTags: string[]
 ): Promise<Map<string, TrackObject> | null | void> {
-  const store: string = formValues.source;
   if (activeSourceTab === "mySpotify") {
-    switch (store) {
-      case "1":
+    switch (source) {
+      case "savedTracks":
         return await filterFromStore(
           "savedTracks",
           formValues,
           anyTempo,
           halfTime,
-          doubleTime
+          doubleTime,
+          chosenTags
         );
 
-      case "2":
+      case "topTracks":
         return await filterFromStore(
           "topTracks",
           formValues,
           anyTempo,
           halfTime,
-          doubleTime
+          doubleTime,
+          chosenTags
         );
 
       default:
@@ -53,7 +54,8 @@ export async function filterFromStore(
   formValues: FormValues,
   anyTempo: boolean,
   halfTime: boolean,
-  doubleTime: boolean
+  doubleTime: boolean,
+  chosenTags: string[]
 ): Promise<Map<string, TrackObject> | null> {
   const matchingTracks = new Map<string, TrackObject>();
 
@@ -69,7 +71,8 @@ export async function filterFromStore(
           formValues,
           anyTempo,
           halfTime,
-          doubleTime
+          doubleTime,
+          chosenTags
         );
         if (match) {
           // If track features match, add to map with id as key
@@ -94,7 +97,8 @@ function matches(
   formValues: FormValues,
   anyTempo: boolean,
   halfTime: boolean,
-  doubleTime: boolean
+  doubleTime: boolean,
+  chosenTags: string[]
 ): boolean {
   const {
     minTempo,
@@ -112,6 +116,8 @@ function matches(
     sad,
     timbre,
   } = formValues;
+
+  console.log("chosen tags", chosenTags);
 
   // Check tempo ranges
   if (!anyTempo) {
@@ -161,6 +167,14 @@ function matches(
       convertToSnakeCase(eval(key)) !== trackFeatures[key]
     ) {
       return false;
+    }
+  }
+
+  if (chosenTags) {
+    for (const chosenTag of chosenTags) {
+      if (!trackFeatures.tags.includes(chosenTag)) {
+        return false;
+      }
     }
   }
 

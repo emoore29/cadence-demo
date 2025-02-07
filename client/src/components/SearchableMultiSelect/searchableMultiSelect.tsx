@@ -15,12 +15,12 @@ import React, { useState } from "react";
 
 interface SearchableMultiSelectProps {
   data: string[];
-  setChosenSeeds: React.Dispatch<React.SetStateAction<ChosenSeeds>>;
+  setChosenItems: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export function SearchableMultiSelect({
   data,
-  setChosenSeeds,
+  setChosenItems,
 }: SearchableMultiSelectProps) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -38,26 +38,22 @@ export function SearchableMultiSelect({
         ? current.filter((v) => v !== val)
         : [...current, val]
     );
-    setChosenSeeds((prev) => ({
-      ...prev,
-      genres: [...prev.genres, val],
-    }));
+    setChosenItems((prev) => [...prev, val]);
   }
 
   const handleValueRemove = (val: string) => {
     setSelectedValues((current) => current.filter((v) => v !== val));
-    setChosenSeeds((prev) => ({
-      ...prev,
-      genres: prev.genres.filter((v) => v !== val),
-    }));
+    setChosenItems((prev) => prev.filter((v) => v !== val));
   };
 
+  // Chosen values
   const values = selectedValues.map((item) => (
     <Pill key={item} withRemoveButton onRemove={() => handleValueRemove(item)}>
       {item}
     </Pill>
   ));
 
+  // Options to choose from
   const options = data
     .filter((item) => item.toLowerCase().includes(search.trim().toLowerCase()))
     .map((item) => (
@@ -83,13 +79,12 @@ export function SearchableMultiSelect({
         <PillsInput onClick={() => combobox.openDropdown()}>
           <Pill.Group>
             {values}
-
             <Combobox.EventsTarget>
               <PillsInput.Field
                 onFocus={() => combobox.openDropdown()}
                 onBlur={() => combobox.closeDropdown()}
                 value={search}
-                placeholder="Search genres"
+                placeholder="Search tags"
                 onChange={(event) => {
                   combobox.updateSelectedOptionIndex();
                   setSearch(event.currentTarget.value);
@@ -107,7 +102,6 @@ export function SearchableMultiSelect({
           </Pill.Group>
         </PillsInput>
       </Combobox.DropdownTarget>
-
       <Combobox.Dropdown>
         <Combobox.Options>
           <ScrollArea.Autosize mah={200} type="scroll">

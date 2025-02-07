@@ -1,7 +1,8 @@
+import { getAllFromStore } from "@/helpers/database";
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
 import { startSearch } from "@/helpers/playlist";
-import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
+import { FormValues, TopTrackObject, TrackObject } from "@/types/types";
 import {
   Accordion,
   Alert,
@@ -17,9 +18,13 @@ import {
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
-import { useState } from "react";
-import CustomFilters from "../CustomFilters/customFilters";
+import { useEffect, useState } from "react";
+import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
+import {
+  getItemFromLocalStorage,
+  storeDataInLocalStorage,
+} from "@/helpers/localStorage";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -67,18 +72,68 @@ export default function Form({
   setHalfTime,
   setDoubleTime,
 }: FormProps) {
-  const [chosenSeeds, setChosenSeeds] = useState<ChosenSeeds>({
-    genres: [],
-    tracks: [],
-    artists: [],
-  });
+  const [chosenTags, setChosenTags] = useState<string[]>([]);
+  const [savedTrackTags, setSavedTrackTags] = useState<string[]>([]);
+  const [topTrackTags, setTopTrackTags] = useState<string[]>([]);
+  const [source, setSource] = useState<string>("savedTracks");
   const icon = <IconInfoCircle />;
+
+  // Get tags from IDB
+  async function getTags() {
+    // Check if tags are already in local storage
+    const storedSavedTrackTags = JSON.parse(
+      getItemFromLocalStorage("savedTrackTags") || "[]"
+    );
+    const storedTopTrackTags = JSON.parse(
+      getItemFromLocalStorage("topTrackTags") || "[]"
+    );
+
+    // If tags are stored use those instead of fetching
+    if (source === "savedTracks" && storedSavedTrackTags.length > 0) {
+      setSavedTrackTags(storedSavedTrackTags);
+      return;
+    }
+
+    if (source === "topTracks" && storedTopTrackTags.length > 0) {
+      setTopTrackTags(storedTopTrackTags);
+      return;
+    }
+
+    // If tags are not stored, fetch from IDB
+    const tags: string[] = [];
+    const tracks: TrackObject[] | TopTrackObject[] = await getAllFromStore(
+      source as "savedTracks" | "topTracks"
+    );
+
+    for (const track of tracks) {
+      const trackTags: string[] = track.features.tags;
+      for (const trackTag of trackTags) {
+        if (!tags.includes(trackTag)) {
+          tags.push(trackTag);
+        }
+      }
+    }
+
+    // Store and set the new tags
+    if (source === "topTracks") {
+      localStorage.setItem("topTrackTags", JSON.stringify(tags));
+      setTopTrackTags(tags);
+    } else {
+      localStorage.setItem("savedTrackTags", JSON.stringify(tags));
+      setSavedTrackTags(tags);
+    }
+  }
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      await getTags();
+    };
+
+    fetchTags();
+  }, [source]);
 
   async function handleSubmit(
     values: FormValues,
-    anyTempo: boolean,
-    halfTime: boolean,
-    doubleTime: boolean,
     activeSourceTab: string | null
   ) {
     setHasSearched(true);
@@ -87,11 +142,12 @@ export default function Form({
     // Search for matching tracks
     let matches: Map<string, TrackObject> | null | void = await startSearch(
       values,
+      source,
       anyTempo,
       halfTime,
       doubleTime,
       activeSourceTab,
-      chosenSeeds
+      chosenTags
     );
     if (!matches) {
       showWarnNotif(
@@ -201,7 +257,7 @@ export default function Form({
     <form
       className={styles.form}
       onSubmit={form.onSubmit((values) =>
-        handleSubmit(values, anyTempo, halfTime, doubleTime, activeSourceTab)
+        handleSubmit(values, activeSourceTab)
       )}
       onReset={form.onReset}
     >
@@ -217,7 +273,6 @@ export default function Form({
             >
               <Tabs.List>
                 <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
-                <Tabs.Tab value="custom">Custom</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
                 {!libraryStored ? (
@@ -257,23 +312,25 @@ export default function Form({
                   </div>
                 ) : (
                   <Radio.Group
+                    value={source}
+                    onChange={setSource}
                     name="source"
                     label="Track Source"
-                    {...form.getInputProps("source")}
                   >
                     <Group className={styles.source}>
                       <Radio
-                        value={"1"}
+                        value="savedTracks"
                         icon={CheckIcon}
                         label="Saved Tracks"
                       />
-                      <Radio value={"2"} icon={CheckIcon} label="Top Tracks" />
+                      <Radio
+                        icon={CheckIcon}
+                        label="Top Tracks"
+                        value="topTracks"
+                      />
                     </Group>
                   </Radio.Group>
                 )}
-              </Tabs.Panel>
-              <Tabs.Panel value="custom">
-                <CustomFilters setChosenSeeds={setChosenSeeds} />
               </Tabs.Panel>
             </Tabs>
           </Accordion.Panel>
@@ -378,7 +435,10 @@ export default function Form({
         <Accordion.Item value="Tags">
           <Accordion.Control>Tags</Accordion.Control>
           <Accordion.Panel>
-            <p>Tags input</p>
+            <SearchableMultiSelect
+              data={source == "savedTracks" ? savedTrackTags : topTrackTags}
+              setChosenItems={setChosenTags}
+            />
           </Accordion.Panel>
         </Accordion.Item>
         <Accordion.Item value="Advanced">

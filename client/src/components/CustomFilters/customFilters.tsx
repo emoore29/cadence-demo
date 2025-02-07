@@ -67,7 +67,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
           </p>
           <SearchableMultiSelect
             data={availableGenreSeeds}
-            setChosenSeeds={setChosenSeeds}
+            setChosenItems={setChosenSeeds}
           />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
