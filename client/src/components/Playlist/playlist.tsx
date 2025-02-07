@@ -7,6 +7,7 @@ import SavePlaylistModal from "../SavePlaylist/savePlaylist";
 import TableHead from "../TableHead/tableHead";
 import TrackRow from "../TrackRow/trackRow";
 import styles from "./playlist.module.css";
+import { useMediaQuery } from "@mantine/hooks";
 
 interface PlaylistProps {
   setMatchingTracks: React.Dispatch<
@@ -108,6 +109,19 @@ export default function Playlist({
             >
               {track[1].pinned ? "Unpin" : "Pin"}
             </Menu.Item>
+            {/*TODO <Menu.Item
+              color="rgba(255,255,255,0.8)"
+              onClick={() => console.log("opening features modal")}
+            >
+              View features
+            </Menu.Item>
+
+            <Menu.Item
+              color="rgba(255,255,255,0.8)"
+              onClick={() => console.log("playing track preview")}
+            >
+              Play track preview
+            </Menu.Item> */}
           </Menu.Dropdown>
         </Menu>
       </Table.Td>

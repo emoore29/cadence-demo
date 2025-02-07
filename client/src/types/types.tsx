@@ -300,7 +300,11 @@ export interface TrackObject {
   pinned?: boolean;
 }
 
-export type StoreName = "savedTracks" | "topArtists" | "topTracks";
+export type StoreName =
+  | "savedTracks"
+  | "topArtists"
+  | "topTracks"
+  | "playlists";
 
 export type TrackStoreName = "savedTracks" | "topTracks";
 

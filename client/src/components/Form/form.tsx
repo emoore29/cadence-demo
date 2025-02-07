@@ -1,6 +1,7 @@
-import { getAllFromStore } from "@/helpers/database";
+import { getAllFromStore, MyDB } from "@/helpers/database";
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
+import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { startSearch } from "@/helpers/playlist";
 import { FormValues, TopTrackObject, TrackObject } from "@/types/types";
 import {
@@ -15,16 +16,14 @@ import {
   Radio,
   Select,
   Tabs,
+  TextInput,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
-import {
-  getItemFromLocalStorage,
-  storeDataInLocalStorage,
-} from "@/helpers/localStorage";
+import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -76,6 +75,7 @@ export default function Form({
   const [savedTrackTags, setSavedTrackTags] = useState<string[]>([]);
   const [topTrackTags, setTopTrackTags] = useState<string[]>([]);
   const [source, setSource] = useState<string>("savedTracks");
+  const [playlistId, setPlaylistId] = useState("00UGQ9i3F31ijEz6lCKS81");
   const icon = <IconInfoCircle />;
 
   // Get tags from IDB
@@ -253,6 +253,27 @@ export default function Form({
     timbre: ["Any", "Bright", "Dark"],
   };
 
+  async function loadPlaylistData() {
+    console.log("loading playlist data");
+    // Store exists
+    // Fetch playlist data from Spotify
+    const accessToken: string | null = getItemFromLocalStorage("access_token");
+    if (!accessToken) return null;
+    try {
+      const response = await fetch(
+        `http://localhost:3000/playlist?playlistId=${encodeURIComponent(
+          playlistId
+        )}&accessToken=${accessToken}`
+      );
+      const data = await response.json();
+      console.log(data.playlistResponse);
+    } catch (error) {
+      console.log("Error getting spotify playlist");
+    }
+
+    // Store playlist name with tracks + get features from MetaBrainz
+  }
+
   return (
     <form
       className={styles.form}
@@ -273,6 +294,7 @@ export default function Form({
             >
               <Tabs.List>
                 <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
+                <Tabs.Tab value="publicPlaylist">Public Playlist</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
                 {!libraryStored ? (
@@ -331,6 +353,16 @@ export default function Form({
                     </Group>
                   </Radio.Group>
                 )}
+              </Tabs.Panel>
+              <Tabs.Panel value="publicPlaylist">
+                <TextInput
+                  label="Playlist id"
+                  value={playlistId}
+                  onChange={(event) => setPlaylistId(event.currentTarget.value)}
+                />
+                <Button onClick={() => loadPlaylistData()}>
+                  Load playlist data
+                </Button>
               </Tabs.Panel>
             </Tabs>
           </Accordion.Panel>

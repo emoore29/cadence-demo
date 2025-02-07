@@ -7,6 +7,7 @@ var cookieParser = require("cookie-parser");
 const { searchTrackDeezer } = require("./helpers/deezer");
 const { fetchFeatures } = require("./helpers/acousticBrainz");
 const { features } = require("process");
+const { fetchPlaylist } = require("./helpers/spotify");
 const port = 3000;
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -204,6 +205,18 @@ app.get("/features", async function (req, res) {
     res.json({ featuresResponse });
   } else {
     res.status(500).json({ error: `Unable to fetch track features (${mbid})` });
+  }
+});
+
+app.get("/playlist", async function (req, res) {
+  const { playlistId, accessToken } = req.query;
+
+  const playlistResponse = await fetchPlaylist(playlistId, accessToken);
+
+  if (playlistResponse) {
+    res.json({ playlistResponse });
+  } else {
+    res.status(500).json({ error: `Unable to fetch playlist data` });
   }
 });
 

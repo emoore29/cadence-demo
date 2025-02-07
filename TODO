@@ -3,7 +3,6 @@ Basic Features:
 - Update IDB library based on Spotify library (check and add new saved tracks utilising date added)
 - Accessible track preview on mobile / keyboard, keyboard accessible tracks source tabs, etc
 - View track features modal
-- Advanced filters: tags, danceability, gender, acoustic, aggressive, electronic, happy, party, relaxed/not relaxed, sad/not sad, timbre - bright/dark,
 - Guest "login" to test features on a public Spotify playlist
 
 Bugs?:
