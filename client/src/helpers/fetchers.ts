@@ -61,7 +61,8 @@ export async function fetchSavedTracks(
   let savedTracks: SavedTrack[] = [];
   let nextUrl = "https://api.spotify.com/v1/me/tracks?limit=50";
   try {
-    while (nextUrl) {
+    // Total limit is 200 to prevent extremely long load times
+    while (nextUrl && savedTracks.length < 200) {
       const res = await axios.get<Library>(nextUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -149,74 +150,25 @@ export async function fetchTrackMBIDandTags(
 export async function fetchFeatures(
   mbid: string
 ): Promise<FeaturesResponse | null> {
-  let lowLevelRemaining: number = 0;
-  let lowLevelResetIn: number = 0;
-  let highLevelRemaining: number = 0;
-  let highLevelResetIn: number = 0;
-  let lowLevel;
-  let highLevel;
-
   try {
-    const res = await axios.get<LowLevelRes>(
-      `https://acousticbrainz.org/api/v1/${mbid}/low-level`
+    const response = await fetch(
+      `http://localhost:3000/features?mbid=${encodeURIComponent(mbid)}`
     );
-
-    // AcousticBrainz uses lower case for the rate limit headers
-    lowLevelRemaining = res.headers["x-ratelimit-remaining"];
-    lowLevelResetIn = res.headers["x-ratelimit-reset-in"];
-
-    lowLevel = {
-      bpm: res.data.rhythm.bpm,
-      key: res.data.tonal.key_key,
-      mode: res.data.tonal.key_scale,
-    };
+    const data = await response.json();
+    const featuresResponse: FeaturesResponse = data.featuresResponse;
+    if (featuresResponse) {
+      return featuresResponse;
+    } else {
+      console.warn("No features response from server");
+      return null;
+    }
   } catch (error) {
-    console.warn(
-      `Could not fetch low level features for track: ${mbid} (mbid)`
+    showErrorNotif(
+      "Network error",
+      `Could not retrieve track features (${mbid})`
     );
     return null;
   }
-
-  try {
-    const res = await axios.get<HighLevelRes>(
-      `https://acousticbrainz.org/api/v1/${mbid}/high-level`
-    );
-
-    // AcousticBrainz uses lower case for the rate limit headers
-    highLevelRemaining = res.headers["x-ratelimit-remaining"];
-    highLevelResetIn = res.headers["x-ratelimit-reset-in"];
-
-    const data: Highlevel = res.data.highlevel;
-    highLevel = {
-      danceability: data.danceability.value,
-      gender: data.gender.value,
-      acoustic: data.mood_acoustic.value,
-      aggressive: data.mood_aggressive.value,
-      electronic: data.mood_electronic.value,
-      happy: data.mood_happy.value,
-      party: data.mood_party.value,
-      relaxed: data.mood_relaxed.value,
-      sad: data.mood_sad.value,
-      timbre: data.timbre.value,
-    };
-  } catch (error) {
-    console.warn(`Could not fetch features for track: ${mbid} (mbid)`);
-    return null;
-  }
-
-  // Combine high and low level features
-  const features: FeaturesResponse = {
-    rateLimit: [
-      Math.min(lowLevelRemaining, highLevelRemaining),
-      Math.max(lowLevelResetIn, highLevelResetIn),
-    ],
-    data: {
-      ...lowLevel,
-      ...highLevel,
-    },
-  };
-
-  return features;
 }
 
 // Fetches user's top 500 tracks from last 12 months

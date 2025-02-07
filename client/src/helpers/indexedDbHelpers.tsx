@@ -123,7 +123,7 @@ export async function storeTopTracksData(
         } catch (error) {
           showErrorNotif(
             "Error",
-            `Could not store track in IDB (${topTrack.id})`
+            `Failed to store track in IDB (${topTrack.id})`
           );
           success = false;
         }

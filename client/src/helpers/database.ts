@@ -1,6 +1,6 @@
 import {
-  AcousticBrainzFeatures,
   Artist,
+  MetaBrainzFeatures,
   StoreName,
   TopTrackObject,
   Track,
@@ -15,7 +15,7 @@ interface MyDB extends DBSchema {
     key: string; // track id
     value: {
       track: Track;
-      features: AcousticBrainzFeatures;
+      features: MetaBrainzFeatures;
     };
   };
   topArtists: {
@@ -26,7 +26,7 @@ interface MyDB extends DBSchema {
     key: string; // track id
     value: {
       track: Track;
-      features: AcousticBrainzFeatures;
+      features: MetaBrainzFeatures;
       order: number;
     };
   };

@@ -5,6 +5,8 @@ const crypto = require("crypto");
 const axios = require("axios");
 var cookieParser = require("cookie-parser");
 const { searchTrackDeezer } = require("./helpers/deezer");
+const { fetchFeatures } = require("./helpers/acousticBrainz");
+const { features } = require("process");
 const port = 3000;
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -190,6 +192,18 @@ app.get("/search_deezer", async function (req, res) {
     res.json({ previewUrl });
   } else {
     res.status(500).json({ error: "Unable to fetch Deezer track preview" });
+  }
+});
+
+app.get("/features", async function (req, res) {
+  const { mbid } = req.query;
+
+  const featuresResponse = await fetchFeatures(mbid);
+
+  if (featuresResponse) {
+    res.json({ featuresResponse });
+  } else {
+    res.status(500).json({ error: `Unable to fetch track features (${mbid})` });
   }
 });
 
