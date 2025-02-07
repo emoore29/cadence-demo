@@ -1,8 +1,12 @@
+import { Highlevel, HighLevelRes } from "@/types/acousticBrainz/highlevel";
+import { LowLevelRes } from "@/types/acousticBrainz/lowlevel";
+import { SearchResult } from "@/types/deezer/search";
+import { RecordingSearchResult } from "@/types/musicBrainz/recording";
 import axios from "axios";
 import { chunk } from "lodash";
 import {
-  AcousticBrainzFeatures,
   Artist,
+  FeaturesResponse,
   Library,
   SavedTrack,
   TopTracks,
@@ -13,9 +17,6 @@ import {
 import { deleteFromStore, setInStore } from "./database";
 import { extractTags, showErrorNotif, showWarnNotif } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
-import { RecordingSearchResult } from "@/types/musicBrainz/recording";
-import { LowLevelFeatures } from "@/types/acousticBrainz/lowlevel";
-import { SearchResult, TrackResult } from "@/types/deezer/search";
 
 // Fetches user data, returns User or null on failure
 export async function fetchUserData(): Promise<User | null> {
@@ -145,35 +146,77 @@ export async function fetchTrackMBIDandTags(
   }
 }
 
-export interface ABFeaturesResponse {
-  rateLimit: number[];
-  data: AcousticBrainzFeatures;
-}
-
-export async function fetchTrackABFeatures(
+export async function fetchFeatures(
   mbid: string
-): Promise<ABFeaturesResponse | null> {
+): Promise<FeaturesResponse | null> {
+  let lowLevelRemaining: number = 0;
+  let lowLevelResetIn: number = 0;
+  let highLevelRemaining: number = 0;
+  let highLevelResetIn: number = 0;
+  let lowLevel;
+  let highLevel;
+
   try {
-    const res = await axios.get<LowLevelFeatures>(
+    const res = await axios.get<LowLevelRes>(
       `https://acousticbrainz.org/api/v1/${mbid}/low-level`
     );
 
-    const bpm = res.data.rhythm.bpm;
-    const key = res.data.tonal.key_key;
-    const mode = res.data.tonal.key_scale;
-    const headersObj = res.headers;
     // AcousticBrainz uses lower case for the rate limit headers
-    const remaining = headersObj["x-ratelimit-remaining"];
-    const resetIn = headersObj["x-ratelimit-reset-in"];
+    lowLevelRemaining = res.headers["x-ratelimit-remaining"];
+    lowLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
-    return {
-      rateLimit: [remaining, resetIn],
-      data: { bpm, key, mode },
+    lowLevel = {
+      bpm: res.data.rhythm.bpm,
+      key: res.data.tonal.key_key,
+      mode: res.data.tonal.key_scale,
     };
   } catch (error) {
-    console.warn(`Could not fetch features for track MBID: ${mbid}`);
+    console.warn(
+      `Could not fetch low level features for track: ${mbid} (mbid)`
+    );
     return null;
   }
+
+  try {
+    const res = await axios.get<HighLevelRes>(
+      `https://acousticbrainz.org/api/v1/${mbid}/high-level`
+    );
+
+    // AcousticBrainz uses lower case for the rate limit headers
+    highLevelRemaining = res.headers["x-ratelimit-remaining"];
+    highLevelResetIn = res.headers["x-ratelimit-reset-in"];
+
+    const data: Highlevel = res.data.highlevel;
+    highLevel = {
+      danceability: data.danceability.value,
+      gender: data.gender.value,
+      acoustic: data.mood_acoustic.value,
+      aggressive: data.mood_aggressive.value,
+      electronic: data.mood_electronic.value,
+      happy: data.mood_happy.value,
+      party: data.mood_party.value,
+      relaxed: data.mood_relaxed.value,
+      sad: data.mood_sad.value,
+      timbre: data.timbre.value,
+    };
+  } catch (error) {
+    console.warn(`Could not fetch features for track: ${mbid} (mbid)`);
+    return null;
+  }
+
+  // Combine high and low level features
+  const features: FeaturesResponse = {
+    rateLimit: [
+      Math.min(lowLevelRemaining, highLevelRemaining),
+      Math.max(lowLevelResetIn, highLevelResetIn),
+    ],
+    data: {
+      ...lowLevel,
+      ...highLevel,
+    },
+  };
+
+  return features;
 }
 
 // Fetches user's top 500 tracks from last 12 months

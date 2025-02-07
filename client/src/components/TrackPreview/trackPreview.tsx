@@ -108,7 +108,7 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
   const handlePlayPause = async () => {
     const audioElement: HTMLAudioElement | null = audioRef.current;
     if (!audioElement) {
-      console.log("No audio element found");
+      console.warn("No audio element found");
       return;
     }
 
@@ -122,7 +122,6 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
       );
 
       if (!previewDataString) {
-        console.log("No preview data stored");
         await fetchPreviewUrl();
       } else {
         const previewData = JSON.parse(previewDataString) as {

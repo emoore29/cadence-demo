@@ -1,6 +1,8 @@
 import {
-  AcousticBrainzFeatures,
   Artist,
+  FeaturesResponse,
+  HighLevelFeatures,
+  LowLevelFeatures,
   MetaBrainzFeatures,
   SavedTrack,
   StoredTrack,
@@ -8,11 +10,10 @@ import {
 } from "@/types/types";
 import { getAllFromStore, setInStore } from "./database";
 import {
-  ABFeaturesResponse,
+  fetchFeatures,
   fetchSavedTracks,
   fetchTopArtists,
   fetchTopTracks,
-  fetchTrackABFeatures,
   fetchTrackMBIDandTags,
   MBIDResponseData,
 } from "./fetchers";
@@ -94,21 +95,22 @@ export async function storeTopTracksData(
       const tags: string[] = mbResponse.data[1];
 
       // Fetch AcousticBrainz features for track
-      const abResponse: ABFeaturesResponse | null = await fetchTrackABFeatures(
+      const featuresResponse: FeaturesResponse | null = await fetchFeatures(
         mbid
       );
 
       // If features available, store in IDB
-      if (abResponse) {
-        const abFeatures: AcousticBrainzFeatures = abResponse.data;
+      if (featuresResponse) {
+        const abFeatures: LowLevelFeatures & HighLevelFeatures =
+          featuresResponse.data;
         const mbFeatures: MetaBrainzFeatures = {
           ...abFeatures,
           tags,
         };
 
         // Note rate limit for AcousticBrainz
-        abRemaining = abResponse.rateLimit[0];
-        abResetIn = abResponse.rateLimit[1];
+        abRemaining = featuresResponse.rateLimit[0];
+        abResetIn = featuresResponse.rateLimit[1];
 
         try {
           await setInStore("topTracks", {
@@ -204,44 +206,22 @@ export async function storeSavedTracksData(
       const tags: string[] = mbResponse.data[1];
 
       // Fetch AcousticBrainz features for track
-      const abResponse: ABFeaturesResponse | null = await fetchTrackABFeatures(
+      const featuresResponse: FeaturesResponse | null = await fetchFeatures(
         mbid
       );
 
-      if (abResponse) {
-        const abFeatures: AcousticBrainzFeatures = abResponse.data;
+      if (featuresResponse) {
+        const features: LowLevelFeatures & HighLevelFeatures =
+          featuresResponse.data;
         // Relevant data
         const mbFeatures: MetaBrainzFeatures = {
-          ...abFeatures,
+          ...features,
           tags,
         };
 
         // Note rate limit for AcousticBrainz
-        abRemaining = abResponse.rateLimit[0];
-        abResetIn = abResponse.rateLimit[1];
-
-        // Get preview URL for track from Deezer
-        try {
-          const response = await fetch(
-            `http://localhost:3000/search_deezer?trackName=${encodeURIComponent(
-              savedTrack.track.name
-            )}&trackArtist=${encodeURIComponent(
-              savedTrack.track.artists[0].name
-            )}`
-          );
-          const data = await response.json();
-          if (data.previewUrl) {
-            // Update track preview url
-            savedTrack.track.preview_url = data.previewUrl;
-            console.log(`Added preview URL for track ${savedTrack.track.id}`);
-          } else {
-            console.warn(
-              `No preview URL found for track ${savedTrack.track.id}`
-            );
-          }
-        } catch (error) {
-          console.error("Error fetching Deezer track:", error);
-        }
+        abRemaining = featuresResponse.rateLimit[0];
+        abResetIn = featuresResponse.rateLimit[1];
 
         // Add track and features to IDB
         try {

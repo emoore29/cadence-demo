@@ -138,10 +138,28 @@ export interface TrackFeatures {
   valence: number;
 }
 
-export interface AcousticBrainzFeatures {
+export interface FeaturesResponse {
+  rateLimit: number[];
+  data: LowLevelFeatures & HighLevelFeatures;
+}
+
+export interface LowLevelFeatures {
   bpm: number;
   key: string;
   mode: string;
+}
+
+export interface HighLevelFeatures {
+  danceability: string;
+  gender: string;
+  acoustic: string;
+  aggressive: string;
+  electronic: string;
+  happy: string;
+  party: string;
+  relaxed: string;
+  sad: string;
+  timbre: string;
 }
 
 export interface MetaBrainzFeatures {
@@ -149,6 +167,16 @@ export interface MetaBrainzFeatures {
   bpm: number;
   key: string;
   mode: string;
+  danceability: string;
+  gender: string;
+  acoustic: string;
+  aggressive: string;
+  electronic: string;
+  happy: string;
+  party: string;
+  relaxed: string;
+  sad: string;
+  timbre: string;
 }
 
 export interface StoredTrack {
@@ -237,6 +265,16 @@ export interface FormValues {
   maxTempo: number;
   key: string;
   mode: string;
+  danceability: string;
+  gender: string;
+  acoustic: string;
+  aggressive: string;
+  electronic: string;
+  happy: string;
+  party: string;
+  relaxed: string;
+  sad: string;
+  timbre: string;
   source: string;
   target: number;
 }
@@ -257,7 +295,7 @@ export interface ArtistSeedForm {
 
 export interface TrackObject {
   track: Track;
-  features: AcousticBrainzFeatures;
+  features: MetaBrainzFeatures;
   saved?: boolean;
   pinned?: boolean;
 }
@@ -268,7 +306,7 @@ export type TrackStoreName = "savedTracks" | "topTracks";
 
 export interface TopTrackObject {
   track: Track;
-  features: AcousticBrainzFeatures;
+  features: MetaBrainzFeatures;
   saved?: boolean;
   order?: number;
 }

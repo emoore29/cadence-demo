@@ -1,4 +1,4 @@
-export interface LowLevelFeatures {
+export interface LowLevelRes {
   lowlevel: Lowlevel;
   metadata: Metadata;
   rhythm: Rhythm;

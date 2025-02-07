@@ -3,10 +3,8 @@ import {
   ChosenSeeds,
   FormValues,
   MetaBrainzFeatures,
-  NumericFeatures,
   PlaylistData,
   StoreName,
-  TrackFeatures,
   TrackObject,
 } from "@/types/types";
 import axios from "axios";
@@ -62,12 +60,9 @@ export async function filterFromStore(
   try {
     const tracks = await getAllFromStore(storeName);
     for (const track of tracks) {
-      if (track.features.bpm <= 90 && track.features.bpm >= 80) {
-        console.log(track.track.name);
-      }
       const trackFeatures: MetaBrainzFeatures = track.features;
       if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
-        console.warn(`${track.track.name} is missing features.`);
+        console.warn(`${track.track.id} is missing features.`);
       } else {
         const match: boolean = matches(
           trackFeatures,
@@ -101,7 +96,22 @@ function matches(
   halfTime: boolean,
   doubleTime: boolean
 ): boolean {
-  const { minTempo, maxTempo, key, mode } = formValues;
+  const {
+    minTempo,
+    maxTempo,
+    key,
+    mode,
+    danceability,
+    gender,
+    acoustic,
+    aggressive,
+    electronic,
+    happy,
+    party,
+    relaxed,
+    sad,
+    timbre,
+  } = formValues;
 
   // Check tempo ranges
   if (!anyTempo) {
@@ -132,7 +142,33 @@ function matches(
     return false;
   }
 
+  const keys: (keyof MetaBrainzFeatures)[] = [
+    "danceability",
+    "gender",
+    "acoustic",
+    "aggressive",
+    "electronic",
+    "happy",
+    "party",
+    "relaxed",
+    "sad",
+    "timbre",
+  ];
+
+  for (const key of keys) {
+    if (
+      eval(key) !== "Any" && // Access the variable by name
+      convertToSnakeCase(eval(key)) !== trackFeatures[key]
+    ) {
+      return false;
+    }
+  }
+
   return true;
+}
+
+function convertToSnakeCase(input: string): string {
+  return input.toLowerCase().replace(/\s+/g, "_");
 }
 
 // Playlist

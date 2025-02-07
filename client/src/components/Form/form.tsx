@@ -184,6 +184,19 @@ export default function Form({
     setMatchingTracks(matches);
   }
 
+  const advancedFilters = {
+    danceability: ["Any", "Danceable", "Not Danceable"],
+    gender: ["Any", "Female", "Male"],
+    acoustic: ["Any", "Acoustic", "Not Acoustic"],
+    aggressive: ["Any", "Aggressive", "Not Aggressive"],
+    electronic: ["Any", "Electronic", "Not Electronic"],
+    happy: ["Any", "Happy", "Not Happy"],
+    party: ["Any", "Party", "Not Party"],
+    relaxed: ["Any", "Relaxed", "Not Relaxed"],
+    sad: ["Any", "Sad", "Not Sad"],
+    timbre: ["Any", "Bright", "Dark"],
+  };
+
   return (
     <form
       className={styles.form}
@@ -329,8 +342,8 @@ export default function Form({
             </div>
           </Accordion.Panel>
         </Accordion.Item>
-        <Accordion.Item value="Advanced">
-          <Accordion.Control>Advanced</Accordion.Control>
+        <Accordion.Item value="Key">
+          <Accordion.Control>Key</Accordion.Control>
           <Accordion.Panel>
             <Select
               key={form.key("key")}
@@ -360,6 +373,26 @@ export default function Form({
               data={["Any", "Major", "Minor"]}
               allowDeselect={false}
             />
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value="Tags">
+          <Accordion.Control>Tags</Accordion.Control>
+          <Accordion.Panel>
+            <p>Tags input</p>
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value="Advanced">
+          <Accordion.Control>Advanced</Accordion.Control>
+          <Accordion.Panel>
+            {Object.entries(advancedFilters).map(([key, values]) => (
+              <Select
+                key={form.key(key)}
+                {...form.getInputProps(key)}
+                label={key}
+                data={values}
+                allowDeselect={false}
+              />
+            ))}
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>

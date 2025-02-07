@@ -56,10 +56,21 @@ function App() {
       maxTempo: 90,
       key: "Any",
       mode: "Any",
+      danceability: "Any",
+      gender: "Any",
+      acoustic: "Any",
+      aggressive: "Any",
+      electronic: "Any",
+      happy: "Any",
+      party: "Any",
+      relaxed: "Any",
+      sad: "Any",
+      timbre: "Any",
       source: "1",
       target: 8,
     },
   });
+
   const [anyTempo, setAnyTempo] = useState<boolean>(false);
   const [halfTime, setHalfTime] = useState<boolean>(false);
   const [doubleTime, setDoubleTime] = useState<boolean>(false);
@@ -202,7 +213,6 @@ function App() {
   // Updates saved status in Spotify and IDB
   // Adds loading icon while awaiting Spotify API reqs
   async function handleSaveClick(trackObj: TrackObject, saved: boolean) {
-    console.log("handle save clicked");
     // Add trackId to loading list
     setLoadingSaveStatusTrackIds((prevIds) => [...prevIds, trackObj.track.id]);
 
@@ -274,10 +284,10 @@ function App() {
             ) : (
               <PlaybackProvider>
                 <Playlist
-                  setMatchingTracks={setMatchingTracks}
-                  matchingTracks={matchingTracks}
                   playlist={playlist}
+                  matchingTracks={matchingTracks}
                   setPlaylist={setPlaylist}
+                  setMatchingTracks={setMatchingTracks}
                   handleSaveClick={handleSaveClick}
                   loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
                 />

@@ -35,7 +35,7 @@ export default function Header({
     deleteDatabase();
     setLibraryStored(false);
     storeDataInLocalStorage("library_was_stored", false);
-    showSuccessNotif("Success", "Your data was removed from browser storage.");
+    showSuccessNotif("Success", "Track data was removed from browser storage.");
   };
 
   const openConfirmClearDataModal = () =>
@@ -88,7 +88,7 @@ export default function Header({
               className={styles.menuItem}
               onClick={openConfirmClearDataModal}
             >
-              Clear my data
+              Clear track storage
             </Menu.Item>
             <Menu.Item
               className={styles.menuItem}
