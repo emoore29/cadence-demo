@@ -6,7 +6,6 @@ const axios = require("axios");
 var cookieParser = require("cookie-parser");
 const { searchTrackDeezer } = require("./helpers/deezer");
 const { fetchFeatures } = require("./helpers/acousticBrainz");
-const { features } = require("process");
 const { fetchPlaylist } = require("./helpers/spotify");
 const port = 3000;
 const client_id = process.env.SPOTIFY_CLIENT_ID;
@@ -219,6 +218,31 @@ app.get("/playlist", async function (req, res) {
     res.status(500).json({ error: `Unable to fetch playlist data` });
   }
 });
+
+async function getAccessToken() {
+  console.log("getting access token");
+  try {
+    const response = await axios.post(
+      "https://accounts.spotify.com/api/token",
+      new URLSearchParams({
+        grant_type: "client_credentials",
+      }),
+      {
+        headers: {
+          Authorization:
+            "Basic " +
+            Buffer.from(client_id + ":" + client_secret).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    console.log("token:", response.data.access_token);
+  } catch (error) {
+    console.error("Error getting access token", error);
+  }
+}
+
+getAccessToken();
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
