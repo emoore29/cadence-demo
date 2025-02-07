@@ -154,6 +154,7 @@ export default function Form({
     let matches: Map<string, TrackObject> | null | void = await startSearch(
       values,
       source,
+      selectedPlaylist,
       anyTempo,
       halfTime,
       doubleTime,
@@ -323,7 +324,6 @@ export default function Form({
 
   // Check for any stored playlists on form mount
   useEffect(() => {
-    console.log("checking for stored playlists to set in state");
     const setPlaylistsInState = async () => {
       const idbPlaylists = await getAllFromStore("playlists");
       setStoredPlaylists(idbPlaylists);

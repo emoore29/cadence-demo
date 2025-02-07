@@ -13,6 +13,7 @@ import { getItemFromLocalStorage } from "./localStorage";
 export async function startSearch(
   formValues: FormValues,
   source: string,
+  selectedPlaylist: string,
   anyTempo: boolean,
   halfTime: boolean,
   doubleTime: boolean,
@@ -44,6 +45,15 @@ export async function startSearch(
       default:
         return null;
     }
+  } else if (activeSourceTab === "publicPlaylist") {
+    return await filterFromPlaylist(
+      selectedPlaylist,
+      formValues,
+      anyTempo,
+      halfTime,
+      doubleTime,
+      chosenTags
+    );
   }
 }
 
@@ -91,6 +101,50 @@ export async function filterFromStore(
   }
 }
 
+export async function filterFromPlaylist(
+  selectedPlaylist: string,
+  formValues: FormValues,
+  anyTempo: boolean,
+  halfTime: boolean,
+  doubleTime: boolean,
+  chosenTags: string[]
+): Promise<Map<string, TrackObject> | null> {
+  const matchingTracks = new Map<string, TrackObject>();
+  try {
+    const playlists = await getAllFromStore("playlists");
+    for (const playlist of playlists) {
+      if (playlist.id == selectedPlaylist) {
+        for (const track of playlist.tracks) {
+          const trackFeatures: MetaBrainzFeatures = track.features;
+          if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
+            console.warn(`${track.track.id} is missing features.`);
+          } else {
+            const match: boolean = matches(
+              trackFeatures,
+              formValues,
+              anyTempo,
+              halfTime,
+              doubleTime,
+              chosenTags
+            );
+            if (match) {
+              matchingTracks.set(track.track.id, track);
+            }
+          }
+        }
+      }
+    }
+    return matchingTracks;
+  } catch (error) {
+    showErrorNotif(
+      "Error",
+      "There was an error fetching playlists from the database."
+    );
+    console.error(`Error fetching tracks from IDB ${selectedPlaylist}`, error);
+    return null;
+  }
+}
+
 // Checks if a given track's features match values requested by the user
 function matches(
   trackFeatures: MetaBrainzFeatures,
@@ -116,8 +170,6 @@ function matches(
     sad,
     timbre,
   } = formValues;
-
-  console.log("chosen tags", chosenTags);
 
   // Check tempo ranges
   if (!anyTempo) {
