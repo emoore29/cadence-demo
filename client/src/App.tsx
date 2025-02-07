@@ -26,7 +26,7 @@ import {
   wasLibraryStoredInDatabase,
 } from "./helpers/localStorage";
 import { handleLogin, loginOccurred } from "./helpers/login";
-import { handleTokens } from "./helpers/tokens";
+import { handleAccessToken, handleGuestToken } from "./helpers/tokens";
 import { TrackObject, User } from "./types/types";
 
 function App() {
@@ -96,6 +96,9 @@ function App() {
   // and restarts access token refresh interval
   useEffect(() => {
     async function initialize() {
+      // Get guest access token if one isn't already stored that hasn't expired
+      await handleGuestToken();
+
       // Store tokens, user data and library size on login
       if (loginOccurred()) {
         handleLogin(setUser, setEstimatedActions);
@@ -122,15 +125,17 @@ function App() {
         setEstimatedLoadTime(estimatedLoadTime);
 
         setLibraryStored(wasLibraryStoredInDatabase());
-        await handleTokens();
+        await handleAccessToken();
       }
 
       setLibraryStored(wasLibraryStoredInDatabase());
 
       // Handle token expiry every hour
-      const interval = setInterval(handleTokens, 3600000);
+      const accessTokenInterval = setInterval(handleAccessToken, 3600000);
+      const guestTokenInterval = setInterval(handleGuestToken, 3600000);
       return () => {
-        clearInterval(interval);
+        clearInterval(accessTokenInterval);
+        clearInterval(guestTokenInterval);
       };
     }
 

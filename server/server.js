@@ -220,7 +220,6 @@ app.get("/playlist", async function (req, res) {
 });
 
 async function getAccessToken() {
-  console.log("getting access token");
   try {
     const response = await axios.post(
       "https://accounts.spotify.com/api/token",
@@ -236,13 +235,26 @@ async function getAccessToken() {
         },
       }
     );
-    console.log("token:", response.data.access_token);
+    return response.data.access_token;
   } catch (error) {
     console.error("Error getting access token", error);
+    return null;
   }
 }
 
-getAccessToken();
+app.get("/guest_token", async function (req, res) {
+  const now = new Date();
+  const currentTime = now.toLocaleString();
+  console.log(`${currentTime}: Client requested new guest token`);
+
+  const token = await getAccessToken();
+  if (token) {
+    console.log(`${currentTime}: Sent new guest token to client`);
+    res.json({ token });
+  } else {
+    res.status(500).json({ error: `Unable to fetch guest access token` });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

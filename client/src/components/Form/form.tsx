@@ -257,13 +257,13 @@ export default function Form({
     console.log("loading playlist data");
     // Store exists
     // Fetch playlist data from Spotify
-    const accessToken: string | null = getItemFromLocalStorage("access_token");
-    if (!accessToken) return null;
+    const token: string | null = getItemFromLocalStorage("guest_token");
+    if (!token) return null;
     try {
       const response = await fetch(
         `http://localhost:3000/playlist?playlistId=${encodeURIComponent(
           playlistId
-        )}&accessToken=${accessToken}`
+        )}&accessToken=${token}`
       );
       const data = await response.json();
       console.log(data.playlistResponse);
