@@ -7,6 +7,7 @@ import {
   SavedTrack,
   StoredTrack,
   Track,
+  TrackObject,
 } from "@/types/types";
 import { getAllFromStore, setInStore } from "./database";
 import {
@@ -160,6 +161,61 @@ export async function storeTopTracksData(
   return count;
 }
 
+// Function to get track data from an array of Spotify tracks
+// Returns array of TrackObjects
+export async function getTrackFeatures(
+  tracks: Track[]
+): Promise<TrackObject[] | null> {
+  let success: boolean = true; // To track if any failures occur
+  let count: number = 0; // To track number of successes
+  const trackObjectsArray: TrackObject[] = [];
+
+  // Remove any tracks that do not have a defined isrc
+  tracks = tracks.filter((track) => track.external_ids.isrc !== undefined);
+
+  // Initialise rate limit data for AcousticBrainz
+  let abRemaining: number = 100;
+  let abResetIn: number = 5;
+
+  // Fetch MetaBrainz data
+  for (const track of tracks) {
+    // Assert that isrc is not null (filtered out above)
+    const isrc: string = track.external_ids.isrc!;
+
+    // Fetch MusicBrainz id and tags using ISRC
+    const mbResponse: MBIDResponseData | null = await fetchTrackMBIDandTags(
+      isrc
+    );
+    if (mbResponse) {
+      // MusicBrainz data
+      const mbid: string = mbResponse.data[0];
+      const tags: string[] = mbResponse.data[1];
+
+      // Fetch AcousticBrainz features
+      const featuresResponse: FeaturesResponse | null = await fetchFeatures(
+        mbid
+      );
+
+      if (featuresResponse) {
+        const features: LowLevelFeatures & HighLevelFeatures =
+          featuresResponse.data;
+        const metaBrainzFeatures: MetaBrainzFeatures = {
+          ...features,
+          tags,
+        };
+
+        // Note rate limit for AcousticBrainz
+        abRemaining = featuresResponse.rateLimit[0];
+        abResetIn = featuresResponse.rateLimit[1];
+
+        trackObjectsArray.push({ track: track, features: metaBrainzFeatures });
+      }
+    }
+  }
+  console.log("Track Objects Array:", trackObjectsArray);
+  return trackObjectsArray;
+}
+
 // Stores user's saved tracks in IDB
 // Stores saved: true as default for all
 export async function storeSavedTracksData(
@@ -186,11 +242,6 @@ export async function storeSavedTracksData(
   let abResetIn: number = 5;
   // Add each saved track and features to IDB individually
   for (const [index, savedTrack] of savedTracks.entries()) {
-    if (count == 49) {
-      console.log("waiting 5 seconds for Deezer rate limit");
-      await delay(5000);
-      count = 0;
-    }
     console.log(`handling saved track ${index}...`);
 
     // assert that isrc is not null (filtered out above)

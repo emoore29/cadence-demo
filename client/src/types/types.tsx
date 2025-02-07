@@ -138,6 +138,12 @@ export interface TrackFeatures {
   valence: number;
 }
 
+export interface StoredPlaylist {
+  name: string;
+  id: string;
+  tracks: TrackObject[];
+}
+
 export interface FeaturesResponse {
   rateLimit: number[];
   data: LowLevelFeatures & HighLevelFeatures;

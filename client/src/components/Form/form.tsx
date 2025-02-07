@@ -1,9 +1,14 @@
-import { getAllFromStore, MyDB } from "@/helpers/database";
+import {
+  getAllFromStore,
+  MyDB,
+  setInStore,
+  setPlaylistInStore,
+} from "@/helpers/database";
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
 import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { startSearch } from "@/helpers/playlist";
-import { FormValues, TopTrackObject, TrackObject } from "@/types/types";
+import { FormValues, TopTrackObject, Track, TrackObject } from "@/types/types";
 import {
   Accordion,
   Alert,
@@ -23,7 +28,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
-import { DBSchema, IDBPDatabase, openDB } from "idb";
+import { getTrackFeatures } from "@/helpers/indexedDbHelpers";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -75,7 +80,13 @@ export default function Form({
   const [savedTrackTags, setSavedTrackTags] = useState<string[]>([]);
   const [topTrackTags, setTopTrackTags] = useState<string[]>([]);
   const [source, setSource] = useState<string>("savedTracks");
-  const [playlistId, setPlaylistId] = useState("00UGQ9i3F31ijEz6lCKS81");
+  const [playlistId, setPlaylistId] = useState("1qbLWinFLReM3PVXjHAQLz");
+  const [loadingSpotifyPlaylist, setLoadingSpotifyPlaylist] =
+    useState<boolean>(false);
+  const [storedPlaylists, setStoredPlaylists] = useState<
+    { name: string; id: string }[]
+  >([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string>("");
   const icon = <IconInfoCircle />;
 
   // Get tags from IDB
@@ -254,8 +265,7 @@ export default function Form({
   };
 
   async function loadPlaylistData() {
-    console.log("loading playlist data");
-    // Store exists
+    setLoadingSpotifyPlaylist(true);
     // Fetch playlist data from Spotify
     const token: string | null = getItemFromLocalStorage("guest_token");
     if (!token) return null;
@@ -266,13 +276,60 @@ export default function Form({
         )}&accessToken=${token}`
       );
       const data = await response.json();
-      console.log(data.playlistResponse);
-    } catch (error) {
-      console.log("Error getting spotify playlist");
-    }
+      const playlistData = data.playlistResponse;
+      const playlistTracks: Track[] = [];
 
-    // Store playlist name with tracks + get features from MetaBrainz
+      for (const item of playlistData.tracks.items) {
+        playlistTracks.push(item.track);
+      }
+      console.log(playlistData);
+
+      // Get each track's features from MetaBrainz
+      const tracksToStore: TrackObject[] | null = await getTrackFeatures(
+        playlistTracks
+      );
+
+      if (tracksToStore) {
+        // Store playlist name, tracks, and features
+        try {
+          await setPlaylistInStore({
+            name: playlistData.name,
+            id: playlistData.id,
+            tracks: tracksToStore,
+          });
+          console.log("Added playlist to IDB!!!");
+          setStoredPlaylists((prev) => [
+            ...prev,
+            { name: playlistData.name, id: playlistData.id },
+          ]);
+          setPlaylistId("");
+          setLoadingSpotifyPlaylist(false);
+        } catch (error) {
+          console.log("Error storing playlist in IDB", error);
+          setLoadingSpotifyPlaylist(false);
+        }
+      } else {
+        console.log("No playlist tracks to store");
+        setLoadingSpotifyPlaylist(false);
+      }
+    } catch (error) {
+      console.error(
+        "Somewhere along the way, storing playlist data failed.",
+        error
+      );
+      setLoadingSpotifyPlaylist(false);
+    }
   }
+
+  // Check for any stored playlists on form mount
+  useEffect(() => {
+    console.log("checking for stored playlists to set in state");
+    const setPlaylistsInState = async () => {
+      const idbPlaylists = await getAllFromStore("playlists");
+      setStoredPlaylists(idbPlaylists);
+    };
+    setPlaylistsInState();
+  }, []);
 
   return (
     <form
@@ -355,13 +412,32 @@ export default function Form({
                 )}
               </Tabs.Panel>
               <Tabs.Panel value="publicPlaylist">
+                <Radio.Group
+                  value={selectedPlaylist}
+                  onChange={setSelectedPlaylist}
+                  name="selectedPlaylist"
+                  label="Playlists"
+                >
+                  <Group className={styles.source}>
+                    {storedPlaylists.map((storedPlaylist) => (
+                      <Radio
+                        key={storedPlaylist.id}
+                        value={storedPlaylist.id}
+                        icon={CheckIcon}
+                        label={storedPlaylist.name}
+                      />
+                    ))}
+                  </Group>
+                </Radio.Group>
                 <TextInput
                   label="Playlist id"
                   value={playlistId}
                   onChange={(event) => setPlaylistId(event.currentTarget.value)}
                 />
                 <Button onClick={() => loadPlaylistData()}>
-                  Load playlist data
+                  {!loadingSpotifyPlaylist
+                    ? "Load playlist data"
+                    : "Loading playlist data"}
                 </Button>
               </Tabs.Panel>
             </Tabs>

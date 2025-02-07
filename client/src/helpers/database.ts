@@ -1,6 +1,7 @@
 import {
   Artist,
   MetaBrainzFeatures,
+  StoredPlaylist,
   StoreName,
   TopTrackObject,
   Track,
@@ -31,7 +32,7 @@ export interface MyDB extends DBSchema {
     };
   };
   playlists: {
-    key: string;
+    key: string; // playlistId
     value: {
       name: string;
       tracks: {
@@ -65,7 +66,7 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
 
       // Create an object store for playlists
       if (!db.objectStoreNames.contains("playlists")) {
-        db.createObjectStore("playlists", { keyPath: "track.id" });
+        db.createObjectStore("playlists", { keyPath: "id" });
       }
     },
   });
@@ -88,6 +89,11 @@ export async function setInStore(
 ) {
   const db = await setUpDatabase();
   return db.put(storeName, value);
+}
+
+export async function setPlaylistInStore(value: StoredPlaylist) {
+  const db = await setUpDatabase();
+  return db.put("playlists", value);
 }
 
 // Remove a key-val pair from any store
