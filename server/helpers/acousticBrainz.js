@@ -1,5 +1,9 @@
 const axios = require("axios");
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function fetchFeatures(mbid) {
   let lowLevelRemaining = 0;
   let lowLevelResetIn = 0;
@@ -30,6 +34,17 @@ async function fetchFeatures(mbid) {
     return null;
   }
 
+  const now = new Date();
+  const currentTime = now.toLocaleString();
+  console.log(`${currentTime}: low level remaining: ${lowLevelRemaining}`);
+  console.log(`${currentTime}: low level reset: ${lowLevelResetIn}`);
+
+  // Convervative pause to ensure no rate limits are hit
+  if (lowLevelRemaining < 30) {
+    console.log("Awaiting AcousticBrainz rate limit reset");
+    await delay(lowLevelResetIn * 1000);
+  }
+
   try {
     const res = await axios.get(
       `https://acousticbrainz.org/api/v1/${mbid}/high-level`
@@ -56,6 +71,21 @@ async function fetchFeatures(mbid) {
     console.warn(`Could not fetch features for track: ${mbid} (mbid)`);
     return null;
   }
+
+  console.log(`${currentTime}: high level remaining: ${highLevelRemaining}`);
+  console.log(`${currentTime}: high level reset: ${highLevelResetIn}`);
+  // Convervative pause to ensure no rate limits are hit
+  if (highLevelRemaining < 30) {
+    console.log("Awaiting AcousticBrainz rate limit reset");
+    await delay(highLevelResetIn * 1000);
+  }
+
+  console.log(
+    `${currentTime}: rate limit array: [${Math.min(
+      lowLevelRemaining,
+      highLevelRemaining
+    )}, ${Math.max(lowLevelResetIn, highLevelResetIn)}]`
+  );
 
   // Combine high and low level features
   const features = {

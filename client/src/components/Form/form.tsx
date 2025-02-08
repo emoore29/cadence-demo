@@ -22,6 +22,7 @@ import {
   Select,
   Tabs,
   TextInput,
+  Text,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
 import { IconInfoCircle } from "@tabler/icons-react";
@@ -29,6 +30,7 @@ import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
 import { getTrackFeatures } from "@/helpers/indexedDbHelpers";
+import { modals } from "@mantine/modals";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -265,8 +267,25 @@ export default function Form({
     timbre: ["Any", "Bright", "Dark"],
   };
 
+  function checkPlaylistExists() {
+    let playlistExists: boolean = false;
+
+    for (const playlist of storedPlaylists) {
+      if (playlist.id === playlistId) {
+        playlistExists = true;
+      }
+    }
+
+    if (playlistExists) {
+      openConfirmLoadPlaylistModal();
+    } else {
+      loadPlaylistData();
+    }
+  }
+
   async function loadPlaylistData() {
     setLoadingSpotifyPlaylist(true);
+
     // Fetch playlist data from Spotify
     const token: string | null = getItemFromLocalStorage("guest_token");
     if (!token) return null;
@@ -301,8 +320,10 @@ export default function Form({
           });
           console.log("Added playlist to IDB!!!");
           setStoredPlaylists((prev) => {
-            prev.filter((playlist) => playlist.id === id);
-            return [...prev, { name: name, id: id }];
+            const filteredPlaylists = prev.filter(
+              (playlist) => playlist.id !== id
+            );
+            return [...filteredPlaylists, { name: name, id: id }];
           });
           setPlaylistId("");
           setLoadingSpotifyPlaylist(false);
@@ -331,6 +352,17 @@ export default function Form({
     };
     setPlaylistsInState();
   }, []);
+
+  const openConfirmLoadPlaylistModal = () =>
+    modals.openConfirmModal({
+      title: "Playlist already stored",
+      children: (
+        <Text size="sm">Are you sure you want to reload this playlist?</Text>
+      ),
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      onCancel: () => console.log("Cancel"),
+      onConfirm: () => loadPlaylistData(),
+    });
 
   return (
     <form
@@ -435,7 +467,7 @@ export default function Form({
                   value={playlistId}
                   onChange={(event) => setPlaylistId(event.currentTarget.value)}
                 />
-                <Button onClick={() => loadPlaylistData()}>
+                <Button onClick={() => checkPlaylistExists()}>
                   {!loadingSpotifyPlaylist
                     ? "Load playlist data"
                     : "Loading playlist data"}

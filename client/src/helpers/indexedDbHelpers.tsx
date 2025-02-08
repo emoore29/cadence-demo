@@ -132,7 +132,7 @@ export async function storeTopTracksData(
     }
 
     // Set delay if AB rate limit reached
-    if (abRemaining == 0) {
+    if (abRemaining < 10) {
       console.log("Awaiting AcousticBrainz rate limit reset");
       await delay(abResetIn * 1000);
     }
