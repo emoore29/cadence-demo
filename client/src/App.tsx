@@ -75,7 +75,7 @@ function App() {
   const [halfTime, setHalfTime] = useState<boolean>(false);
   const [doubleTime, setDoubleTime] = useState<boolean>(false);
   const [activeSourceTab, setActiveSourceTab] = useState<string | null>(
-    "mySpotify"
+    "publicPlaylist"
   );
 
   // Sets up IDB on initial page load if it doesn't already exist

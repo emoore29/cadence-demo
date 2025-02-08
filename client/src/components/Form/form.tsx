@@ -277,32 +277,33 @@ export default function Form({
         )}&accessToken=${token}`
       );
       const data = await response.json();
-      const playlistData = data.playlistResponse;
-      const playlistTracks: Track[] = [];
+      const name = data.name;
+      const id = data.id;
+      console.log(data);
+      const tracks: Track[] = [];
 
-      for (const item of playlistData.tracks.items) {
-        playlistTracks.push(item.track);
+      for (const item of data.items) {
+        tracks.push(item.track);
       }
-      console.log(playlistData);
 
       // Get each track's features from MetaBrainz
       const tracksToStore: TrackObject[] | null = await getTrackFeatures(
-        playlistTracks
+        tracks
       );
 
       if (tracksToStore) {
         // Store playlist name, tracks, and features
         try {
           await setPlaylistInStore({
-            name: playlistData.name,
-            id: playlistData.id,
+            name: name,
+            id: id,
             tracks: tracksToStore,
           });
           console.log("Added playlist to IDB!!!");
-          setStoredPlaylists((prev) => [
-            ...prev,
-            { name: playlistData.name, id: playlistData.id },
-          ]);
+          setStoredPlaylists((prev) => {
+            prev.filter((playlist) => playlist.id === id);
+            return [...prev, { name: name, id: id }];
+          });
           setPlaylistId("");
           setLoadingSpotifyPlaylist(false);
         } catch (error) {
@@ -350,8 +351,8 @@ export default function Form({
               onChange={setActiveSourceTab}
             >
               <Tabs.List>
-                <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
                 <Tabs.Tab value="publicPlaylist">Public Playlist</Tabs.Tab>
+                <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
                 {!libraryStored ? (

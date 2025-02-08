@@ -1,5 +1,3 @@
-import { Highlevel, HighLevelRes } from "@/types/acousticBrainz/highlevel";
-import { LowLevelRes } from "@/types/acousticBrainz/lowlevel";
 import { SearchResult } from "@/types/deezer/search";
 import { RecordingSearchResult } from "@/types/musicBrainz/recording";
 import axios from "axios";

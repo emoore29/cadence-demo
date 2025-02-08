@@ -6,7 +6,7 @@ const axios = require("axios");
 var cookieParser = require("cookie-parser");
 const { searchTrackDeezer } = require("./helpers/deezer");
 const { fetchFeatures } = require("./helpers/acousticBrainz");
-const { fetchPlaylist } = require("./helpers/spotify");
+const { fetchPlaylist, fetchPlaylistItems } = require("./helpers/spotify");
 const port = 3000;
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -210,10 +210,14 @@ app.get("/features", async function (req, res) {
 app.get("/playlist", async function (req, res) {
   const { playlistId, accessToken } = req.query;
 
-  const playlistResponse = await fetchPlaylist(playlistId, accessToken);
+  const playlist = await fetchPlaylist(playlistId, accessToken);
 
-  if (playlistResponse) {
-    res.json({ playlistResponse });
+  if (playlist) {
+    const name = playlist.name;
+    const id = playlist.id;
+    const items = await fetchPlaylistItems(playlistId, accessToken);
+
+    res.json({ name, id, items });
   } else {
     res.status(500).json({ error: `Unable to fetch playlist data` });
   }
