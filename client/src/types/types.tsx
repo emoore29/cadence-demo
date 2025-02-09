@@ -144,11 +144,6 @@ export interface StoredPlaylist {
   tracks: TrackObject[];
 }
 
-export interface FeaturesResponse {
-  rateLimit: number[];
-  data: LowLevelFeatures & HighLevelFeatures;
-}
-
 export interface LowLevelFeatures {
   bpm: number;
   key: string;
@@ -166,6 +161,11 @@ export interface HighLevelFeatures {
   relaxed: string;
   sad: string;
   timbre: string;
+}
+
+export interface MbidAndTags {
+  mbid: string;
+  tags: string[];
 }
 
 export interface MetaBrainzFeatures {

@@ -36,8 +36,6 @@ async function fetchFeatures(mbid) {
 
   const now = new Date();
   const currentTime = now.toLocaleString();
-  console.log(`${currentTime}: low level remaining: ${lowLevelRemaining}`);
-  console.log(`${currentTime}: low level reset: ${lowLevelResetIn}`);
 
   // Convervative pause to ensure no rate limits are hit
   if (lowLevelRemaining < 30) {
@@ -72,8 +70,6 @@ async function fetchFeatures(mbid) {
     return null;
   }
 
-  console.log(`${currentTime}: high level remaining: ${highLevelRemaining}`);
-  console.log(`${currentTime}: high level reset: ${highLevelResetIn}`);
   // Convervative pause to ensure no rate limits are hit
   if (highLevelRemaining < 30) {
     console.log("Awaiting AcousticBrainz rate limit reset");
@@ -89,14 +85,8 @@ async function fetchFeatures(mbid) {
 
   // Combine high and low level features
   const features = {
-    rateLimit: [
-      Math.min(lowLevelRemaining, highLevelRemaining),
-      Math.max(lowLevelResetIn, highLevelResetIn),
-    ],
-    data: {
-      ...lowLevel,
-      ...highLevel,
-    },
+    ...lowLevel,
+    ...highLevel,
   };
 
   return features;

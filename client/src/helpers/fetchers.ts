@@ -4,8 +4,10 @@ import axios from "axios";
 import { chunk } from "lodash";
 import {
   Artist,
-  FeaturesResponse,
+  HighLevelFeatures,
   Library,
+  LowLevelFeatures,
+  MbidAndTags,
   SavedTrack,
   TopTracks,
   Track,
@@ -99,63 +101,39 @@ export async function searchTrackDeezer(
   }
 }
 
-export interface MBIDResponseData {
-  rateLimit: number[];
-  data: [string, string[]];
-}
-
-export async function fetchTrackMBIDandTags(
+export async function fetchMBIDandTags(
   isrc: string
-): Promise<MBIDResponseData | null> {
-  // MusicBrainz Recording API
+): Promise<MbidAndTags | null> {
   try {
-    const res = await axios.get<RecordingSearchResult>(
-      `http://musicbrainz.org/ws/2/recording/?query=isrc:${isrc}&fmt=json`
+    const response = await fetch(
+      `http://localhost:3000/mbid?isrc=${encodeURIComponent(isrc)}`
     );
-
-    const numResults: number = res.data.count;
-    if (numResults == 0) {
-      console.warn(`Could not find mbid for track ISRC ${isrc}`);
+    const data = await response.json();
+    const mbid: string = data.mbid;
+    const tags: string[] = data.tags;
+    if (mbid && tags) {
+      return { mbid, tags };
+    } else {
+      console.warn("No mbid response from server");
       return null;
     }
-
-    const mbid = res.data.recordings[0].id;
-    let tags: string[] = [];
-    for (const recording of res.data.recordings) {
-      if (recording.tags) {
-        tags = extractTags(recording.tags);
-      }
-    }
-
-    const headersObj = res.headers;
-    // MusicBrainz uses camel case for the rate limit headers
-    const remaining = headersObj["X-RateLimit-Remaining"];
-    const resetTime = headersObj["X-RateLimit-Reset"];
-
-    return {
-      rateLimit: [remaining, resetTime],
-      data: [mbid, tags],
-    };
   } catch (error) {
-    console.error(
-      `Error fetching or processing result from MusicBrainz for track ${isrc}. MusicBrainz Server may be busy.`,
-      error
-    );
+    showErrorNotif("Error", `Could not retrieve track mbid (${isrc})`);
     return null;
   }
 }
 
 export async function fetchFeatures(
   mbid: string
-): Promise<FeaturesResponse | null> {
+): Promise<(LowLevelFeatures & HighLevelFeatures) | null> {
   try {
     const response = await fetch(
       `http://localhost:3000/features?mbid=${encodeURIComponent(mbid)}`
     );
     const data = await response.json();
-    const featuresResponse: FeaturesResponse = data.featuresResponse;
-    if (featuresResponse) {
-      return featuresResponse;
+    const features: LowLevelFeatures & HighLevelFeatures = data.features;
+    if (features) {
+      return features;
     } else {
       console.warn("No features response from server");
       return null;

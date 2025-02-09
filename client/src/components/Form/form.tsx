@@ -1,11 +1,7 @@
-import {
-  getAllFromStore,
-  MyDB,
-  setInStore,
-  setPlaylistInStore,
-} from "@/helpers/database";
+import { getAllFromStore, setPlaylistInStore } from "@/helpers/database";
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
+import { getTrackFeatures } from "@/helpers/indexedDbHelpers";
 import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { startSearch } from "@/helpers/playlist";
 import { FormValues, TopTrackObject, Track, TrackObject } from "@/types/types";
@@ -21,16 +17,15 @@ import {
   Radio,
   Select,
   Tabs,
-  TextInput,
   Text,
+  TextInput,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
+import { modals } from "@mantine/modals";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
-import { getTrackFeatures } from "@/helpers/indexedDbHelpers";
-import { modals } from "@mantine/modals";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -326,22 +321,16 @@ export default function Form({
             return [...filteredPlaylists, { name: name, id: id }];
           });
           setPlaylistId("");
-          setLoadingSpotifyPlaylist(false);
         } catch (error) {
           console.log("Error storing playlist in IDB", error);
-          setLoadingSpotifyPlaylist(false);
         }
       } else {
         console.log("No playlist tracks to store");
-        setLoadingSpotifyPlaylist(false);
       }
     } catch (error) {
-      console.error(
-        "Somewhere along the way, storing playlist data failed.",
-        error
-      );
-      setLoadingSpotifyPlaylist(false);
+      console.error("Storing playlist data failed.", error);
     }
+    setLoadingSpotifyPlaylist(false);
   }
 
   // Check for any stored playlists on form mount
