@@ -109,8 +109,9 @@ export async function fetchMBIDandTags(
       `http://localhost:3000/mbid?isrc=${encodeURIComponent(isrc)}`
     );
     const data = await response.json();
-    const mbid: string = data.mbid;
-    const tags: string[] = data.tags;
+    console.log(data);
+    const mbid: string = data.mbidAndTags.mbid;
+    const tags: string[] = data.mbidAndTags.tags;
     if (mbid && tags) {
       return { mbid, tags };
     } else {

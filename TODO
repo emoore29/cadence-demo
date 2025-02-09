@@ -3,12 +3,12 @@ Basic Features:
 - Update IDB library based on Spotify library (check and add new saved tracks utilising date added)
 - Accessible track preview on mobile / keyboard, keyboard accessible tracks source tabs, etc
 - View track features modal
-- Guest "login" to test features on a public Spotify playlist
 
 Bugs?:
 
 - Database deletion on logout/clear data blocked when devtools is open?
-- Token expiry still an issue occasionally
+- Token expiry still an issue occasionally?
+- Check cross-browser/device compatibility
 
 Future Features:
 
@@ -19,3 +19,4 @@ Refactor:
 
 - Improve state management
 - Move frontend fetches to server
+- Setup musicbrainz database to fetch mbid & tags (to avoid rate limits)
