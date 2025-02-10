@@ -240,6 +240,8 @@ app.get("/mbid", async function (req, res) {
 
   const mbidAndTags = await getMbidAndTags(isrc);
 
+  console.log("returning: ", mbidAndTags)
+
   if (mbidAndTags) {
     res.json({ mbidAndTags });
   } else {
@@ -252,12 +254,13 @@ app.get("/mbid", async function (req, res) {
 async function getMbidAndTags(isrc) {
   await client.connect();
 
+  console.log(isrc)
+
   try {
     // Get recordingId from ISRC
     const recordingRes = await client.query(
-      `SELECT recording FROM musicbrainz.isrc WHERE isrc =${isrc}`
+      `SELECT recording FROM musicbrainz.isrc WHERE isrc ='${isrc}'`
     );
-    console.log(recordingRes.rows[0]);
     const recordingId = recordingRes.rows[0].recording;
 
     // Get MBID from recordingId
@@ -265,7 +268,6 @@ async function getMbidAndTags(isrc) {
       `SELECT * FROM musicbrainz.recording WHERE id='${recordingId}'`
     );
     const mbid = mbidRes.rows[0].gid;
-    console.log(mbid);
 
     // Get tags from recordingId
     const result = await client.query(
@@ -294,7 +296,7 @@ async function getMbidAndTags(isrc) {
 }
 
 // Returns a sorted array of a recording's tags based on count
-export function extractTags(tags) {
+ function extractTags(tags) {
   // Sort tags in descending order by count
   tags.sort((a, b) => b.count - a.count);
 
@@ -305,6 +307,8 @@ export function extractTags(tags) {
 
   return tagNames;
 }
+
+getMbidAndTags('GBUM71029604')
 
 async function getAccessToken() {
   try {
