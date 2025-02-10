@@ -240,7 +240,7 @@ app.get("/mbid", async function (req, res) {
 
   const mbidAndTags = await getMbidAndTags(isrc);
 
-  console.log("returning: ", mbidAndTags)
+  console.log("returning: ", mbidAndTags);
 
   if (mbidAndTags) {
     res.json({ mbidAndTags });
@@ -254,7 +254,7 @@ app.get("/mbid", async function (req, res) {
 async function getMbidAndTags(isrc) {
   await client.connect();
 
-  console.log(isrc)
+  console.log(isrc);
 
   try {
     // Get recordingId from ISRC
@@ -296,7 +296,7 @@ async function getMbidAndTags(isrc) {
 }
 
 // Returns a sorted array of a recording's tags based on count
- function extractTags(tags) {
+function extractTags(tags) {
   // Sort tags in descending order by count
   tags.sort((a, b) => b.count - a.count);
 
@@ -308,7 +308,7 @@ async function getMbidAndTags(isrc) {
   return tagNames;
 }
 
-getMbidAndTags('GBUM71029604')
+// getMbidAndTags('GBUM71029604')
 
 async function getAccessToken() {
   try {
