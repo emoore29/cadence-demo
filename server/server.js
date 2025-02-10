@@ -37,6 +37,13 @@ const client = new Client({
   database: "musicbrainz_db",
 });
 
+async function connectToDb() {
+  await client.connect();
+
+}
+
+connectToDb()
+
 // Redirects client to Spotify authorization with appropriate query parameters
 app.get("/login", function (req, res) {
   var state = generateRandomString(16);
@@ -251,8 +258,9 @@ app.get("/mbid", async function (req, res) {
   }
 });
 
+
+
 async function getMbidAndTags(isrc) {
-  await client.connect();
 
   console.log(isrc);
 
@@ -290,9 +298,7 @@ async function getMbidAndTags(isrc) {
     return { mbid, processedTags };
   } catch (err) {
     console.error(err);
-  } finally {
-    await client.end();
-  }
+  } 
 }
 
 // Returns a sorted array of a recording's tags based on count
