@@ -16,7 +16,7 @@ const corsOptions = {
   origin: "http://localhost:5173",
   credentials: true, // allow cookies
 };
-const pg = require("pg") // Node.js modules to interface with Postgres
+const pg = require("pg"); // Node.js modules to interface with Postgres
 
 const app = express();
 const stateKey = "spotify_auth_state";
@@ -28,29 +28,14 @@ const generateRandomString = (length) => {
 app.use(cors(corsOptions)).use(cookieParser());
 
 // Connect to Postgres Database
-const { Client } = pg
+const { Client } = pg;
 const client = new Client({
-  user: 'musicbrainz',
-  password: 'musicbrainz',
-  host: '172.19.0.4',
+  user: "musicbrainz",
+  password: "musicbrainz",
+  host: "172.19.0.4",
   port: 5432,
-  database: 'musicbrainz_db',
-})
-
-async function connectToDb() {
-  await client.connect()
- 
-  try {
-     const res = await client.query('SELECT gid FROM musicbrainz.recording WHERE id = 231724')
-     console.log(res.rows[0].gid) // Hello world!
-  } catch (err) {
-     console.error(err);
-  } finally {
-     await client.end()
-  }
-}
-
-connectToDb()
+  database: "musicbrainz_db",
+});
 
 // Redirects client to Spotify authorization with appropriate query parameters
 app.get("/login", function (req, res) {
@@ -252,7 +237,8 @@ app.get("/playlist", async function (req, res) {
 
 app.get("/mbid", async function (req, res) {
   const { isrc } = req.query;
-  const mbidAndTags = await fetchMBIDandTags(isrc);
+
+  const mbidAndTags = await getMbidAndTags(isrc);
 
   if (mbidAndTags) {
     res.json({ mbidAndTags });
@@ -262,6 +248,63 @@ app.get("/mbid", async function (req, res) {
       .json({ error: `Unable to fetch track mbid and tags (${isrc})` });
   }
 });
+
+async function getMbidAndTags(isrc) {
+  await client.connect();
+
+  try {
+    // Get recordingId from ISRC
+    const recordingRes = await client.query(
+      `SELECT recording FROM musicbrainz.isrc WHERE isrc =${isrc}`
+    );
+    console.log(recordingRes.rows[0]);
+    const recordingId = recordingRes.rows[0].recording;
+
+    // Get MBID from recordingId
+    const mbidRes = await client.query(
+      `SELECT * FROM musicbrainz.recording WHERE id='${recordingId}'`
+    );
+    const mbid = mbidRes.rows[0].gid;
+    console.log(mbid);
+
+    // Get tags from recordingId
+    const result = await client.query(
+      `SELECT * FROM musicbrainz.recording_tag WHERE recording=${recordingId}`
+    );
+    const tags = result.rows;
+
+    // Get name and count of each tag and add to array
+    const tagArr = []; // Array will be the same structure as that from the API [{count: count, name: name}...]
+    for (const tagObj of tags) {
+      const tagId = tagObj.tag;
+      const count = tagObj.count;
+      const tagRes = await client.query(
+        `SELECT * from musicbrainz.tag WHERE id=${tagId}`
+      );
+      const name = tagRes.rows[0].name;
+      tagArr.push({ count, name });
+    }
+    const processedTags = extractTags(tagArr);
+    return { mbid, processedTags };
+  } catch (err) {
+    console.error(err);
+  } finally {
+    await client.end();
+  }
+}
+
+// Returns a sorted array of a recording's tags based on count
+export function extractTags(tags) {
+  // Sort tags in descending order by count
+  tags.sort((a, b) => b.count - a.count);
+
+  const tagNames = [];
+  for (const tag of tags) {
+    tagNames.push(tag.name);
+  }
+
+  return tagNames;
+}
 
 async function getAccessToken() {
   try {

@@ -20,3 +20,4 @@ Refactor:
 - Improve state management
 - Move frontend fetches to server
 - Setup musicbrainz database to fetch mbid & tags (to avoid rate limits)
+- Fetch specific features for multiple MBIDs rather than entire low and high level dumps for single tracks at a time.
