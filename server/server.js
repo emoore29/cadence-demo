@@ -16,6 +16,7 @@ const corsOptions = {
   origin: "http://localhost:5173",
   credentials: true, // allow cookies
 };
+const pg = require("pg") // Node.js modules to interface with Postgres
 
 const app = express();
 const stateKey = "spotify_auth_state";
@@ -25,6 +26,31 @@ const generateRandomString = (length) => {
 };
 
 app.use(cors(corsOptions)).use(cookieParser());
+
+// Connect to Postgres Database
+const { Client } = pg
+const client = new Client({
+  user: 'musicbrainz',
+  password: 'musicbrainz',
+  host: '172.19.0.4',
+  port: 5432,
+  database: 'musicbrainz_db',
+})
+
+async function connectToDb() {
+  await client.connect()
+ 
+  try {
+     const res = await client.query('SELECT gid FROM musicbrainz.recording WHERE id = 231724')
+     console.log(res.rows[0].gid) // Hello world!
+  } catch (err) {
+     console.error(err);
+  } finally {
+     await client.end()
+  }
+}
+
+connectToDb()
 
 // Redirects client to Spotify authorization with appropriate query parameters
 app.get("/login", function (req, res) {
