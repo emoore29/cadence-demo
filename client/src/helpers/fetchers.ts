@@ -4,10 +4,7 @@ import { chunk } from "lodash";
 import {
   AcousticBrainzData,
   Artist,
-  HighLevelFeatures,
   Library,
-  LowLevelFeatures,
-  MbidAndTags,
   MusicBrainzData,
   SavedTrack,
   TopTracks,
@@ -131,9 +128,9 @@ export async function fetchFeatures(
     );
     const data = await response.json();
     const features: AcousticBrainzData = data.features;
-    console.log("features:", features)
+    console.log("features:", features);
     if (features) {
-      console.log("returning features", features)
+      console.log("returning features", features);
       return features;
     } else {
       console.warn("No features response from server");

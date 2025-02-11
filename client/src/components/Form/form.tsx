@@ -26,6 +26,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
+import { chunk } from "lodash";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -300,10 +301,15 @@ export default function Form({
         tracks.push(item.track);
       }
 
-      // Get each track's features from MetaBrainz
-      const tracksToStore: TrackObject[] | null = await getTrackFeatures(
-        tracks
-      );
+      // Chunk tracks to fetch features 25 at a time
+      const tracksToStore: TrackObject[] = [];
+      const chunks: Track[][] = chunk(tracks, 25);
+
+      for (const chunk of chunks) {
+        // Get each track's features from MetaBrainz
+        const results: TrackObject[] | null = await getTrackFeatures(chunk);
+        results && tracksToStore.push(...results);
+      }
 
       if (tracksToStore) {
         // Store playlist name, tracks, and features

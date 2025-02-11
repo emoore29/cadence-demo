@@ -17,6 +17,7 @@ import {
 } from "./fetchers";
 import { showErrorNotif, showSuccessNotif, shuffleArray } from "./general";
 import { storeDataInLocalStorage } from "./localStorage";
+import { chunk } from "lodash";
 
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -91,9 +92,19 @@ export async function storeSavedTracksData(
   }
   const libSize: number = savedTracks.length;
   let count: number = 0; // To track number of successes
-  const tracks: TrackObject[] | null = await getTrackFeatures(savedTracksArray);
-  if (tracks) {
-    count = await storeTracks(tracks, updateProgressBar);
+
+  // Chunk tracks to fetch features 25 at a time
+  const tracksToStore: TrackObject[] = [];
+  const chunks: Track[][] = chunk(savedTracksArray, 25);
+
+  for (const chunk of chunks) {
+    // Get each track's features from MetaBrainz
+    const results: TrackObject[] | null = await getTrackFeatures(chunk);
+    results && tracksToStore.push(...results);
+  }
+
+  if (tracksToStore) {
+    count = await storeTracks(tracksToStore, updateProgressBar);
   }
   showSuccessNotif(
     "Stored saved tracks",
@@ -112,11 +123,21 @@ export async function storeTopTracksData(
   if (!topTracks) return null;
   const libSize: number = topTracks.length;
   let count = 0;
-  // Get features for all topTracks
-  const tracks: TrackObject[] | null = await getTrackFeatures(topTracks);
-  if (tracks) {
-    count = await storeTracks(tracks, updateProgressBar);
+
+  // Chunk tracks to fetch features 25 at a time
+  const tracksToStore: TrackObject[] = [];
+  const chunks: Track[][] = chunk(topTracks, 25);
+
+  for (const chunk of chunks) {
+    // Get each track's features from MetaBrainz
+    const results: TrackObject[] | null = await getTrackFeatures(chunk);
+    results && tracksToStore.push(...results);
   }
+
+  if (tracksToStore) {
+    count = await storeTracks(tracksToStore, updateProgressBar);
+  }
+
   showSuccessNotif(
     "Stored top tracks",
     `Features for ${count} out of ${libSize} were successfully retrieved.`
@@ -145,7 +166,7 @@ export async function getTrackFeatures(
   // Fetch MusicBrainz data for valid ISRCs
   const mbData: MusicBrainzData | null = await fetchMbData(isrcs);
   if (!mbData) {
-    console.log("No data returned fetching musicbrainz id")
+    console.log("No data returned fetching musicbrainz id");
     return null;
   }
 
@@ -158,7 +179,7 @@ export async function getTrackFeatures(
   // Fetch AcousticBrainz data
   const abData: AcousticBrainzData | null = await fetchFeatures(mbids);
   if (!abData) {
-    console.log("no ab data returned from gettrackfeatures")
+    console.log("no ab data returned from gettrackfeatures");
     return null;
   }
 
