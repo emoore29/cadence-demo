@@ -102,29 +102,6 @@ export async function searchTrackDeezer(
   }
 }
 
-export async function fetchMBIDandTags(
-  isrc: string
-): Promise<MbidAndTags | null> {
-  try {
-    const response = await fetch(
-      `http://localhost:3000/mbid?isrc=${encodeURIComponent(isrc)}`
-    );
-    const data = await response.json();
-    console.log(data);
-    const mbid: string = data.mbidAndTags.mbid;
-    const tags: string[] = data.mbidAndTags.tags;
-    if (mbid && tags) {
-      return { mbid, tags };
-    } else {
-      console.warn("No mbid response from server");
-      return null;
-    }
-  } catch (error) {
-    showErrorNotif("Error", `Could not retrieve track mbid (${isrc})`);
-    return null;
-  }
-}
-
 export async function fetchMbData(
   isrcArr: string[]
 ): Promise<MusicBrainzData | null> {

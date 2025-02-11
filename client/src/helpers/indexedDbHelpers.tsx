@@ -1,10 +1,6 @@
 import {
   AcousticBrainzData,
   Artist,
-  HighLevelFeatures,
-  LowLevelFeatures,
-  MbidAndTags,
-  MetaBrainzFeatures,
   MusicBrainzData,
   SavedTrack,
   StoredTrack,
@@ -15,17 +11,11 @@ import { getAllFromStore, setInStore } from "./database";
 import {
   fetchFeatures,
   fetchMbData,
-  fetchMBIDandTags,
   fetchSavedTracks,
   fetchTopArtists,
   fetchTopTracks,
 } from "./fetchers";
-import {
-  showErrorNotif,
-  showSuccessNotif,
-  showWarnNotif,
-  shuffleArray,
-} from "./general";
+import { showErrorNotif, showSuccessNotif, shuffleArray } from "./general";
 import { storeDataInLocalStorage } from "./localStorage";
 
 export function delay(ms: number) {
