@@ -13,7 +13,7 @@ export default function LoadingPlaylist({
 }: LoadingPlaylistProps) {
   const skeletonArray = Array.from(
     { length: targetTracks },
-    (value, index) => index
+    (_, index) => index
   );
 
   const loadingRows = skeletonArray.map((item) => <SkeletonRow key={item} />);

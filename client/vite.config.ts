@@ -5,6 +5,17 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
+  base: "/cadence/",
+  server: {
+    proxy: {
+      "/api": {
+        target: {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
+    },
+  },
   // below added as a temp solution to slow loading of tabler icons.
   resolve: {
     alias: {

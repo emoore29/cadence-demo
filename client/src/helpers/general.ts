@@ -184,7 +184,7 @@ export async function generateSeeds(chosenSeeds: ChosenSeeds | undefined) {
 export function parseFilters(filters: NumericFilters): Record<string, string> {
   return Object.fromEntries(
     Object.entries(filters)
-      .filter(([key, value]) => value != undefined)
+      .filter(([_, value]) => value != undefined)
       .map(([key, value]) => [
         key.replace(/([A-Z])/g, "_$1").toLowerCase(),
         String(value),

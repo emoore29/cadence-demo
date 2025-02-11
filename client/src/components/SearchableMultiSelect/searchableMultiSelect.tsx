@@ -1,4 +1,3 @@
-import { ChosenSeeds } from "@/types/types";
 import {
   CheckIcon,
   Combobox,

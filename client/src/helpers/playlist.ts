@@ -200,7 +200,7 @@ function matches(
     return false;
   }
 
-  const keys: (keyof MetaBrainzFeatures)[] = [
+  const keys: (keyof typeof formValues)[] = [
     "danceability",
     "gender",
     "acoustic",
@@ -215,8 +215,9 @@ function matches(
 
   for (const key of keys) {
     if (
-      eval(key) !== "Any" && // Access the variable by name
-      convertToSnakeCase(eval(key)) !== trackFeatures[key]
+      formValues[key] !== "Any" && // Access the variable by name
+      convertToSnakeCase(formValues[key] as string) !==
+        trackFeatures[key as keyof typeof trackFeatures]
     ) {
       return false;
     }
@@ -310,7 +311,12 @@ async function addItemsToPlaylist(
         },
       }
     );
-    return true;
+    const snapshotId: string = res.data.snapshot_id;
+    if (snapshotId) {
+      return true;
+    } else {
+      return false;
+    }
   } catch (error) {
     console.error("Error adding items to playlist:", error);
     return false;
