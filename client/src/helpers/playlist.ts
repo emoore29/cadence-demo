@@ -154,22 +154,7 @@ function matches(
   doubleTime: boolean,
   chosenTags: string[]
 ): boolean {
-  const {
-    minTempo,
-    maxTempo,
-    key,
-    mode,
-    danceability,
-    gender,
-    acoustic,
-    aggressive,
-    electronic,
-    happy,
-    party,
-    relaxed,
-    sad,
-    timbre,
-  } = formValues;
+  const { minTempo, maxTempo, key, mode, ...moods } = formValues;
 
   // Check tempo ranges
   if (!anyTempo) {
@@ -200,23 +185,10 @@ function matches(
     return false;
   }
 
-  const keys: (keyof typeof formValues)[] = [
-    "danceability",
-    "gender",
-    "acoustic",
-    "aggressive",
-    "electronic",
-    "happy",
-    "party",
-    "relaxed",
-    "sad",
-    "timbre",
-  ];
-
-  for (const key of keys) {
+  for (const [key, value] of Object.entries(moods)) {
     if (
-      formValues[key] !== "Any" && // Access the variable by name
-      convertToSnakeCase(formValues[key] as string) !==
+      value !== "Any" &&
+      convertToSnakeCase(value as string) !==
         trackFeatures[key as keyof typeof trackFeatures]
     ) {
       return false;
