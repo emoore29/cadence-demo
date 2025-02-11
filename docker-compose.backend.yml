@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  cadence-server:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Adjust these to match your MusicBrainz DB settings
+      - DATABASE_URL=postgresql://musicbrainz:musicbrainz@host.docker.internal:5432/musicbrainz_db
+    networks:
+      - cadence_net
+
+networks:
+  cadence_net:
+    driver: bridge
