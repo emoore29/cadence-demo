@@ -1,13 +1,14 @@
 import { SearchResult } from "@/types/deezer/search";
-import { RecordingSearchResult } from "@/types/musicBrainz/recording";
 import axios from "axios";
 import { chunk } from "lodash";
 import {
+  AcousticBrainzData,
   Artist,
   HighLevelFeatures,
   Library,
   LowLevelFeatures,
   MbidAndTags,
+  MusicBrainzData,
   SavedTrack,
   TopTracks,
   Track,
@@ -15,7 +16,7 @@ import {
   User,
 } from "../types/types";
 import { deleteFromStore, setInStore } from "./database";
-import { extractTags, showErrorNotif, showWarnNotif } from "./general";
+import { showErrorNotif, showWarnNotif } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
 
 // Fetches user data, returns User or null on failure
@@ -124,15 +125,35 @@ export async function fetchMBIDandTags(
   }
 }
 
+export async function fetchMbData(
+  isrcArr: string[]
+): Promise<MusicBrainzData | null> {
+  const isrcs: string = isrcArr.join(",");
+
+  try {
+    const res = await fetch(
+      `http://localhost:3000/mbid?isrcs=${encodeURIComponent(isrcs)}`
+    );
+    const data = await res.json();
+    console.log(data);
+    return data.mbData;
+  } catch (error) {
+    showErrorNotif("Error", `Could not retrieve MusicBrainz data`);
+    return null;
+  }
+}
+
 export async function fetchFeatures(
-  mbid: string
-): Promise<(LowLevelFeatures & HighLevelFeatures) | null> {
+  mbidArr: string[]
+): Promise<AcousticBrainzData | null> {
+  const mbids: string = mbidArr.join(",");
+
   try {
     const response = await fetch(
-      `http://localhost:3000/features?mbid=${encodeURIComponent(mbid)}`
+      `http://localhost:3000/features?mbid=${encodeURIComponent(mbids)}`
     );
     const data = await response.json();
-    const features: LowLevelFeatures & HighLevelFeatures = data.features;
+    const features: AcousticBrainzData = data.features;
     if (features) {
       return features;
     } else {
@@ -140,10 +161,7 @@ export async function fetchFeatures(
       return null;
     }
   } catch (error) {
-    showErrorNotif(
-      "Network error",
-      `Could not retrieve track features (${mbid})`
-    );
+    showErrorNotif("Network error", `Could not retrieve features`);
     return null;
   }
 }

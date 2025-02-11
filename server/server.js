@@ -39,10 +39,9 @@ const client = new Client({
 
 async function connectToDb() {
   await client.connect();
-
 }
 
-connectToDb()
+connectToDb();
 
 // Redirects client to Spotify authorization with appropriate query parameters
 app.get("/login", function (req, res) {
@@ -214,18 +213,6 @@ app.get("/search_deezer", async function (req, res) {
   }
 });
 
-app.get("/features", async function (req, res) {
-  const { mbid } = req.query;
-
-  const features = await fetchFeatures(mbid);
-
-  if (features) {
-    res.json({ features });
-  } else {
-    res.status(500).json({ error: `Unable to fetch track features (${mbid})` });
-  }
-});
-
 app.get("/playlist", async function (req, res) {
   const { playlistId, accessToken } = req.query;
 
@@ -243,25 +230,47 @@ app.get("/playlist", async function (req, res) {
 });
 
 app.get("/mbid", async function (req, res) {
-  const { isrc } = req.query;
+  const { isrcs } = req.query;
 
-  const mbidAndTags = await getMbidAndTags(isrc);
+  const isrcArr = isrcs.split(",");
 
-  console.log("returning: ", mbidAndTags);
+  if (isrcArr.length > 25) {
+    res.status(400).json({ message: "Too many ids requested." });
+  }
 
-  if (mbidAndTags) {
-    res.json({ mbidAndTags });
+  let mbData = {};
+
+  for (const isrc of isrcArr) {
+    const mbTrackData = await getMbidAndTags(isrc);
+    mbData.isrc = mbTrackData;
+  }
+
+  console.log("returning: ", mbData);
+
+  if (mbData) {
+    res.json(mbData);
   } else {
-    res
-      .status(500)
-      .json({ error: `Unable to fetch track mbid and tags (${isrc})` });
+    res.status(500).json({ error: `Unable to fetch MusicBrainz data` });
   }
 });
 
+app.get("/features", async function (req, res) {
+  const { mbids } = req.query; // Array of strings
 
+  if (mbids.length > 25) {
+    res.status(400).json({ message: "Too many ids requested." });
+  }
+
+  const features = await fetchFeatures(mbids);
+
+  if (features) {
+    res.json(features);
+  } else {
+    res.status(500).json({ error: `Unable to fetch track features` });
+  }
+});
 
 async function getMbidAndTags(isrc) {
-
   console.log(isrc);
 
   try {
@@ -298,7 +307,8 @@ async function getMbidAndTags(isrc) {
     return { mbid, processedTags };
   } catch (err) {
     console.error(err);
-  } 
+    return null;
+  }
 }
 
 // Returns a sorted array of a recording's tags based on count

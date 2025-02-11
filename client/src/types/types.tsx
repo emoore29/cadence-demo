@@ -17,6 +17,31 @@ export interface User {
   uri: string;
 }
 
+export interface MusicBrainzData {
+  [isrc: string]: {
+    mbid: string;
+    processedTags: string[];
+  } | null;
+}
+
+export interface AcousticBrainzData {
+  [mbid: string]: {
+    bpm: number;
+    key: string;
+    mode: string;
+    danceability: string;
+    gender: string;
+    acoustic: string;
+    aggressive: string;
+    electronic: string;
+    happy: string;
+    party: string;
+    relaxed: string;
+    sad: string;
+    timbre: string;
+  };
+}
+
 export interface Track {
   album: {
     album_type: string;

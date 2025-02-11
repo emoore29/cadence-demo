@@ -4,7 +4,7 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchFeatures(mbid) {
+async function fetchFeatures(mbids) {
   let lowLevelRemaining = 0;
   let lowLevelResetIn = 0;
   let highLevelRemaining = 0;
@@ -12,23 +12,32 @@ async function fetchFeatures(mbid) {
   let lowLevel;
   let highLevel;
 
+  const mbidQuery = mbids.join(";");
+
+  // Initialise features object
+  const features = {};
+
   try {
     const res = await axios.get(
-      `https://acousticbrainz.org/api/v1/${mbid}/low-level`
+      `https://acousticbrainz.org/api/v1/low-level?recording_ids=${mbidQuery}&features=rhythm.bpm;tonal.key_key;tonal.key_scale`
     );
 
     // AcousticBrainz uses lower case for the rate limit headers
     lowLevelRemaining = res.headers["x-ratelimit-remaining"];
     lowLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
-    lowLevel = {
-      bpm: res.data.rhythm.bpm,
-      key: res.data.tonal.key_key,
-      mode: res.data.tonal.key_scale,
-    };
+    lowLevel = res.data;
+
+    for (const mbid of mbids) {
+      features.mbid = {
+        bpm: res.data[mbid].rhythm.bpm,
+        key: res.data[mbid].tonal.key_key,
+        mode: res.data[mbid].tonal.key_scale,
+      };
+    }
   } catch (error) {
     console.warn(
-      `Could not fetch low level features for track: ${mbid} (mbid)`,
+      `Could not fetch low level features`,
       error.response.data.message
     );
     return null;
@@ -45,28 +54,30 @@ async function fetchFeatures(mbid) {
 
   try {
     const res = await axios.get(
-      `https://acousticbrainz.org/api/v1/${mbid}/high-level`
+      `https://acousticbrainz.org/api/v1/high-level?recording_ids=${mbidQuery}`
     );
 
     // AcousticBrainz uses lower case for the rate limit headers
     highLevelRemaining = res.headers["x-ratelimit-remaining"];
     highLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
-    const data = res.data.highlevel;
-    highLevel = {
-      danceability: data.danceability.value,
-      gender: data.gender.value,
-      acoustic: data.mood_acoustic.value,
-      aggressive: data.mood_aggressive.value,
-      electronic: data.mood_electronic.value,
-      happy: data.mood_happy.value,
-      party: data.mood_party.value,
-      relaxed: data.mood_relaxed.value,
-      sad: data.mood_sad.value,
-      timbre: data.timbre.value,
-    };
+    for (const mbid of mbids) {
+      features.mbid = {
+        ...features.mbid,
+        danceability: res.data[mbid].danceability.value,
+        gender: res.data[mbid].gender.value,
+        acoustic: res.data[mbid].acoustic.value,
+        aggressive: res.data[mbid].aggressive.value,
+        electronic: res.data[mbid].electronic.value,
+        happy: res.data[mbid].happy.value,
+        party: res.data[mbid].party.value,
+        relaxed: res.data[mbid].relaxed.value,
+        sad: res.data[mbid].sad.value,
+        timbre: res.data[mbid].timbre.value,
+      };
+    }
   } catch (error) {
-    console.warn(`Could not fetch features for track: ${mbid} (mbid)`);
+    console.warn(`Could not fetch high level features`);
     return null;
   }
 
@@ -82,12 +93,6 @@ async function fetchFeatures(mbid) {
       highLevelRemaining
     )}, ${Math.max(lowLevelResetIn, highLevelResetIn)}]`
   );
-
-  // Combine high and low level features
-  const features = {
-    ...lowLevel,
-    ...highLevel,
-  };
 
   return features;
 }

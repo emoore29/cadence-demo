@@ -1,9 +1,11 @@
 import {
+  AcousticBrainzData,
   Artist,
   HighLevelFeatures,
   LowLevelFeatures,
   MbidAndTags,
   MetaBrainzFeatures,
+  MusicBrainzData,
   SavedTrack,
   StoredTrack,
   Track,
@@ -12,6 +14,7 @@ import {
 import { getAllFromStore, setInStore } from "./database";
 import {
   fetchFeatures,
+  fetchMbData,
   fetchMBIDandTags,
   fetchSavedTracks,
   fetchTopArtists,
@@ -140,34 +143,59 @@ export async function getTrackFeatures(
 ): Promise<TrackObject[] | null> {
   const trackObjectsArray: TrackObject[] = [];
 
-  // Remove any tracks that do not have an isrc or were released after 2022
-  // (AcousticBrainz will not have data for tracks after 2022)
-  tracks = tracks.filter((track) => {
+  // Filter and keep tracks with a valid ISRC and release year < 2022
+  const validTracks = tracks.filter((track) => {
     const releaseYear: number = Number(track.album.release_date.slice(0, 4));
-    return track.external_ids.isrc !== undefined && releaseYear < 2022;
+    return track.external_ids.isrc && releaseYear < 2022;
   });
 
-  // Fetch MetaBrainz data
-  for (const track of tracks) {
-    const isrc: string = track.external_ids.isrc!;
-    const mbResponse: MbidAndTags | null = await fetchMBIDandTags(isrc);
-    if (mbResponse) {
-      const mbid: string = mbResponse.mbid;
-      const tags: string[] = mbResponse.tags;
+  // Extract ISRCs
+  const isrcs: string[] = validTracks.map((track) => track.external_ids.isrc!);
 
-      const features: (LowLevelFeatures & HighLevelFeatures) | null =
-        await fetchFeatures(mbid);
+  // Fetch MusicBrainz data for valid ISRCs
+  const mbData: MusicBrainzData | null = await fetchMbData(isrcs);
+  if (!mbData) return null;
 
-      if (features) {
-        const abFeatures: LowLevelFeatures & HighLevelFeatures = features;
-        const metaBrainzFeatures: MetaBrainzFeatures = {
-          ...abFeatures,
-          tags,
-        };
-        trackObjectsArray.push({ track: track, features: metaBrainzFeatures });
+  // Extract the mbids for each ISRC
+  const mbids: string[] = Object.values(mbData)
+    .filter((data) => data != null)
+    .map((data) => data.mbid);
+  console.log(mbids);
+
+  // Fetch AcousticBrainz data
+  const abData: AcousticBrainzData | null = await fetchFeatures(mbids);
+  if (!abData) return null;
+
+  // Find track corresponding to MBID:
+
+  // Map ISRC to tracks
+  const isrcToTrackMap = new Map<string, Track>();
+  tracks.forEach((track) => {
+    if (track.external_ids.isrc) {
+      isrcToTrackMap.set(track.external_ids.isrc, track);
+    }
+  });
+
+  // Map each mbid with corresponding isrc and track
+  for (const isrc in mbData) {
+    if (mbData[isrc]) {
+      const mbid = mbData[isrc].mbid;
+      const tags = mbData[isrc].processedTags;
+      const features = abData[mbid];
+      // If mbid corresponding to isrc exists in abData
+      if (mbid && tags && features) {
+        // Get corresponding track
+        const track = isrcToTrackMap.get(isrc);
+        if (track) {
+          trackObjectsArray.push({
+            track,
+            features: { tags: tags, ...abData[mbid] },
+          });
+        }
       }
     }
   }
+
   return trackObjectsArray;
 }
 
