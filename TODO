@@ -3,6 +3,7 @@ Basic Features:
 - Update IDB library based on Spotify library (check and add new saved tracks utilising date added)
 - Accessible track preview on mobile / keyboard, keyboard accessible tracks source tabs, etc
 - View track features modal
+- Add loading bar to loading playlist section
 
 Bugs?:
 
@@ -10,14 +11,20 @@ Bugs?:
 - Token expiry still an issue occasionally?
 - Check cross-browser/device compatibility
 
+Refactor:
+
+- Improve state management
+- Move frontend fetches to server
+- Optimise MusicBrainz database queries
+- Reduce repetitive code and improve organisation, e.g. chunks in loadPlaylistData, storeTopTracksData, storeSavedTracksData, etc, move loadPlaylistsData to fetchers.ts
+
 Future Features:
 
 - Replace target tracks with target time or give option for target time
 - Add volume slider to manage preview volume
 
-Refactor:
+Production:
 
-- Improve state management
-- Move frontend fetches to server
-- Setup musicbrainz database to fetch mbid & tags (to avoid rate limits)
-- Fetch specific features for multiple MBIDs rather than entire low and high level dumps for single tracks at a time.
+- Figure out frontend and backend hosting
+- Download AcousticBrainz database as a backup in case of API deprecation
+- Confirm MusicBrainz replication occurs
