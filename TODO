@@ -1,28 +1,30 @@
 Basic Features:
 
-- Pin all / unpin all buttons
-- Update IDB library based on Spotify library (check for new saved tracks utilising date added)
-- Spotify icon somewhere
-- Accessible tooltips & track features: use trigger click hover for toggle menus so hover on desktop but click on mobile
-- Refetch recs with expanded criteria if no recs are returned from Spotify or indicator that none were returned
-- Distinguish between clear data/log out?
+- Update IDB library based on Spotify library (check and add new saved tracks utilising date added)
+- Accessible track preview on mobile / keyboard, keyboard accessible tracks source tabs, etc
+- View track features modal
+- Add loading bar to loading playlist section
 
 Bugs?:
 
-- Adding all recs to playlist, then clicking submit, recs hangs.
-- If recs.size == 2 or 1, but fetching more only returns recs that are in the playlist, it will look like it's "hanging" with the SkeletonRows, because no more recommendations can be found
-- Database deletion on logout/clear data
-- Token expiry still an issue???
-- Refactor circleOffset state to be only used within trackRow components.
+- Database deletion on logout/clear data blocked when devtools is open?
+- Token expiry still an issue occasionally?
+- Check cross-browser/device compatibility
 
-Other:
+Refactor:
 
-- Organise styling with Mantine theme object
-- Gradient background
+- Improve state management
+- Move frontend fetches to server
+- Optimise MusicBrainz database queries
+- Reduce repetitive code and improve organisation, e.g. chunks in loadPlaylistData, storeTopTracksData, storeSavedTracksData, etc, move loadPlaylistsData to fetchers.ts
 
 Future Features:
 
 - Replace target tracks with target time or give option for target time
-- Move song order in playlist
-- Right click to generate playlist from a track or artist
-- Add volume slider to manage preview volume?
+- Add volume slider to manage preview volume
+
+Production:
+
+- Figure out frontend and backend hosting
+- Download AcousticBrainz database as a backup in case of API deprecation
+- Confirm MusicBrainz replication occurs

@@ -11,11 +11,18 @@ export default function Footer() {
         </a>
       </p>
       <p className={styles.footerInfo}>
-        Sample data provided by{" "}
+        Track metadata provided by{" "}
         <a href="https://open.spotify.com/" target="_blank">
           Spotify
         </a>
         <img className={styles.spotifyLogo} src="/spotify_logo.png" alt="" />
+      </p>
+      <p className={styles.footerInfo}>
+        Track features provided by{" "}
+        <a href="https://acousticbrainz.org/">AcousticBrainz</a>
+      </p>
+      <p className={styles.footerInfo}>
+        Track previews provided by <a href="">Deezer</a>
       </p>
     </footer>
   );

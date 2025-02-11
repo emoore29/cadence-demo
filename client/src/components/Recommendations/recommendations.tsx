@@ -132,12 +132,8 @@ export default function Recommendations({
         <TrackRow
           listType="Recommendations"
           track={track[1]}
-          audioRefs={audioRefs}
-          playingTrackId={playingTrackId}
-          playTrackPreview={playTrackPreview}
           handleSaveClick={handleSaveClick}
           loadingSaveStatusTrackIds={loadingSaveStatusTrackIds}
-          strokeDashoffset={circleOffsets[track[1].track.id] || 2 * Math.PI * 5}
         />
 
         <Table.Td className={styles.rightTd}>

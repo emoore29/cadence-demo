@@ -1,40 +1,26 @@
-import { msToTrackTime } from "@/helpers/general";
 import LikeIcon from "@/components/LikeIcon/LikeIcon";
 import LikedIcon from "@/components/LikedIcon/LikedIcon";
+import { msToTrackTime } from "@/helpers/general";
 import { TrackObject } from "@/types/types";
-import { Button, Loader, Table, UnstyledButton } from "@mantine/core";
+import { Button, Loader, Table } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconPinFilled } from "@tabler/icons-react";
-import React from "react";
 import TrackPreview from "../TrackPreview/trackPreview";
 import styles from "./trackRow.module.css";
 
-type TrackRowProps = {
+interface TrackRowProps {
   pinToPlaylist?: (trackId: string) => void;
   listType: string;
   track: TrackObject;
-  audioRefs: React.MutableRefObject<{ [key: string]: HTMLAudioElement | null }>;
-  playingTrackId: string | null;
-  playTrackPreview: (id: string) => void;
-  handleSaveClick: (
-    listType: string,
-    trackObj: TrackObject,
-    saved: boolean
-  ) => void;
+  handleSaveClick: (trackObj: TrackObject, saved: boolean) => void;
   loadingSaveStatusTrackIds: string[];
-  strokeDashoffset: number;
-};
+}
 
 export default function TrackRow({
   pinToPlaylist,
-  listType,
   track,
-  audioRefs,
-  playingTrackId,
-  playTrackPreview,
   handleSaveClick,
   loadingSaveStatusTrackIds,
-  strokeDashoffset,
 }: TrackRowProps) {
   const isMobile = useMediaQuery("(max-width: 50em)");
   return (
@@ -42,13 +28,7 @@ export default function TrackRow({
       <Table.Td>
         <div className={styles.trackDisplay}>
           <div className={styles.artAndPreview}>
-            <TrackPreview
-              audioRefs={audioRefs}
-              track={track}
-              playingTrackId={playingTrackId}
-              strokeDashoffset={strokeDashoffset}
-              playTrackPreview={playTrackPreview}
-            />
+            <TrackPreview track={track} />
             <img
               src={track.track.album.images[0].url}
               alt={`${track.track.album.name} album art`}
@@ -102,7 +82,7 @@ export default function TrackRow({
             type="button"
             className={styles.trackActionButton}
             disabled={loadingSaveStatusTrackIds.includes(track.track.id)}
-            onClick={() => handleSaveClick(listType, track, track.saved!)}
+            onClick={() => handleSaveClick(track, track.saved!)}
           >
             {loadingSaveStatusTrackIds.includes(track.track.id) ? (
               <Loader color="white" size={16} />

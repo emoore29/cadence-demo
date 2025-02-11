@@ -1,9 +1,13 @@
+import { getAllFromStore, setPlaylistInStore } from "@/helpers/database";
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
 import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
-import { filterFromStore, startSearch } from "@/helpers/playlist";
-import { ChosenSeeds, FormValues, TrackObject } from "@/types/types";
+import { getTrackFeatures } from "@/helpers/indexedDbHelpers";
+import { getItemFromLocalStorage } from "@/helpers/localStorage";
+import { startSearch } from "@/helpers/playlist";
+import { FormValues, TopTrackObject, Track, TrackObject } from "@/types/types";
 import {
   Accordion,
+  Alert,
   Button,
   Checkbox,
   CheckIcon,
@@ -13,87 +17,147 @@ import {
   Radio,
   Select,
   Tabs,
-  Tooltip,
-  Alert,
+  Text,
+  TextInput,
 } from "@mantine/core";
 import { UseFormReturnType } from "@mantine/form";
+import { modals } from "@mantine/modals";
 import { IconInfoCircle } from "@tabler/icons-react";
-import { useState } from "react";
-import CustomFilters from "../CustomFilters/customFilters";
+import { useEffect, useState } from "react";
+import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
+import { chunk } from "lodash";
 
 interface FormProps {
+  estimatedLoadTime: string;
   setHasSearched: React.Dispatch<React.SetStateAction<boolean>>;
   activeSourceTab: string | null;
   setActiveSourceTab: React.Dispatch<React.SetStateAction<string | null>>;
   loadingData: boolean;
-  loadingDemoData: boolean;
   loadingDataProgress: number;
-  loadingDemoDataProgress: number;
-  storeDemoData: () => void;
   storeSpotifyData: () => void;
   libraryStored: boolean;
-  demoLibraryStored: boolean;
   playlist: Map<string, TrackObject>;
   setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
   matchingTracks: Map<string, TrackObject>;
   setMatchingTracks: React.Dispatch<
     React.SetStateAction<Map<string, TrackObject>>
   >;
-  setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject>>
-  >;
   setLoadingPlaylist: React.Dispatch<React.SetStateAction<boolean>>;
-  setLoadingRecs: React.Dispatch<React.SetStateAction<boolean>>;
   form: UseFormReturnType<FormValues>;
   anyTempo: boolean;
+  halfTime: boolean;
+  doubleTime: boolean;
   setAnyTempo: React.Dispatch<React.SetStateAction<boolean>>;
+  setHalfTime: React.Dispatch<React.SetStateAction<boolean>>;
+  setDoubleTime: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function Form({
+  estimatedLoadTime,
   setHasSearched,
   activeSourceTab,
   setActiveSourceTab,
   loadingData,
-  loadingDemoData,
   loadingDataProgress,
-  loadingDemoDataProgress,
-  storeDemoData,
   storeSpotifyData,
   libraryStored,
-  demoLibraryStored,
   playlist,
   setPlaylist,
   setMatchingTracks,
-  setRecommendations,
   setLoadingPlaylist,
-  setLoadingRecs,
   form,
   anyTempo,
+  halfTime,
+  doubleTime,
   setAnyTempo,
+  setHalfTime,
+  setDoubleTime,
 }: FormProps) {
-  const [chosenSeeds, setChosenSeeds] = useState<ChosenSeeds>({
-    genres: [],
-    tracks: [],
-    artists: [],
-  });
+  const [chosenTags, setChosenTags] = useState<string[]>([]);
+  const [savedTrackTags, setSavedTrackTags] = useState<string[]>([]);
+  const [topTrackTags, setTopTrackTags] = useState<string[]>([]);
+  const [source, setSource] = useState<string>("savedTracks");
+  const [playlistId, setPlaylistId] = useState("1qbLWinFLReM3PVXjHAQLz");
+  const [loadingSpotifyPlaylist, setLoadingSpotifyPlaylist] =
+    useState<boolean>(false);
+  const [storedPlaylists, setStoredPlaylists] = useState<
+    { name: string; id: string }[]
+  >([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string>("");
   const icon = <IconInfoCircle />;
+
+  // Get tags from IDB
+  async function getTags() {
+    // Check if tags are already in local storage
+    const storedSavedTrackTags = JSON.parse(
+      getItemFromLocalStorage("savedTrackTags") || "[]"
+    );
+    const storedTopTrackTags = JSON.parse(
+      getItemFromLocalStorage("topTrackTags") || "[]"
+    );
+
+    // If tags are stored use those instead of fetching
+    if (source === "savedTracks" && storedSavedTrackTags.length > 0) {
+      setSavedTrackTags(storedSavedTrackTags);
+      return;
+    }
+
+    if (source === "topTracks" && storedTopTrackTags.length > 0) {
+      setTopTrackTags(storedTopTrackTags);
+      return;
+    }
+
+    // If tags are not stored, fetch from IDB
+    const tags: string[] = [];
+    const tracks: TrackObject[] | TopTrackObject[] = await getAllFromStore(
+      source as "savedTracks" | "topTracks"
+    );
+
+    for (const track of tracks) {
+      const trackTags: string[] = track.features.tags;
+      for (const trackTag of trackTags) {
+        if (!tags.includes(trackTag)) {
+          tags.push(trackTag);
+        }
+      }
+    }
+
+    // Store and set the new tags
+    if (source === "topTracks") {
+      localStorage.setItem("topTrackTags", JSON.stringify(tags));
+      setTopTrackTags(tags);
+    } else {
+      localStorage.setItem("savedTrackTags", JSON.stringify(tags));
+      setSavedTrackTags(tags);
+    }
+  }
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      await getTags();
+    };
+
+    fetchTags();
+  }, [source]);
 
   async function handleSubmit(
     values: FormValues,
-    anyTempo: boolean,
     activeSourceTab: string | null
   ) {
     setHasSearched(true);
-    // Mark playlist and recs as loading so that loading components are displayed
     setLoadingPlaylist(true);
 
     // Search for matching tracks
     let matches: Map<string, TrackObject> | null | void = await startSearch(
       values,
+      source,
+      selectedPlaylist,
       anyTempo,
+      halfTime,
+      doubleTime,
       activeSourceTab,
-      chosenSeeds
+      chosenTags
     );
     if (!matches) {
       showWarnNotif(
@@ -101,10 +165,8 @@ export default function Form({
         "No tracks could be found that meet that criteria."
       );
       setPlaylist(new Map());
-      setRecommendations(new Map());
       setMatchingTracks(new Map());
       setLoadingPlaylist(false);
-      setLoadingRecs(false);
       return;
     }
 
@@ -150,10 +212,8 @@ export default function Form({
         "No tracks could be found that meet that criteria."
       );
       setPlaylist(new Map());
-      setRecommendations(new Map());
       setMatchingTracks(new Map());
       setLoadingPlaylist(false);
-      setLoadingRecs(false);
       return;
     }
 
@@ -188,45 +248,122 @@ export default function Form({
     setLoadingPlaylist(false);
     setPlaylist(newPlaylist);
     setMatchingTracks(matches);
+  }
 
-    // Fetch up to 100 recs (only the first 3 will be displayed in the Recommendations component)
-    // Note: Spotify is not guaranteed to return 100
-    // Commented out as fetching recommendations no longer functions due to API deprecation.
+  const advancedFilters = {
+    danceability: ["Any", "Danceable", "Not Danceable"],
+    gender: ["Any", "Female", "Male"],
+    acoustic: ["Any", "Acoustic", "Not Acoustic"],
+    aggressive: ["Any", "Aggressive", "Not Aggressive"],
+    electronic: ["Any", "Electronic", "Not Electronic"],
+    happy: ["Any", "Happy", "Not Happy"],
+    party: ["Any", "Party", "Not Party"],
+    relaxed: ["Any", "Relaxed", "Not Relaxed"],
+    sad: ["Any", "Sad", "Not Sad"],
+    timbre: ["Any", "Bright", "Dark"],
+  };
 
-    if (activeSourceTab === "mySpotify") {
-      setLoadingRecs(true);
-      // const recs: Map<string, TrackObject> | null = await getRecommendations(
-      //   values,
-      //   { anyTempo, targetRecs: 100 }
-      // );
+  function checkPlaylistExists() {
+    let playlistExists: boolean = false;
 
-      // Replace above with filtering demo recommendations
-      const recs: Map<string, TrackObject> | null = await filterFromStore(
-        "recommendations",
-        values,
-        anyTempo
-      );
-
-      // Remove any tracks that are already in the playlist
-      if (recs) {
-        for (const key of recs.keys()) {
-          if (playlist?.get(key)) {
-            recs.delete(key);
-          }
-        }
-        if (recs.size > 0) {
-          setRecommendations(recs);
-          setLoadingRecs(false);
-        }
+    for (const playlist of storedPlaylists) {
+      if (playlist.id === playlistId) {
+        playlistExists = true;
       }
     }
+
+    if (playlistExists) {
+      openConfirmLoadPlaylistModal();
+    } else {
+      loadPlaylistData();
+    }
   }
+
+  async function loadPlaylistData() {
+    setLoadingSpotifyPlaylist(true);
+
+    // Fetch playlist data from Spotify
+    const token: string | null = getItemFromLocalStorage("guest_token");
+    if (!token) return null;
+    try {
+      const response = await fetch(
+        `http://localhost:3000/playlist?playlistId=${encodeURIComponent(
+          playlistId
+        )}&accessToken=${token}`
+      );
+      const data = await response.json();
+      const name = data.name;
+      const id = data.id;
+      console.log(data);
+      const tracks: Track[] = [];
+
+      for (const item of data.items) {
+        tracks.push(item.track);
+      }
+
+      // Chunk tracks to fetch features 25 at a time
+      const tracksToStore: TrackObject[] = [];
+      const chunks: Track[][] = chunk(tracks, 25);
+
+      for (const chunk of chunks) {
+        // Get each track's features from MetaBrainz
+        const results: TrackObject[] | null = await getTrackFeatures(chunk);
+        results && tracksToStore.push(...results);
+      }
+
+      if (tracksToStore) {
+        // Store playlist name, tracks, and features
+        try {
+          await setPlaylistInStore({
+            name: name,
+            id: id,
+            tracks: tracksToStore,
+          });
+          console.log("Added playlist to IDB!!!");
+          setStoredPlaylists((prev) => {
+            const filteredPlaylists = prev.filter(
+              (playlist) => playlist.id !== id
+            );
+            return [...filteredPlaylists, { name: name, id: id }];
+          });
+          setPlaylistId("");
+        } catch (error) {
+          console.log("Error storing playlist in IDB", error);
+        }
+      } else {
+        console.log("No playlist tracks to store");
+      }
+    } catch (error) {
+      console.error("Storing playlist data failed.", error);
+    }
+    setLoadingSpotifyPlaylist(false);
+  }
+
+  // Check for any stored playlists on form mount
+  useEffect(() => {
+    const setPlaylistsInState = async () => {
+      const idbPlaylists = await getAllFromStore("playlists");
+      setStoredPlaylists(idbPlaylists);
+    };
+    setPlaylistsInState();
+  }, []);
+
+  const openConfirmLoadPlaylistModal = () =>
+    modals.openConfirmModal({
+      title: "Playlist already stored",
+      children: (
+        <Text size="sm">Are you sure you want to reload this playlist?</Text>
+      ),
+      labels: { confirm: "Confirm", cancel: "Cancel" },
+      onCancel: () => console.log("Cancel"),
+      onConfirm: () => loadPlaylistData(),
+    });
 
   return (
     <form
       className={styles.form}
       onSubmit={form.onSubmit((values) =>
-        handleSubmit(values, anyTempo, activeSourceTab)
+        handleSubmit(values, activeSourceTab)
       )}
       onReset={form.onReset}
     >
@@ -241,11 +378,11 @@ export default function Form({
               onChange={setActiveSourceTab}
             >
               <Tabs.List>
+                <Tabs.Tab value="publicPlaylist">Public Playlist</Tabs.Tab>
                 <Tabs.Tab value="mySpotify">My Spotify</Tabs.Tab>
-                <Tabs.Tab value="custom">Custom</Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="mySpotify">
-                {!demoLibraryStored ? (
+                {!libraryStored ? (
                   <div className={styles.mySpotify}>
                     <Alert
                       variant="light"
@@ -254,27 +391,27 @@ export default function Form({
                       icon={icon}
                       className={styles.alert}
                     >
-                      Spotify has deprecated the endpoints needed to load your
-                      Spotify library features. To view demo functionality, load
-                      demo tracks. Read more{" "}
+                      Due to Spotify API deprecation, all track features may not
+                      be available. Read more{" "}
                       <a href="https://github.com/emoore29/cadence-demo">
                         here
                       </a>
                       .
                     </Alert>
+                    <p>Estimated load time: {estimatedLoadTime}</p>
                     <p style={{ fontSize: "14px" }}>
-                      {!loadingDemoData ? "Load " : "Loading "}demo data
+                      {!loadingData ? "Load " : "Loading "}your track data
                     </p>
-                    {!loadingDemoData ? (
+                    {!loadingData ? (
                       <Button
-                        onClick={storeDemoData}
+                        onClick={storeSpotifyData}
                         className={styles.loadLibraryBtn}
                       >
-                        Load demo data
+                        Load your track data
                       </Button>
                     ) : (
                       <Progress
-                        value={loadingDemoDataProgress}
+                        value={loadingDataProgress}
                         size="lg"
                         transitionDuration={200}
                       />
@@ -282,42 +419,54 @@ export default function Form({
                   </div>
                 ) : (
                   <Radio.Group
+                    value={source}
+                    onChange={setSource}
                     name="source"
                     label="Track Source"
-                    {...form.getInputProps("source")}
                   >
                     <Group className={styles.source}>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
-                        <Radio
-                          value={"1"}
-                          icon={CheckIcon}
-                          label="Saved Songs"
-                          disabled
-                        />
-                      </Tooltip>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
-                        <Radio
-                          value={"2"}
-                          icon={CheckIcon}
-                          label="Top Tracks"
-                          disabled
-                        />
-                      </Tooltip>
-                      <Tooltip label="Due to Spotify API deprecation, this option is currently unavailable.">
-                        <Radio
-                          value={"3"}
-                          icon={CheckIcon}
-                          label="Recommendations"
-                          disabled
-                        />
-                      </Tooltip>
-                      <Radio value={"4"} icon={CheckIcon} label="Demo Tracks" />
+                      <Radio
+                        value="savedTracks"
+                        icon={CheckIcon}
+                        label="Saved Tracks"
+                      />
+                      <Radio
+                        icon={CheckIcon}
+                        label="Top Tracks"
+                        value="topTracks"
+                      />
                     </Group>
                   </Radio.Group>
                 )}
               </Tabs.Panel>
-              <Tabs.Panel value="custom">
-                <CustomFilters setChosenSeeds={setChosenSeeds} />
+              <Tabs.Panel value="publicPlaylist">
+                <Radio.Group
+                  value={selectedPlaylist}
+                  onChange={setSelectedPlaylist}
+                  name="selectedPlaylist"
+                  label="Playlists"
+                >
+                  <Group className={styles.source}>
+                    {storedPlaylists.map((storedPlaylist) => (
+                      <Radio
+                        key={storedPlaylist.id}
+                        value={storedPlaylist.id}
+                        icon={CheckIcon}
+                        label={storedPlaylist.name}
+                      />
+                    ))}
+                  </Group>
+                </Radio.Group>
+                <TextInput
+                  label="Playlist id"
+                  value={playlistId}
+                  onChange={(event) => setPlaylistId(event.currentTarget.value)}
+                />
+                <Button onClick={() => checkPlaylistExists()}>
+                  {!loadingSpotifyPlaylist
+                    ? "Load playlist data"
+                    : "Loading playlist data"}
+                </Button>
               </Tabs.Panel>
             </Tabs>
           </Accordion.Panel>
@@ -346,6 +495,24 @@ export default function Form({
                 setAnyTempo(isChecked);
               }}
             />
+            <Checkbox
+              label="Include half-time"
+              checked={halfTime}
+              disabled={anyTempo}
+              onChange={(event) => {
+                const isChecked = event.currentTarget.checked;
+                setHalfTime(isChecked);
+              }}
+            />
+            <Checkbox
+              label="Include double-time"
+              checked={doubleTime}
+              disabled={anyTempo}
+              onChange={(event) => {
+                const isChecked = event.currentTarget.checked;
+                setDoubleTime(isChecked);
+              }}
+            />
             <div className={styles.bpm}>
               <NumberInput
                 label="Min Tempo"
@@ -368,31 +535,57 @@ export default function Form({
             </div>
           </Accordion.Panel>
         </Accordion.Item>
+        <Accordion.Item value="Key">
+          <Accordion.Control>Key</Accordion.Control>
+          <Accordion.Panel>
+            <Select
+              key={form.key("key")}
+              {...form.getInputProps("key")}
+              label="Key"
+              data={[
+                "Any",
+                "A",
+                "A#",
+                "B",
+                "C",
+                "C#",
+                "D",
+                "D#",
+                "E",
+                "F",
+                "F#",
+                "G",
+                "G#",
+              ]}
+              allowDeselect={false}
+            />
+            <Select
+              key={form.key("mode")}
+              {...form.getInputProps("mode")}
+              label="Mode"
+              data={["Any", "Major", "Minor"]}
+              allowDeselect={false}
+            />
+          </Accordion.Panel>
+        </Accordion.Item>
+        <Accordion.Item value="Tags">
+          <Accordion.Control>Tags</Accordion.Control>
+          <Accordion.Panel>
+            <SearchableMultiSelect
+              data={source == "savedTracks" ? savedTrackTags : topTrackTags}
+              setChosenItems={setChosenTags}
+            />
+          </Accordion.Panel>
+        </Accordion.Item>
         <Accordion.Item value="Advanced">
           <Accordion.Control>Advanced</Accordion.Control>
           <Accordion.Panel>
-            <Alert
-              className={styles.alert}
-              variant="light"
-              color="grape"
-              title="Note"
-              icon={icon}
-            >
-              Advanced filters may significantly limit results.
-            </Alert>
-
-            {[
-              "Valence",
-              "Danceability",
-              "Energy",
-              "Instrumentalness",
-              "Acousticness",
-            ].map((filter: string) => (
+            {Object.entries(advancedFilters).map(([key, values]) => (
               <Select
-                key={form.key(`target` + filter)}
-                {...form.getInputProps(`target` + filter)}
-                label={filter}
-                data={["Any", "Low", "Medium", "High"]}
+                key={form.key(key)}
+                {...form.getInputProps(key)}
+                label={key}
+                data={values}
                 allowDeselect={false}
               />
             ))}

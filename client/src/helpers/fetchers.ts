@@ -1,28 +1,20 @@
+import { SearchResult } from "@/types/deezer/search";
 import axios from "axios";
 import { chunk } from "lodash";
 import {
+  AcousticBrainzData,
   Artist,
-  ChosenSeeds,
-  FeaturesLibrary,
   Library,
-  NumericFilters,
-  Recommendations,
+  MusicBrainzData,
   SavedTrack,
   TopTracks,
   Track,
-  TrackFeatures,
   TrackObject,
   User,
 } from "../types/types";
 import { deleteFromStore, setInStore } from "./database";
-import {
-  generateSeeds,
-  parseFilters,
-  showErrorNotif,
-  showWarnNotif,
-} from "./general";
+import { showErrorNotif, showWarnNotif } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
-import { genres } from "@/demoData/genres";
 
 // Fetches user data, returns User or null on failure
 export async function fetchUserData(): Promise<User | null> {
@@ -67,7 +59,8 @@ export async function fetchSavedTracks(
   let savedTracks: SavedTrack[] = [];
   let nextUrl = "https://api.spotify.com/v1/me/tracks?limit=50";
   try {
-    while (nextUrl) {
+    // Total limit is 1000 to prevent extremely long load times
+    while (nextUrl && savedTracks.length < 1000) {
       const res = await axios.get<Library>(nextUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -82,39 +75,71 @@ export async function fetchSavedTracks(
   }
 }
 
-// Fetches user's saved tracks features
-// Returns TrackFeatures[] or null on failure
-export async function fetchSavedTracksFeatures(
-  savedTracks: SavedTrack[],
-  updateProgressBar: () => void
-): Promise<TrackFeatures[] | null> {
-  const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (!accessToken) return null;
-  const features: TrackFeatures[] = [];
-  const chunks = chunk(savedTracks, 100);
-  for (const chunk of chunks) {
-    const ids = chunk.map((song) => song.track.id);
-    try {
-      const res = await axios.get<FeaturesLibrary>(
-        "https://api.spotify.com/v1/audio-features",
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          params: {
-            ids: ids.join(","),
-          },
-        }
-      );
-      features.push(...res.data.audio_features);
-      updateProgressBar();
-    } catch (error) {
-      showErrorNotif(
-        "Error",
-        "Spotify has deprecated this endpoint. Unable to fetch your library features."
+export async function searchTrackDeezer(
+  trackName: string,
+  trackArtist: string
+): Promise<string | null> {
+  // Search for a track with name and artist, return preview_url if available
+  try {
+    const res = await axios.get<SearchResult>(
+      `https://api.deezer.com/search?q=artist:"${trackArtist}"track:"${trackName}"`
+    );
+    const numResults: number = res.data.total;
+    if (numResults == 0) {
+      console.warn(
+        `Could not find Deezer track for ${trackName} by ${trackArtist}`
       );
       return null;
     }
+    const preview: string = res.data.data[0].preview;
+    return preview;
+  } catch (error) {
+    console.error(`Error searching for track in Deezer.`, error);
+    return null;
   }
-  return features;
+}
+
+export async function fetchMbData(
+  isrcArr: string[]
+): Promise<MusicBrainzData | null> {
+  const isrcs: string = isrcArr.join(",");
+
+  try {
+    const res = await fetch(
+      `http://localhost:3000/mbid?isrcs=${encodeURIComponent(isrcs)}`
+    );
+    const data = await res.json();
+    console.log(data);
+    return data.mbData;
+  } catch (error) {
+    showErrorNotif("Error", `Could not retrieve MusicBrainz data`);
+    return null;
+  }
+}
+
+export async function fetchFeatures(
+  mbidArr: string[]
+): Promise<AcousticBrainzData | null> {
+  const mbids: string = mbidArr.join(",");
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/features?mbids=${encodeURIComponent(mbids)}`
+    );
+    const data = await response.json();
+    const features: AcousticBrainzData = data.features;
+    console.log("features:", features);
+    if (features) {
+      console.log("returning features", features);
+      return features;
+    } else {
+      console.warn("No features response from server");
+      return null;
+    }
+  } catch (error) {
+    showErrorNotif("Network error", `Could not retrieve features`);
+    return null;
+  }
 }
 
 // Fetches user's top 500 tracks from last 12 months
@@ -143,41 +168,6 @@ export async function fetchTopTracks(
   }
 }
 
-// Fetches user's top tracks features
-// Returns TrackFeatures[] or null on failure
-export async function fetchTopTrackFeatures(
-  topTracks: Track[],
-  updateProgressBar: () => void
-): Promise<TrackFeatures[] | null> {
-  const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (!accessToken) return null;
-  const features: TrackFeatures[] = [];
-  const chunks = chunk(topTracks, 100);
-  for (const chunk of chunks) {
-    const ids = chunk.map((song) => song!.id);
-    try {
-      const res = await axios.get<FeaturesLibrary>(
-        "https://api.spotify.com/v1/audio-features",
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          params: {
-            ids: ids.join(","),
-          },
-        }
-      );
-      features.push(...res.data.audio_features);
-      updateProgressBar();
-    } catch (error) {
-      showErrorNotif(
-        "Error",
-        "Spotify has deprecated this endpoint. Unable to fetch your top track features."
-      );
-      return null;
-    }
-  }
-  return features;
-}
-
 // Fetches user's top 50 artists from last 12 months (long_term)
 // Returns Artist[] or null if failed to fetch
 export async function fetchTopArtists(
@@ -202,126 +192,6 @@ export async function fetchTopArtists(
     return null;
   }
 }
-
-// Fetches Spotify recommendations based on form filters
-// Returns Map<string, TrackObject> or null on failure
-export async function fetchRecommendations(
-  filters: NumericFilters,
-  target: number,
-  chosenSeeds?: ChosenSeeds
-): Promise<Map<string, TrackObject> | null> {
-  const accessToken: string | null = getItemFromLocalStorage("access_token");
-  if (!accessToken) return null;
-  const seeds = await generateSeeds(chosenSeeds);
-  if (!seeds) return null;
-  const { trackIds, artistIds, genres } = seeds;
-  const paramsObject: {
-    [key: string]: string;
-  } = {
-    ...parseFilters(filters),
-    limit: String(target),
-  };
-  if (artistIds) paramsObject.seed_artists = artistIds;
-  if (genres) paramsObject.seed_genres = encodeURIComponent(genres);
-  if (trackIds) paramsObject.seed_tracks = trackIds;
-  const params = new URLSearchParams(paramsObject);
-
-  let recommendations: Map<string, TrackObject> = new Map();
-  let recommendedTracks: Track[];
-  let recommendedTrackFeatures: TrackFeatures[];
-
-  // Get recommended tracks
-  try {
-    const res = await axios.get<Recommendations>(
-      `https://api.spotify.com/v1/recommendations?${params}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    recommendedTracks = res.data.tracks;
-  } catch (error) {
-    showErrorNotif(
-      "Error",
-      "Spotify has deprecated this endpoint. Unable to fetch recommendations."
-    );
-    return null;
-  }
-
-  const ids = recommendedTracks.map((song) => song!.id);
-
-  // Get recommended tracks' features
-  try {
-    const res = await axios.get<FeaturesLibrary>(
-      "https://api.spotify.com/v1/audio-features",
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params: {
-          ids: ids.join(","),
-        },
-      }
-    );
-    recommendedTrackFeatures = res.data.audio_features;
-  } catch (error) {
-    showErrorNotif(
-      "Error",
-      "Spotify has deprecated this endpoint. Unable to fetch recommended track features."
-    );
-    return null;
-  }
-
-  // Create TrackObjects from recommendations + features & add to Map
-  for (const track of recommendedTracks) {
-    const features = recommendedTrackFeatures.find((f) => f.id === track.id);
-    if (features) {
-      recommendations.set(track.id, {
-        track: track,
-        features: features,
-      });
-    } else {
-      console.warn(`No features found for track ID ${track.id}`);
-    }
-  }
-
-  // console.log("Recommendations", recommendations);
-  // saveMapToJsonFile(recommendations, "recommendations.json");
-  return recommendations;
-}
-
-// Function used to get demo data
-// async function saveMapToJsonFile(
-//   map: Map<string, any>,
-//   fileName: string
-// ): Promise<void> {
-//   try {
-//     // Convert the Map to an array of key-value pairs
-//     const mapArray = Array.from(map.entries());
-
-//     // Convert the array to a JSON string
-//     const jsonData = JSON.stringify(mapArray, null, 2);
-
-//     // Create a Blob with the JSON data
-//     const blob = new Blob([jsonData], { type: "application/json" });
-
-//     // Create a downloadable link
-//     const url = URL.createObjectURL(blob);
-//     const a = document.createElement("a");
-//     a.href = url;
-//     a.download = fileName;
-
-//     // Trigger the download
-//     a.click();
-
-//     // Clean up the URL object
-//     URL.revokeObjectURL(url);
-
-//     console.log(`Map saved to ${fileName}`);
-//   } catch (error) {
-//     console.error(`Error saving map to JSON file:`, error);
-//   }
-// }
 
 // Checks if the tracks are currently saved in the user's Spotify library
 // Adds saved property reflecting Spotify saved status to each track
@@ -397,7 +267,7 @@ export async function updateSavedStatus(
       }); // Spotify sends an empty response but 200 means success
 
       // Remove from IDB
-      await deleteFromStore("library", trackObj.track.id);
+      await deleteFromStore("savedTracks", trackObj.track.id);
       return "Removed";
     } catch (error) {
       showErrorNotif(
@@ -416,7 +286,7 @@ export async function updateSavedStatus(
       });
 
       // Add to IDB
-      await setInStore("library", trackObj);
+      await setInStore("savedTracks", trackObj);
       return "Added";
     } catch (error) {
       showErrorNotif("Error", "There was an error adding track to Spotify.");
@@ -425,33 +295,6 @@ export async function updateSavedStatus(
   }
 }
 
-// Get available genre seeds
-export async function getAvailableGenreSeeds(): Promise<string[] | null> {
-  // ↓ Code for fetching genres if API endpoint were available ↓
-  // const accessToken: string | null = getItemFromLocalStorage("access_token");
-  // if (!accessToken) return null;
-
-  // try {
-  //   const res = await axios.get(
-  //     "https://api.spotify.com/v1/recommendations/available-genre-seeds",
-  //     {
-  //       headers: { Authorization: `Bearer ${accessToken}` },
-  //     }
-  //   );
-  //   return res.data.genres;
-  // } catch (error) {
-  //   showErrorNotif(
-  //     "Error",
-  //     "Spotify has deprecated this endpoint. Unable to fetch available genres."
-  //   );
-  //   return null;
-  // }
-
-  // ↓ Return genre seeds from demo data ↓
-  return genres;
-}
-
-// Search for artist
 export async function searchForArtist(
   userInput: string,
   abortController: React.MutableRefObject<AbortController | undefined>,
@@ -491,7 +334,6 @@ export async function searchForArtist(
   }
 }
 
-// Search for track
 export async function searchForTrack(
   userInput: string,
   abortController: React.MutableRefObject<AbortController | undefined>,

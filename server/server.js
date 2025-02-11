@@ -4,6 +4,10 @@ const cors = require("cors");
 const crypto = require("crypto");
 const axios = require("axios");
 var cookieParser = require("cookie-parser");
+const { searchTrackDeezer } = require("./helpers/deezer");
+const { fetchFeatures } = require("./helpers/acousticBrainz");
+const { fetchPlaylist, fetchPlaylistItems } = require("./helpers/spotify");
+const { fetchMBIDandTags } = require("./helpers/mbid");
 const port = 3000;
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -12,6 +16,7 @@ const corsOptions = {
   origin: "http://localhost:5173",
   credentials: true, // allow cookies
 };
+const pg = require("pg"); // Node.js modules to interface with Postgres
 
 const app = express();
 const stateKey = "spotify_auth_state";
@@ -21,6 +26,22 @@ const generateRandomString = (length) => {
 };
 
 app.use(cors(corsOptions)).use(cookieParser());
+
+// Connect to Postgres Database
+const { Client } = pg;
+const client = new Client({
+  user: "musicbrainz",
+  password: "musicbrainz",
+  host: "172.19.0.4",
+  port: 5432,
+  database: "musicbrainz_db",
+});
+
+async function connectToDb() {
+  await client.connect();
+}
+
+connectToDb();
 
 // Redirects client to Spotify authorization with appropriate query parameters
 app.get("/login", function (req, res) {
@@ -175,6 +196,175 @@ app.get("/refresh_token", async function (req, res) {
       "Something went wrong fetching new access token from Spotify.",
       error
     );
+  }
+});
+
+app.get("/search_deezer", async function (req, res) {
+  const { trackName, trackArtist, trackAlbum } = req.query;
+  const previewUrl = await searchTrackDeezer(
+    trackName,
+    trackArtist,
+    trackAlbum
+  );
+  if (previewUrl) {
+    res.json({ previewUrl });
+  } else {
+    res.status(500).json({ error: "Unable to fetch Deezer track preview" });
+  }
+});
+
+app.get("/playlist", async function (req, res) {
+  const { playlistId, accessToken } = req.query;
+
+  const playlist = await fetchPlaylist(playlistId, accessToken);
+
+  if (playlist) {
+    const name = playlist.name;
+    const id = playlist.id;
+    const items = await fetchPlaylistItems(playlistId, accessToken);
+
+    res.json({ name, id, items });
+  } else {
+    res.status(500).json({ error: `Unable to fetch playlist data` });
+  }
+});
+
+app.get("/mbid", async function (req, res) {
+  const { isrcs } = req.query;
+
+  const isrcArr = isrcs.split(",");
+
+  if (isrcArr.length > 25) {
+    res.status(400).json({ message: "Too many ids requested." });
+  }
+
+  let mbData = {};
+
+  for (const isrc of isrcArr) {
+    const mbTrackData = await getMbidAndTags(isrc);
+    mbData[isrc] = mbTrackData;
+  }
+
+  if (mbData) {
+    res.json({ mbData });
+  } else {
+    res.status(500).json({ error: `Unable to fetch MusicBrainz data` });
+  }
+});
+
+app.get("/features", async function (req, res) {
+  const { mbids } = req.query; // Comma separated strings
+
+  const mbidArr = mbids.split(",");
+
+  if (mbidArr.length > 25) {
+    res.status(400).json({ message: "Invalid request." });
+  }
+
+  const features = await fetchFeatures(mbidArr);
+
+  if (features) {
+    res.json({features});
+  } else {
+    res.status(500).json({ error: `Unable to fetch track features` });
+  }
+});
+
+async function getMbidAndTags(isrc) {
+
+  try {
+    // Get recordingId from ISRC
+    const recordingRes = await client.query(
+      `SELECT recording FROM musicbrainz.isrc WHERE isrc ='${isrc}'`
+    );
+    const recordingId = recordingRes.rows[0]
+      ? recordingRes.rows[0].recording
+      : null;
+    if (!recordingId) return null;
+
+    // Get MBID from recordingId
+    const mbidRes = await client.query(
+      `SELECT * FROM musicbrainz.recording WHERE id='${recordingId}'`
+    );
+    const mbid = mbidRes.rows[0] ? mbidRes.rows[0].gid : null;
+    if (!mbid) return null;
+
+    // Get tags from recordingId
+    const result = await client.query(
+      `SELECT * FROM musicbrainz.recording_tag WHERE recording=${recordingId}`
+    );
+    const tags = result.rows;
+    if (!tags) return null;
+
+    // Get name and count of each tag and add to array
+    const tagArr = []; // Array will be the same structure as that from the API [{count: count, name: name}...]
+    for (const tagObj of tags) {
+      const tagId = tagObj.tag;
+      const count = tagObj.count;
+      const tagRes = await client.query(
+        `SELECT * from musicbrainz.tag WHERE id=${tagId}`
+      );
+      const name = tagRes.rows[0] ? tagRes.rows[0].name : null;
+      if (!name) continue;
+      tagArr.push({ count, name });
+    }
+    const processedTags = extractTags(tagArr);
+    return { mbid, processedTags };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+// Returns a sorted array of a recording's tags based on count
+function extractTags(tags) {
+  // Sort tags in descending order by count
+  tags.sort((a, b) => b.count - a.count);
+
+  const tagNames = [];
+  for (const tag of tags) {
+    tagNames.push(tag.name);
+  }
+
+  return tagNames;
+}
+
+// getMbidAndTags('GBUM71029604')
+
+async function getAccessToken() {
+  try {
+    const response = await axios.post(
+      "https://accounts.spotify.com/api/token",
+      new URLSearchParams({
+        grant_type: "client_credentials",
+      }),
+      {
+        headers: {
+          Authorization:
+            "Basic " +
+            Buffer.from(client_id + ":" + client_secret).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    return response.data.access_token;
+  } catch (error) {
+    console.error("Error getting access token", error);
+    return null;
+  }
+}
+
+app.get("/guest_token", async function (req, res) {
+  const now = new Date();
+  const currentTime = now.toLocaleString();
+  console.log(`${currentTime}: Client requested new guest token`);
+
+  const token = await getAccessToken();
+  if (token) {
+    console.log(`${currentTime}: Sent new guest token to client`);
+    res.json({ token });
+  } else {
+    res.status(500).json({ error: `Unable to fetch guest access token` });
   }
 });
 

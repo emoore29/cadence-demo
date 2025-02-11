@@ -17,6 +17,31 @@ export interface User {
   uri: string;
 }
 
+export interface MusicBrainzData {
+  [isrc: string]: {
+    mbid: string;
+    processedTags: string[];
+  } | null;
+}
+
+export interface AcousticBrainzData {
+  [mbid: string]: {
+    bpm: number;
+    key: string;
+    mode: string;
+    danceability: string;
+    gender: string;
+    acoustic: string;
+    aggressive: string;
+    electronic: string;
+    happy: string;
+    party: string;
+    relaxed: string;
+    sad: string;
+    timbre: string;
+  };
+}
+
 export interface Track {
   album: {
     album_type: string;
@@ -138,6 +163,53 @@ export interface TrackFeatures {
   valence: number;
 }
 
+export interface StoredPlaylist {
+  name: string;
+  id: string;
+  tracks: TrackObject[];
+}
+
+export interface LowLevelFeatures {
+  bpm: number;
+  key: string;
+  mode: string;
+}
+
+export interface HighLevelFeatures {
+  danceability: string;
+  gender: string;
+  acoustic: string;
+  aggressive: string;
+  electronic: string;
+  happy: string;
+  party: string;
+  relaxed: string;
+  sad: string;
+  timbre: string;
+}
+
+export interface MbidAndTags {
+  mbid: string;
+  tags: string[];
+}
+
+export interface MetaBrainzFeatures {
+  tags: string[];
+  bpm: number;
+  key: string;
+  mode: string;
+  danceability: string;
+  gender: string;
+  acoustic: string;
+  aggressive: string;
+  electronic: string;
+  happy: string;
+  party: string;
+  relaxed: string;
+  sad: string;
+  timbre: string;
+}
+
 export interface StoredTrack {
   track: Track;
   features: TrackFeatures;
@@ -222,11 +294,18 @@ export interface TopTracks {
 export interface FormValues {
   minTempo: number;
   maxTempo: number;
-  targetValence: string;
-  targetDanceability: string;
-  targetEnergy: string;
-  targetInstrumentalness: string;
-  targetAcousticness: string;
+  key: string;
+  mode: string;
+  danceability: string;
+  gender: string;
+  acoustic: string;
+  aggressive: string;
+  electronic: string;
+  happy: string;
+  party: string;
+  relaxed: string;
+  sad: string;
+  timbre: string;
   source: string;
   target: number;
 }
@@ -247,9 +326,24 @@ export interface ArtistSeedForm {
 
 export interface TrackObject {
   track: Track;
-  features: TrackFeatures;
+  features: MetaBrainzFeatures;
   saved?: boolean;
   pinned?: boolean;
+}
+
+export type StoreName =
+  | "savedTracks"
+  | "topArtists"
+  | "topTracks"
+  | "playlists";
+
+export type TrackStoreName = "savedTracks" | "topTracks";
+
+export interface TopTrackObject {
+  track: Track;
+  features: MetaBrainzFeatures;
+  saved?: boolean;
+  order?: number;
 }
 
 export interface Filters {

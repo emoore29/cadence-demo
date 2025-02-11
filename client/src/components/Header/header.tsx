@@ -10,44 +10,32 @@ import styles from "./header.module.css";
 interface HeaderProps {
   user: User | null;
   setUser: (user: User | null) => void;
-  setLibSize: (libSize: number) => void;
   setLibraryStored: (libraryStored: boolean) => void;
   setPlaylist: React.Dispatch<React.SetStateAction<Map<string, TrackObject>>>;
-  setRecommendations: React.Dispatch<
-    React.SetStateAction<Map<string, TrackObject>>
-  >;
 }
 
 export default function Header({
   user,
   setUser,
-  setLibSize,
   setLibraryStored,
   setPlaylist,
-  setRecommendations,
 }: HeaderProps) {
   const logOut = () => {
     // Remove everything from local storage and store
     setPlaylist(new Map());
-    setRecommendations(new Map());
     localStorage.clear();
     deleteDatabase();
     setUser(null);
-    setLibSize(0);
     setLibraryStored(false);
     showSuccessNotif("Success", "You successfully logged out.");
   };
 
   const clearData = () => {
     setPlaylist(new Map());
-    setRecommendations(new Map());
-    // localStorage.clear();
     deleteDatabase();
-    // setUser(null);
-    // setLibSize(0);
     setLibraryStored(false);
     storeDataInLocalStorage("library_was_stored", false);
-    showSuccessNotif("Success", "Your data was removed from browser storage.");
+    showSuccessNotif("Success", "Track data was removed from browser storage.");
   };
 
   const openConfirmClearDataModal = () =>
@@ -100,7 +88,7 @@ export default function Header({
               className={styles.menuItem}
               onClick={openConfirmClearDataModal}
             >
-              Clear my data
+              Clear track storage
             </Menu.Item>
             <Menu.Item
               className={styles.menuItem}

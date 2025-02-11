@@ -1,21 +1,22 @@
-import { Artist, Track, TrackFeatures, TrackObject } from "@/types/types";
+import {
+  Artist,
+  MetaBrainzFeatures,
+  StoredPlaylist,
+  StoreName,
+  TopTrackObject,
+  Track,
+  TrackObject,
+} from "@/types/types";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
 
 // Functions to set up and delete database, and store, delete, and retrieve items from database
 
-export type StoreName =
-  | "library"
-  | "topArtists"
-  | "topTracks"
-  | "recommendations"
-  | "demoTracks";
-
-interface MyDB extends DBSchema {
-  library: {
+export interface MyDB extends DBSchema {
+  savedTracks: {
     key: string; // track id
     value: {
       track: Track;
-      features: TrackFeatures;
+      features: MetaBrainzFeatures;
     };
   };
   topArtists: {
@@ -26,22 +27,18 @@ interface MyDB extends DBSchema {
     key: string; // track id
     value: {
       track: Track;
-      features: TrackFeatures;
+      features: MetaBrainzFeatures;
       order: number;
     };
   };
-  recommendations: {
-    key: string; // track id
+  playlists: {
+    key: string; // playlistId
     value: {
-      track: Track;
-      features: TrackFeatures;
-    };
-  };
-  demoTracks: {
-    key: string; // track id
-    value: {
-      track: Track;
-      features: TrackFeatures;
+      name: string;
+      tracks: {
+        track: Track;
+        features: MetaBrainzFeatures;
+      }[];
     };
   };
 }
@@ -52,9 +49,9 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
   // If the database does not exist, it will be created.
   const db = await openDB<MyDB>("cadence", 1, {
     upgrade(db) {
-      // Create an object store for songs
-      if (!db.objectStoreNames.contains("library")) {
-        db.createObjectStore("library", { keyPath: "track.id" });
+      // Create an object store for saved tracks
+      if (!db.objectStoreNames.contains("savedTracks")) {
+        db.createObjectStore("savedTracks", { keyPath: "track.id" });
       }
 
       // Create an object store for top artists
@@ -67,46 +64,39 @@ export async function setUpDatabase(): Promise<IDBPDatabase<MyDB>> {
         db.createObjectStore("topTracks", { keyPath: "track.id" });
       }
 
-      // Create an object store for recommendations
-      if (!db.objectStoreNames.contains("recommendations")) {
-        db.createObjectStore("recommendations", { keyPath: "track.id" });
-      }
-
-      // Create an object store for demo tracks
-      if (!db.objectStoreNames.contains("demoTracks")) {
-        db.createObjectStore("demoTracks", { keyPath: "track.id" });
+      // Create an object store for playlists
+      if (!db.objectStoreNames.contains("playlists")) {
+        db.createObjectStore("playlists", { keyPath: "id" });
       }
     },
   });
   return db;
 }
 
-// Get from a particular store based on a key (e.g. find a song from library with its id)
-export async function getFromStore(
-  storeName: StoreName,
+// Get a track from a track store based on a key
+export async function getTrackFromStore(
+  storeName: "savedTracks" | "topTracks",
   key: string
 ): Promise<TrackObject | Track | Artist | undefined> {
   const db = await setUpDatabase();
   return db.get(storeName, key);
 }
 
-// Set a key-val pair in a given store
+// Set a key-val pair in any store
 export async function setInStore(
   storeName: StoreName,
-  value:
-    | {
-        track: Track;
-        features: TrackFeatures;
-        saved?: boolean;
-        order?: number;
-      }
-    | Artist
+  value: TrackObject | TopTrackObject | Artist
 ) {
   const db = await setUpDatabase();
   return db.put(storeName, value);
 }
 
-// Remove a key-val pair in a given store
+export async function setPlaylistInStore(value: StoredPlaylist) {
+  const db = await setUpDatabase();
+  return db.put("playlists", value);
+}
+
+// Remove a key-val pair from any store
 export async function deleteFromStore(
   storeName: StoreName,
   key: string

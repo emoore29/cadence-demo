@@ -18,18 +18,6 @@ export function wasLibraryStoredInDatabase(): boolean {
   }
 }
 
-export function wasDemoStored(): boolean {
-  const stored: string | null = localStorage.getItem("demo_library_was_stored");
-  if (stored === "true") {
-    console.log("demo library was stored");
-    return true;
-  } else {
-    console.log("demo library was not stored");
-
-    return false;
-  }
-}
-
 // Stores tokens and expiry in local storage
 export function storeTokens(
   access: string,
@@ -73,6 +61,20 @@ export function checkTokenValidity(): boolean {
   }
 
   const now = Date.now();
-  const expiryTime = parseInt(storedExpiry!, 10);
-  return now > expiryTime - 3000;
+  const expiryTime = Number(storedExpiry);
+  return now > expiryTime - 10000;
+}
+
+// Returns true if guest_token is invalid
+export function checkGuestToken(): boolean {
+  const storedGuestToken: string | null = localStorage.getItem("guest_token");
+  const storedGuestExpiry: string | null = localStorage.getItem("guest_expiry");
+  const now = Date.now();
+  const expiry: number = Number(storedGuestExpiry);
+  // Reduce expiry by 10 seconds to allow 10 second buffer to fetch new token before it actually expires
+  if (!storedGuestToken || now > expiry - 10000) {
+    return true;
+  } else {
+    return false;
+  }
 }

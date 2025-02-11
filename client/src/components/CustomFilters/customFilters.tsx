@@ -1,13 +1,8 @@
-import { getAvailableGenreSeeds } from "@/helpers/fetchers";
-import {
-  getItemFromLocalStorage,
-  storeDataInLocalStorage,
-} from "@/helpers/localStorage";
-import { handleTokens } from "@/helpers/tokens";
+import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { ChosenSeeds } from "@/types/types";
 import { Alert } from "@mantine/core";
 import { IconInfoCircle } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AsyncAutocomplete } from "../AsyncAutocomplete/asyncAutocomplete";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./customFilters.module.css";
@@ -27,23 +22,23 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
   const user = getItemFromLocalStorage("user_data");
   const icon = <IconInfoCircle />;
 
-  async function getGenres() {
-    await handleTokens(); // Check for access token expiry before fetching genres
-    const availableGenres: string[] | null = await getAvailableGenreSeeds();
-    if (!availableGenres) return;
+  // async function getGenres() {
+  //   await handleTokens(); // Check for access token expiry before fetching genres
+  //   const availableGenres: string[] | null = await getAvailableGenreSeeds();
+  //   if (!availableGenres) return;
 
-    setAvailableGenreSeeds(availableGenres);
-    storeDataInLocalStorage("genres", availableGenres);
-  }
+  //   setAvailableGenreSeeds(availableGenres);
+  //   storeDataInLocalStorage("genres", availableGenres);
+  // }
 
-  useEffect(() => {
-    const storedGenres: string | null = getItemFromLocalStorage("genres");
-    if (!storedGenres) {
-      getGenres();
-    } else {
-      setAvailableGenreSeeds(JSON.parse(storedGenres));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const storedGenres: string | null = getItemFromLocalStorage("genres");
+  //   if (!storedGenres) {
+  //     getGenres();
+  //   } else {
+  //     setAvailableGenreSeeds(JSON.parse(storedGenres));
+  //   }
+  // }, []);
 
   return (
     <div>
@@ -72,7 +67,7 @@ export default function CustomFilters({ setChosenSeeds }: CustomFiltersProps) {
           </p>
           <SearchableMultiSelect
             data={availableGenreSeeds}
-            setChosenSeeds={setChosenSeeds}
+            setChosenItems={setChosenSeeds}
           />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="artist" />
           <AsyncAutocomplete setChosenSeeds={setChosenSeeds} type="track" />
