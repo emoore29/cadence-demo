@@ -7,7 +7,6 @@ import SavePlaylistModal from "../SavePlaylist/savePlaylist";
 import TableHead from "../TableHead/tableHead";
 import TrackRow from "../TrackRow/trackRow";
 import styles from "./playlist.module.css";
-import { useMediaQuery } from "@mantine/hooks";
 
 interface PlaylistProps {
   setMatchingTracks: React.Dispatch<
