@@ -144,7 +144,10 @@ export async function getTrackFeatures(
 
   // Fetch MusicBrainz data for valid ISRCs
   const mbData: MusicBrainzData | null = await fetchMbData(isrcs);
-  if (!mbData) return null;
+  if (!mbData) {
+    console.log("No data returned fetching musicbrainz id")
+    return null;
+  }
 
   // Extract the mbids for each ISRC
   const mbids: string[] = Object.values(mbData)
@@ -154,7 +157,10 @@ export async function getTrackFeatures(
 
   // Fetch AcousticBrainz data
   const abData: AcousticBrainzData | null = await fetchFeatures(mbids);
-  if (!abData) return null;
+  if (!abData) {
+    console.log("no ab data returned from gettrackfeatures")
+    return null;
+  }
 
   // Find track corresponding to MBID:
 

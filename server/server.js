@@ -242,26 +242,28 @@ app.get("/mbid", async function (req, res) {
 
   for (const isrc of isrcArr) {
     const mbTrackData = await getMbidAndTags(isrc);
-    mbData.isrc = mbTrackData;
+    mbData[isrc] = mbTrackData;
   }
 
-  console.log("returning: ", mbData);
 
   if (mbData) {
-    res.json(mbData);
+
+    res.json({mbData});
   } else {
     res.status(500).json({ error: `Unable to fetch MusicBrainz data` });
   }
 });
 
 app.get("/features", async function (req, res) {
-  const { mbids } = req.query; // Array of strings
+  const { mbids } = req.query; // Comma separated strings
 
-  if (mbids.length > 25) {
-    res.status(400).json({ message: "Too many ids requested." });
+  const mbidArr = mbids.split(",")
+
+  if (mbidArr.length > 25) {
+    res.status(400).json({ message: "Invalid request." });
   }
 
-  const features = await fetchFeatures(mbids);
+  const features = await fetchFeatures(mbidArr);
 
   if (features) {
     res.json(features);

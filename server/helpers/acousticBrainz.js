@@ -26,19 +26,27 @@ async function fetchFeatures(mbids) {
     lowLevelRemaining = res.headers["x-ratelimit-remaining"];
     lowLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
-    lowLevel = res.data;
-
     for (const mbid of mbids) {
-      features.mbid = {
-        bpm: res.data[mbid].rhythm.bpm,
-        key: res.data[mbid].tonal.key_key,
-        mode: res.data[mbid].tonal.key_scale,
-      };
+const features = res.data[mbid]
+if (features) {
+  const bpm = res.data[mbid][0].rhythm.bpm
+      const key = res.data[mbid][0].tonal.key_key
+      const mode = res.data[mbid][0].tonal.key_scale
+
+      if (bpm && key && mode) {
+        features.mbid = {
+          bpm,key,mode
+        };
+      }
+}
+      
+
+      
     }
   } catch (error) {
     console.warn(
       `Could not fetch low level features`,
-      error.response.data.message
+      error
     );
     return null;
   }
@@ -62,22 +70,29 @@ async function fetchFeatures(mbids) {
     highLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
     for (const mbid of mbids) {
-      features.mbid = {
-        ...features.mbid,
-        danceability: res.data[mbid].danceability.value,
-        gender: res.data[mbid].gender.value,
-        acoustic: res.data[mbid].acoustic.value,
-        aggressive: res.data[mbid].aggressive.value,
-        electronic: res.data[mbid].electronic.value,
-        happy: res.data[mbid].happy.value,
-        party: res.data[mbid].party.value,
-        relaxed: res.data[mbid].relaxed.value,
-        sad: res.data[mbid].sad.value,
-        timbre: res.data[mbid].timbre.value,
-      };
+      const result = res.data[mbid]
+      if (result) {
+        console.log("result exists")
+         const highLevelFeats = features[0].highLevel
+
+        features[mbid] = {
+          ...features.mbid,
+          danceability: highLevelFeats.danceability.value,
+          gender: highLevelFeats.gender.value,
+          acoustic: highLevelFeats.mood_acoustic.value,
+          aggressive: highLevelFeats.mood_aggressive.value,
+          electronic: highLevelFeats.mood_electronic.value,
+          happy: highLevelFeats.mood_happy.value,
+          party: highLevelFeats.mood_party.value,
+          relaxed: highLevelFeats.mood_relaxed.value,
+          sad: highLevelFeats.mood_sad.value,
+          timbre: highLevelFeats.timbre.value,
+        };
+      }
+      
     }
   } catch (error) {
-    console.warn(`Could not fetch high level features`);
+    console.warn(`Could not fetch high level features`, error);
     return null;
   }
 

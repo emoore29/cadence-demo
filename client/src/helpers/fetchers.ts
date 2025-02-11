@@ -127,7 +127,7 @@ export async function fetchFeatures(
 
   try {
     const response = await fetch(
-      `http://localhost:3000/features?mbid=${encodeURIComponent(mbids)}`
+      `http://localhost:3000/features?mbids=${encodeURIComponent(mbids)}`
     );
     const data = await response.json();
     const features: AcousticBrainzData = data.features;
