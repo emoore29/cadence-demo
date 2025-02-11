@@ -264,7 +264,7 @@ app.get("/features", async function (req, res) {
   const features = await fetchFeatures(mbidArr);
 
   if (features) {
-    res.json(features);
+    res.json({features});
   } else {
     res.status(500).json({ error: `Unable to fetch track features` });
   }

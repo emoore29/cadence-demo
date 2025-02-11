@@ -27,21 +27,17 @@ async function fetchFeatures(mbids) {
     lowLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
     for (const mbid of mbids) {
-const features = res.data[mbid]
-if (features) {
-  const bpm = res.data[mbid][0].rhythm.bpm
-      const key = res.data[mbid][0].tonal.key_key
-      const mode = res.data[mbid][0].tonal.key_scale
-
+    const result = res.data[mbid]
+    if (result) {
+      const bpm = result[0].rhythm.bpm
+      const key = result[0].tonal.key_key
+      const mode = result[0].tonal.key_scale
       if (bpm && key && mode) {
         features.mbid = {
           bpm,key,mode
-        };
-      }
-}
-      
-
-      
+          };
+        }
+      }      
     }
   } catch (error) {
     console.warn(
@@ -73,7 +69,7 @@ if (features) {
       const result = res.data[mbid]
       if (result) {
         console.log("result exists")
-         const highLevelFeats = features[0].highLevel
+         const highLevelFeats = result[0].highlevel
 
         features[mbid] = {
           ...features.mbid,
