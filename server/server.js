@@ -13,7 +13,7 @@ const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 const redirect_uri = "http://localhost:3000/callback";
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: ["https://emoore29.github.io", "http://localhost:5173"],
   credentials: true, // allow cookies
 };
 const pg = require("pg"); // Node.js modules to interface with Postgres
@@ -264,14 +264,13 @@ app.get("/features", async function (req, res) {
   const features = await fetchFeatures(mbidArr);
 
   if (features) {
-    res.json({features});
+    res.json({ features });
   } else {
     res.status(500).json({ error: `Unable to fetch track features` });
   }
 });
 
 async function getMbidAndTags(isrc) {
-
   try {
     // Get recordingId from ISRC
     const recordingRes = await client.query(
