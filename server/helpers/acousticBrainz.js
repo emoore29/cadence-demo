@@ -33,7 +33,7 @@ async function fetchFeatures(mbids) {
       const key = result[0].tonal.key_key
       const mode = result[0].tonal.key_scale
       if (bpm && key && mode) {
-        features.mbid = {
+        features[mbid] = {
           bpm,key,mode
           };
         }
@@ -68,11 +68,10 @@ async function fetchFeatures(mbids) {
     for (const mbid of mbids) {
       const result = res.data[mbid]
       if (result) {
-        console.log("result exists")
          const highLevelFeats = result[0].highlevel
 
         features[mbid] = {
-          ...features.mbid,
+          ...features[mbid],
           danceability: highLevelFeats.danceability.value,
           gender: highLevelFeats.gender.value,
           acoustic: highLevelFeats.mood_acoustic.value,

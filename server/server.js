@@ -271,7 +271,6 @@ app.get("/features", async function (req, res) {
 });
 
 async function getMbidAndTags(isrc) {
-  console.log(isrc);
 
   try {
     // Get recordingId from ISRC
