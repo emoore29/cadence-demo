@@ -33,9 +33,10 @@ const client = new Client({
 async function connectToDb() {
   try {
     await client.connect();
-    console.log("connected to db");
   } catch (error) {
-    console.error("Failed to connect to the database:", error.message);
+    const now = new Date();
+    const currentTime = now.toLocaleString();
+    console.log(`${currentTime}: Failed to connect to database`);
   }
 }
 
