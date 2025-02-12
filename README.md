@@ -15,8 +15,6 @@ AcousticBrainz, which offers similar features to Spotify, including track BPM, i
 
 To finalise the project, I decided to use AcousticBrainz's data to retrieve track audio features. This results in a version of Cadence closest to what was originally intended, albeit with some track audio features unavailable.
 
-If you are interested in creating playlists based on track features from your actual Spotify data, I recommend [Sort Your Music](http://sortyourmusic.playlistmachinery.com/), which is a web app that was approved pre-deprecation and offers similar functionality using the same API endpoints Cadence relied on.
-
 ## How it works
 
 Cadence has multiple "sources" of tracks, which users can filter by features such as tempo (BPM).
