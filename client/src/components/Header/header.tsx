@@ -100,7 +100,7 @@ export default function Header({
         </Menu>
       ) : (
         <a
-          href="http://localhost:3000/login"
+          href="http://localhost:3000/api/spotify/login"
           style={{ color: "rgba(255,255,255,1)" }}
         >
           Sign in

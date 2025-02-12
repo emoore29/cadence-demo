@@ -107,7 +107,9 @@ export async function fetchMbData(
 
   try {
     const res = await fetch(
-      `http://${API_URL}/mbid?isrcs=${encodeURIComponent(isrcs)}`
+      `http://${API_URL}/api/musicbrainz/mbid?isrcs=${encodeURIComponent(
+        isrcs
+      )}`
     );
     const data = await res.json();
     console.log(data);
@@ -125,7 +127,9 @@ export async function fetchFeatures(
 
   try {
     const response = await fetch(
-      `http://${API_URL}/features?mbids=${encodeURIComponent(mbids)}`
+      `http://${API_URL}/api/acousticbrainz/features?mbids=${encodeURIComponent(
+        mbids
+      )}`
     );
     const data = await response.json();
     const features: AcousticBrainzData = data.features;

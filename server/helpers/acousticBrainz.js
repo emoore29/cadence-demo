@@ -9,8 +9,6 @@ async function fetchFeatures(mbids) {
   let lowLevelResetIn = 0;
   let highLevelRemaining = 0;
   let highLevelResetIn = 0;
-  let lowLevel;
-  let highLevel;
 
   const mbidQuery = mbids.join(";");
 
@@ -27,23 +25,22 @@ async function fetchFeatures(mbids) {
     lowLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
     for (const mbid of mbids) {
-    const result = res.data[mbid]
-    if (result) {
-      const bpm = result[0].rhythm.bpm
-      const key = result[0].tonal.key_key
-      const mode = result[0].tonal.key_scale
-      if (bpm && key && mode) {
-        features[mbid] = {
-          bpm,key,mode
+      const result = res.data[mbid];
+      if (result) {
+        const bpm = result[0].rhythm.bpm;
+        const key = result[0].tonal.key_key;
+        const mode = result[0].tonal.key_scale;
+        if (bpm && key && mode) {
+          features[mbid] = {
+            bpm,
+            key,
+            mode,
           };
         }
-      }      
+      }
     }
   } catch (error) {
-    console.warn(
-      `Could not fetch low level features`,
-      error
-    );
+    console.warn(`Could not fetch low level features`, error);
     return null;
   }
 
@@ -66,9 +63,9 @@ async function fetchFeatures(mbids) {
     highLevelResetIn = res.headers["x-ratelimit-reset-in"];
 
     for (const mbid of mbids) {
-      const result = res.data[mbid]
+      const result = res.data[mbid];
       if (result) {
-         const highLevelFeats = result[0].highlevel
+        const highLevelFeats = result[0].highlevel;
 
         features[mbid] = {
           ...features[mbid],
@@ -84,7 +81,6 @@ async function fetchFeatures(mbids) {
           timbre: highLevelFeats.timbre.value,
         };
       }
-      
     }
   } catch (error) {
     console.warn(`Could not fetch high level features`, error);

@@ -14,7 +14,6 @@ let guestTokenPromise: Promise<void> | null = null;
 
 // If the current access token has expired, fetches and stores new tokens
 export async function handleAccessToken(): Promise<void> {
-  console.log("handle access tokens ran");
   if (!accessTokenPromise) {
     accessTokenPromise = (async () => {
       // Check user access token
@@ -36,13 +35,10 @@ export async function handleGuestToken(): Promise<void> {
   if (!guestTokenPromise) {
     guestTokenPromise = (async () => {
       // Check guest access token
-      console.log("checking guest token");
       const guestTokenInvalid = checkGuestToken();
       if (guestTokenInvalid) {
-        console.log("Guest token invalid");
         await getNewGuestToken();
       } else {
-        console.log("Guest token valid");
       }
     })();
   }
@@ -59,14 +55,17 @@ export async function getNewAccessToken(): Promise<string[] | null> {
   }
 
   try {
-    const response = await axios.get("http://localhost:3000/refresh_token", {
-      params: {
-        refresh_token: refreshToken,
-      },
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
+    const response = await axios.get(
+      "http://localhost:3000/api/spotify/refresh_token",
+      {
+        params: {
+          refresh_token: refreshToken,
+        },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
     const {
       access_token: accessToken,
       refresh_token: newRefreshToken,
@@ -83,8 +82,9 @@ export async function getNewAccessToken(): Promise<string[] | null> {
 // Fetches new guest token from backend
 export async function getNewGuestToken(): Promise<boolean | null> {
   try {
-    const res = await axios.get("http://localhost:3000/guest_token");
-    console.log("response from server", res);
+    const res = await axios.get(
+      "http://localhost:3000/api/spotify/guest_token"
+    );
     const token: string = res.data.token;
     const expiry: number = Date.now() + 3600 * 1000;
 

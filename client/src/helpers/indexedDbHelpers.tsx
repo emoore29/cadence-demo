@@ -100,7 +100,11 @@ export async function storeSavedTracksData(
   for (const chunk of chunks) {
     // Get each track's features from MetaBrainz
     const results: TrackObject[] | null = await getTrackFeatures(chunk);
-    results && tracksToStore.push(...results);
+    if (results) {
+      tracksToStore.push(...results);
+    } else {
+      return null;
+    }
   }
 
   if (tracksToStore) {
@@ -131,7 +135,11 @@ export async function storeTopTracksData(
   for (const chunk of chunks) {
     // Get each track's features from MetaBrainz
     const results: TrackObject[] | null = await getTrackFeatures(chunk);
-    results && tracksToStore.push(...results);
+    if (results) {
+      tracksToStore.push(...results);
+    } else {
+      return null;
+    }
   }
 
   if (tracksToStore) {

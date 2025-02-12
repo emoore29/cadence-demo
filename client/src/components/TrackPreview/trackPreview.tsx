@@ -31,7 +31,7 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:3000/search_deezer?trackName=${encodeURIComponent(
+        `http://localhost:3000/api/deezer/search_deezer?trackName=${encodeURIComponent(
           track.track.name
         )}&trackArtist=${encodeURIComponent(
           track.track.artists[0].name

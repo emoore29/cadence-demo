@@ -287,14 +287,13 @@ export default function Form({
     if (!token) return null;
     try {
       const response = await fetch(
-        `http://localhost:3000/playlist?playlistId=${encodeURIComponent(
+        `http://localhost:3000/api/spotify/playlist?playlistId=${encodeURIComponent(
           playlistId
         )}&accessToken=${token}`
       );
       const data = await response.json();
       const name = data.name;
       const id = data.id;
-      console.log(data);
       const tracks: Track[] = [];
 
       for (const item of data.items) {
@@ -308,7 +307,11 @@ export default function Form({
       for (const chunk of chunks) {
         // Get each track's features from MetaBrainz
         const results: TrackObject[] | null = await getTrackFeatures(chunk);
-        results && tracksToStore.push(...results);
+        if (results) {
+          tracksToStore.push(...results);
+        } else {
+          return null;
+        }
       }
 
       if (tracksToStore) {

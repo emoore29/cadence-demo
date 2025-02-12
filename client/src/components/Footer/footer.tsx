@@ -14,7 +14,11 @@ export default function Footer() {
         <a href="https://open.spotify.com/" target="_blank">
           Spotify
         </a>
-        <img className={styles.spotifyLogo} src="/spotify_logo.png" alt="" />
+        <img
+          className={styles.spotifyLogo}
+          src="/cadence/spotify_logo.png"
+          alt=""
+        />
       </p>
       <p className={styles.footerInfo}>
         Track features provided by{" "}

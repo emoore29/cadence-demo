@@ -191,7 +191,7 @@ function App() {
     setLoadingData(false);
     setLibraryStored(false);
     setLoadingDataProgress(0);
-    showErrorNotif("Error", "Something went wrong while loading demo data.");
+    showErrorNotif("Error", "Something went wrong while loading your data.");
   }
 
   // Updates a track's saved status in state
