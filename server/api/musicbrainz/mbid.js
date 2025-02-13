@@ -14,6 +14,7 @@ const client = new Client({
 
 async function connectToDb() {
   try {
+    console.log("connecting to db");
     await client.connect();
     console.log("connected to the database");
   } catch (error) {
@@ -22,8 +23,6 @@ async function connectToDb() {
     console.log(`${currentTime}: Failed to connect to database`);
   }
 }
-
-connectToDb();
 
 router.get("/mbid", async function (req, res) {
   const { isrcs } = req.query;
@@ -35,6 +34,8 @@ router.get("/mbid", async function (req, res) {
   }
 
   let mbData = {};
+
+  connectToDb();
 
   for (const isrc of isrcArr) {
     console.log("running getMbidAndTags");
