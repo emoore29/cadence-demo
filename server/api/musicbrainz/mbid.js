@@ -1,6 +1,29 @@
 const express = require("express");
-const client = require("../../server");
 const router = express.Router();
+const pg = require("pg"); // to interface with postgres
+
+// Connect to Postgres Database
+const { Client } = pg;
+const client = new Client({
+  user: "musicbrainz",
+  password: "musicbrainz",
+  host: "172.19.0.4",
+  port: 5432,
+  database: "musicbrainz_db",
+});
+
+async function connectToDb() {
+  try {
+    await client.connect();
+    console.log("connected to the database");
+  } catch (error) {
+    const now = new Date();
+    const currentTime = now.toLocaleString();
+    console.log(`${currentTime}: Failed to connect to database`);
+  }
+}
+
+connectToDb();
 
 router.get("/mbid", async function (req, res) {
   const { isrcs } = req.query;
@@ -26,6 +49,8 @@ router.get("/mbid", async function (req, res) {
 });
 
 async function getMbidAndTags(isrc) {
+  console.log("client from mbid.js", client);
+
   try {
     // Get recordingId from ISRC
     const recordingRes = await client.query(
