@@ -35,7 +35,7 @@ router.get("/mbid", async function (req, res) {
 
   let mbData = {};
 
-  connectToDb();
+  await connectToDb();
 
   for (const isrc of isrcArr) {
     console.log("running getMbidAndTags");
