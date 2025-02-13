@@ -9,17 +9,23 @@ services:
       - DATABASE_URL=postgresql://musicbrainz:musicbrainz@host.docker.internal:5432/musicbrainz_db
     networks:
       - cadence_net
+    healthcheck: # Check server is running before running nginx container
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
   nginx:
     build: ./nginx
     restart: unless-stopped
     ports:
-      - "80:80"  
+      - "80:80"
+    depends_on:
+      - cadence-server
     networks:
       - cadence_net
 
 networks:
   cadence_net:
     driver: bridge
-
-

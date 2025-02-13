@@ -42,6 +42,10 @@ async function connectToDb() {
 
 connectToDb();
 
+app.get("/test", async function (req, res) {
+  res.json({ message: "Hello World" });
+});
+
 // Spotify
 app.use("/api/spotify", loginRoute);
 app.use("/api/spotify", playlistRoute);
