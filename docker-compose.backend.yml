@@ -28,5 +28,4 @@ services:
 
 networks:
   cadence_net:
-    driver: bridge
     external: true
