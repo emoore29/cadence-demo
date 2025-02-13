@@ -10,7 +10,7 @@ class DatabaseConnection {
     this.client = new Client({
       user: "musicbrainz",
       password: "musicbrainz",
-      host: "172.19.0.4",
+      host: "db",
       port: 5432,
       database: "musicbrainz_db",
     });
@@ -28,7 +28,7 @@ class DatabaseConnection {
     console.log("Connect method called");
     if (!this.connected) {
       try {
-        console.log("Attemptingn database connection...");
+        console.log("Attempting database connection...");
         // Await the connection to ensure it's established
         await this.client.connect();
         // Mark as connected after successful connection
