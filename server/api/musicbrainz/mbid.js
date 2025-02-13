@@ -54,7 +54,7 @@ async function getMbidAndTags(isrc) {
 
     // Get tags from recordingId
     const result = await client.query(
-      `SELECT * FROM musicbrainz.recording_tag WHERE recording$1`,
+      `SELECT * FROM musicbrainz.recording_tag WHERE recording=$1`,
       [recordingId]
     );
     const tags = result.rows;
