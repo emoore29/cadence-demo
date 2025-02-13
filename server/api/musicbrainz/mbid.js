@@ -37,11 +37,15 @@ router.get("/mbid", async function (req, res) {
   let mbData = {};
 
   for (const isrc of isrcArr) {
+    console.log("running getMbidAndTags");
     const mbTrackData = await getMbidAndTags(isrc);
+    console.log("adding mbTrackData for isrc", isrc);
+
     mbData[isrc] = mbTrackData;
   }
 
   if (mbData) {
+    console.log("sending mbData to client");
     res.json({ mbData });
   } else {
     res.status(500).json({ error: `Unable to fetch MusicBrainz data` });
@@ -49,8 +53,6 @@ router.get("/mbid", async function (req, res) {
 });
 
 async function getMbidAndTags(isrc) {
-  console.log("client from mbid.js", client);
-
   try {
     // Get recordingId from ISRC
     const recordingRes = await client.query(
