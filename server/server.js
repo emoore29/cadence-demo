@@ -63,3 +63,5 @@ app.use("/api/acousticbrainz", featuresRoute);
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+
+module.exports = client;

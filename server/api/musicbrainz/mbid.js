@@ -1,4 +1,5 @@
 const express = require("express");
+const client = require("../../server");
 const router = express.Router();
 
 router.get("/mbid", async function (req, res) {
@@ -28,7 +29,8 @@ async function getMbidAndTags(isrc) {
   try {
     // Get recordingId from ISRC
     const recordingRes = await client.query(
-      `SELECT recording FROM musicbrainz.isrc WHERE isrc ='${isrc}'`
+      `SELECT recording FROM musicbrainz.isrc WHERE isrc =$1`,
+      [isrc]
     );
     const recordingId = recordingRes.rows[0]
       ? recordingRes.rows[0].recording
@@ -37,14 +39,16 @@ async function getMbidAndTags(isrc) {
 
     // Get MBID from recordingId
     const mbidRes = await client.query(
-      `SELECT * FROM musicbrainz.recording WHERE id='${recordingId}'`
+      `SELECT * FROM musicbrainz.recording WHERE id=$1`,
+      [recordingId]
     );
     const mbid = mbidRes.rows[0] ? mbidRes.rows[0].gid : null;
     if (!mbid) return null;
 
     // Get tags from recordingId
     const result = await client.query(
-      `SELECT * FROM musicbrainz.recording_tag WHERE recording=${recordingId}`
+      `SELECT * FROM musicbrainz.recording_tag WHERE recording$1`,
+      [recordingId]
     );
     const tags = result.rows;
     if (!tags) return null;
@@ -55,7 +59,8 @@ async function getMbidAndTags(isrc) {
       const tagId = tagObj.tag;
       const count = tagObj.count;
       const tagRes = await client.query(
-        `SELECT * from musicbrainz.tag WHERE id=${tagId}`
+        `SELECT * from musicbrainz.tag WHERE id=$1`,
+        [tagId]
       );
       const name = tagRes.rows[0] ? tagRes.rows[0].name : null;
       if (!name) continue;
