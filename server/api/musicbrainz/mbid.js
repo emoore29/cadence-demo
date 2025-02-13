@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const client = require("../../server");
+const db = require("../../server");
 
 router.get("/mbid", async function (req, res) {
   const { isrcs } = req.query;
-
-  console.log("mbid client", client);
 
   const isrcArr = isrcs.split(",");
 
@@ -32,6 +30,9 @@ router.get("/mbid", async function (req, res) {
 });
 
 async function getMbidAndTags(isrc) {
+  const client = await db.connect();
+  console.log("mbid client", client);
+
   try {
     // Get recordingId from ISRC
     const recordingRes = await client.query(

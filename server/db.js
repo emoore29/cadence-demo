@@ -25,34 +25,26 @@ class DatabaseConnection {
    * @returns {Promise<Client>} PostgreSQL client instance
    */
   async connect() {
+    console.log("Connect method called");
     if (!this.connected) {
       try {
-        console.log("connecting to db");
+        console.log("Attemptingn database connection...");
         // Await the connection to ensure it's established
         await this.client.connect();
         // Mark as connected after successful connection
         this.connected = true;
-        console.log("connected to db");
+        console.log("Database connection successful");
       } catch (error) {
         // Log connection errors with timestamp
         const now = new Date();
         const currentTime = now.toLocaleString();
-        console.log(`${currentTime}: Failed to connect to database`);
+        console.log(
+          `${currentTime}: Failed to connect to database`,
+          error.message
+        );
         // Throw error to be handled by caller
         throw error;
       }
-    }
-    return this.client;
-  }
-
-  /**
-   * Returns the PostgreSQL client instance if connected
-   * @throws {Error} if database is not connected
-   * @returns {Client} PostgreSQL client instance
-   */
-  getClient() {
-    if (!this.connected) {
-      throw new Error("Database not connected. Call connect() first");
     }
     return this.client;
   }

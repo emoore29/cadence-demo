@@ -54,4 +54,4 @@ async function initialiseServer() {
 
 initialiseServer();
 
-module.exports = db.getClient();
+module.exports = db;
