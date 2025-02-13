@@ -6,7 +6,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://musicbrainz:musicbrainz@host.docker.internal:5432/musicbrainz_db
+      - DATABASE_URL=postgresql://musicbrainz:musicbrainz@db:5432/musicbrainz_db
     networks:
       - cadence_net
     healthcheck: # Check server is running before running nginx container
@@ -29,3 +29,4 @@ services:
 networks:
   cadence_net:
     driver: bridge
+    external: true
