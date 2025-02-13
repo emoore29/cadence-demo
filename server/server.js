@@ -16,42 +16,29 @@ const guestTokenRoute = require("./api/spotify/guestToken");
 const searchDeezerRoute = require("./api/deezer/searchDeezer");
 const mbidRoute = require("./api/musicbrainz/mbid");
 const featuresRoute = require("./api/acousticbrainz/features");
-const db = require("./db");
 
-async function initialiseServer() {
-  try {
-    await db.connect();
-    app.use(cors(corsOptions)).use(cookieParser());
+app.use(cors(corsOptions)).use(cookieParser());
 
-    // Routes
-    app.get("/test", async function (req, res) {
-      res.json({ message: "Hello World" });
-    });
+// Routes
+app.get("/test", async function (req, res) {
+  res.json({ message: "Hello World" });
+});
 
-    // Spotify
-    app.use("/api/spotify", loginRoute);
-    app.use("/api/spotify", playlistRoute);
-    app.use("/api/spotify", callbackRoute);
-    app.use("/api/spotify", refreshTokenRoute);
-    app.use("/api/spotify", guestTokenRoute);
+// Spotify
+app.use("/api/spotify", loginRoute);
+app.use("/api/spotify", playlistRoute);
+app.use("/api/spotify", callbackRoute);
+app.use("/api/spotify", refreshTokenRoute);
+app.use("/api/spotify", guestTokenRoute);
 
-    // Deezer
-    app.use("/api/deezer", searchDeezerRoute);
+// Deezer
+app.use("/api/deezer", searchDeezerRoute);
 
-    // MetaBrainz
-    app.use("/api/musicbrainz", mbidRoute);
-    app.use("/api/acousticbrainz", featuresRoute);
+// MetaBrainz
+app.use("/api/musicbrainz", mbidRoute);
+app.use("/api/acousticbrainz", featuresRoute);
 
-    // Start server
-    app.listen(port, () => {
-      console.log(`Server listening on port ${port}`);
-    });
-  } catch (error) {
-    console.error("Failed to initialize server:", error);
-    process.exit(1); // Exit if initialization fails
-  }
-}
-
-initialiseServer();
-
-module.exports = db;
+// Start server
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});

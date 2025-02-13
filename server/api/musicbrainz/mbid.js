@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../../server");
+const db = require("../../db");
 
 router.get("/mbid", async function (req, res) {
   const { isrcs } = req.query;
