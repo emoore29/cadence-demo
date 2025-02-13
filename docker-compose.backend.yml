@@ -15,9 +15,6 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"  
-    volumes:
-      - ./nginx/sites-available/cadence:/etc/nginx/sites-available/cadence
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf 
     networks:
       - cadence_net
 
