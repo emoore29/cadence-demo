@@ -109,12 +109,19 @@ export async function filterFromPlaylist(
   doubleTime: boolean,
   chosenTags: string[]
 ): Promise<Map<string, TrackObject> | null> {
+  console.log("filtering from playlist running");
   const matchingTracks = new Map<string, TrackObject>();
   try {
+    console.log("getting playlists from store");
+
     const playlists = await getAllFromStore("playlists");
+
     for (const playlist of playlists) {
+      console.log("checking for playlist matching id chosen");
       if (playlist.id == selectedPlaylist) {
         for (const track of playlist.tracks) {
+          console.log("looping through tracks in playlist to find matches");
+
           const trackFeatures: MetaBrainzFeatures = track.features;
           if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
             console.warn(`${track.track.id} is missing features.`);
@@ -154,6 +161,8 @@ function matches(
   doubleTime: boolean,
   chosenTags: string[]
 ): boolean {
+  console.log("matches running");
+
   const { minTempo, maxTempo, key, mode, ...moods } = formValues;
 
   // Check tempo ranges
