@@ -1,5 +1,11 @@
 services:
-  cadence-server:
+  frontend:
+    build: ./client
+    depends_on:
+      - server
+    networks:
+      - cadence_net
+  server:
     build: ./server
     restart: unless-stopped
     ports:
@@ -15,14 +21,16 @@ services:
       retries: 3
       start_period: 10s
       timeout: 10s
-
   nginx:
     build: ./nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "80:80" # host port : container port
+      # Containers can communicate on cadence_net using container port
+      # Nginx service accessible outside docker environment via host port
     depends_on:
-      - cadence-server
+      - frontend
+      - server
     networks:
       - cadence_net
 

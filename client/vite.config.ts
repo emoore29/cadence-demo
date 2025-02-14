@@ -6,17 +6,18 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   base: "/",
-  server: {
-    proxy: {
-      "/api": {
-        target: {
-          target: "http://localhost:3000",
-          changeOrigin: true,
-        },
-      },
-    },
-  },
-  // below added as a temp solution to slow loading of tabler icons.
+  // Development
+  // server: {
+  //   proxy: {
+  //     "/api": {
+  //       target: {
+  //         target: "http://localhost:3000",
+  //         changeOrigin: true,
+  //       },
+  //     },
+  //   },
+  // },
+  // below was added as a temp solution to the slow loading of tabler icons.
   resolve: {
     alias: {
       // /esm/icons/index.mjs only exports the icons statically, so no separate chunks are created

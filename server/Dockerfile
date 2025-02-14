@@ -1,3 +1,5 @@
+# Container to build and run server
+
 FROM node:20-slim
 
 WORKDIR /app
