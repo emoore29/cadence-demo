@@ -5,6 +5,7 @@ import {
   storeTokens,
 } from "./localStorage";
 import { showErrorNotif } from "./general";
+import { API_URL } from "./fetchers";
 
 // Create Singleton promise
 // Never more than one instance of tokenPromise
@@ -55,17 +56,14 @@ export async function getNewAccessToken(): Promise<string[] | null> {
   }
 
   try {
-    const response = await axios.get(
-      "http://localhost:3000/api/spotify/refresh_token",
-      {
-        params: {
-          refresh_token: refreshToken,
-        },
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
+    const response = await axios.get(`${API_URL}/spotify/refresh_token`, {
+      params: {
+        refresh_token: refreshToken,
+      },
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
     const {
       access_token: accessToken,
       refresh_token: newRefreshToken,
@@ -82,9 +80,7 @@ export async function getNewAccessToken(): Promise<string[] | null> {
 // Fetches new guest token from backend
 export async function getNewGuestToken(): Promise<boolean | null> {
   try {
-    const res = await axios.get(
-      "http://localhost:3000/api/spotify/guest_token"
-    );
+    const res = await axios.get(`${API_URL}/spotify/guest_token`);
     const token: string = res.data.token;
     const expiry: number = Date.now() + 3600 * 1000;
 

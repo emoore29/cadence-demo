@@ -27,6 +27,7 @@ import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
 import { chunk } from "lodash";
+import { API_URL } from "@/helpers/fetchers";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -287,7 +288,7 @@ export default function Form({
     if (!token) return null;
     try {
       const response = await fetch(
-        `http://localhost:3000/api/spotify/playlist?playlistId=${encodeURIComponent(
+        `${API_URL}spotify/playlist?playlistId=${encodeURIComponent(
           playlistId
         )}&accessToken=${token}`
       );

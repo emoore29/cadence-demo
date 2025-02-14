@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { useContext, useEffect, useRef, useState } from "react";
 import styles from "./trackPreview.module.css";
+import { API_URL } from "@/helpers/fetchers";
 
 interface TrackPreviewProps {
   track: TrackObject;
@@ -31,7 +32,7 @@ export default function TrackPreview({ track }: TrackPreviewProps) {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:3000/api/deezer/search_deezer?trackName=${encodeURIComponent(
+        `${API_URL}/deezer/search_deezer?trackName=${encodeURIComponent(
           track.track.name
         )}&trackArtist=${encodeURIComponent(
           track.track.artists[0].name
