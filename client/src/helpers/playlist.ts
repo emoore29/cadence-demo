@@ -163,7 +163,8 @@ function matches(
 ): boolean {
   console.log("matches running");
 
-  const { minTempo, maxTempo, key, mode, ...moods } = formValues;
+  const { source, target, minTempo, maxTempo, key, mode, ...moods } =
+    formValues;
 
   // Check tempo ranges
   if (!anyTempo) {
@@ -173,6 +174,7 @@ function matches(
 
     // Track passes if it's in the actual range OR in half/double time ranges (if selected)
     if (!(isInActualRange || isInHalfTimeRange || isInDoubleTimeRange)) {
+      console.log("track not in tempo range");
       return false;
     }
   }
@@ -187,26 +189,33 @@ function matches(
   }
 
   if (key != "Any" && key !== trackFeatures.key) {
+    console.log("track key doesn't match filter");
     return false;
   }
 
   if (mode != "Any" && mode.toLowerCase() !== trackFeatures.mode) {
+    console.log("track mode doesn't match filter");
     return false;
   }
 
   for (const [key, value] of Object.entries(moods)) {
-    if (
-      value !== "Any" &&
-      convertToSnakeCase(value as string) !==
+    console.log("key,value", key, value);
+    if (value !== "Any") {
+      console.log("features != any, value:", value);
+      if (
+        convertToSnakeCase(value as string) !==
         trackFeatures[key as keyof typeof trackFeatures]
-    ) {
-      return false;
+      ) {
+        console.log("track features dont match");
+        return false;
+      }
     }
   }
 
   if (chosenTags) {
     for (const chosenTag of chosenTags) {
       if (!trackFeatures.tags.includes(chosenTag)) {
+        console.log("chosen tags don't match");
         return false;
       }
     }
