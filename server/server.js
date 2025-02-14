@@ -29,18 +29,18 @@ app.get("/test", async function (req, res) {
 });
 
 // Spotify
-app.use("/spotify", loginRoute);
-app.use("/spotify", playlistRoute);
-app.use("/spotify", callbackRoute);
-app.use("/spotify", refreshTokenRoute);
-app.use("/spotify", guestTokenRoute);
+app.use("/api/spotify", loginRoute);
+app.use("/api/spotify", playlistRoute);
+app.use("/api/spotify", callbackRoute);
+app.use("/api/spotify", refreshTokenRoute);
+app.use("/api/spotify", guestTokenRoute);
 
 // Deezer
-app.use("/deezer", searchDeezerRoute);
+app.use("/api/deezer", searchDeezerRoute);
 
 // MetaBrainz
-app.use("/musicbrainz", mbidRoute);
-app.use("/acousticbrainz", featuresRoute);
+app.use("/api/musicbrainz", mbidRoute);
+app.use("/api/acousticbrainz", featuresRoute);
 
 // Start server
 app.listen(port, () => {

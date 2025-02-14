@@ -13,7 +13,7 @@ export default defineConfig({
         // requests to /api/* from dev frontend are forwarded to localhost:3000. So server.js routes should not include /api prefix
         target: "http://localhost:3000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""), // Remove /api prefix
+        // rewrite: (path) => path.replace(/^\/api/, ""), // Remove /api prefix
       },
     },
   },
