@@ -1,6 +1,5 @@
 # Build frontend
-
-FROM node:20 as builder
+FROM node:20 AS builder
 WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./ 
