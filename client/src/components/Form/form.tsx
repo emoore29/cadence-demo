@@ -288,7 +288,7 @@ export default function Form({
     if (!token) return null;
     try {
       const response = await fetch(
-        `/spotify/playlist?playlistId=${encodeURIComponent(
+        `${API_URL}/spotify/playlist?playlistId=${encodeURIComponent(
           playlistId
         )}&accessToken=${token}`
       );
