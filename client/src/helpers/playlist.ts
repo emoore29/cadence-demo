@@ -109,19 +109,13 @@ export async function filterFromPlaylist(
   doubleTime: boolean,
   chosenTags: string[]
 ): Promise<Map<string, TrackObject> | null> {
-  console.log("filtering from playlist running");
   const matchingTracks = new Map<string, TrackObject>();
   try {
-    console.log("getting playlists from store");
-
     const playlists = await getAllFromStore("playlists");
 
     for (const playlist of playlists) {
-      console.log("checking for playlist matching id chosen");
       if (playlist.id == selectedPlaylist) {
         for (const track of playlist.tracks) {
-          console.log("looping through tracks in playlist to find matches");
-
           const trackFeatures: MetaBrainzFeatures = track.features;
           if (!trackFeatures.key || !trackFeatures.bpm || !trackFeatures.mode) {
             console.warn(`${track.track.id} is missing features.`);
@@ -161,8 +155,6 @@ function matches(
   doubleTime: boolean,
   chosenTags: string[]
 ): boolean {
-  console.log("matches running");
-
   const { source, target, minTempo, maxTempo, key, mode, ...moods } =
     formValues;
 
@@ -174,7 +166,6 @@ function matches(
 
     // Track passes if it's in the actual range OR in half/double time ranges (if selected)
     if (!(isInActualRange || isInHalfTimeRange || isInDoubleTimeRange)) {
-      console.log("track not in tempo range");
       return false;
     }
   }
@@ -189,24 +180,19 @@ function matches(
   }
 
   if (key != "Any" && key !== trackFeatures.key) {
-    console.log("track key doesn't match filter");
     return false;
   }
 
   if (mode != "Any" && mode.toLowerCase() !== trackFeatures.mode) {
-    console.log("track mode doesn't match filter");
     return false;
   }
 
   for (const [key, value] of Object.entries(moods)) {
-    console.log("key,value", key, value);
     if (value !== "Any") {
-      console.log("features != any, value:", value);
       if (
         convertToSnakeCase(value as string) !==
         trackFeatures[key as keyof typeof trackFeatures]
       ) {
-        console.log("track features dont match");
         return false;
       }
     }
@@ -215,7 +201,6 @@ function matches(
   if (chosenTags) {
     for (const chosenTag of chosenTags) {
       if (!trackFeatures.tags.includes(chosenTag)) {
-        console.log("chosen tags don't match");
         return false;
       }
     }
