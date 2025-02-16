@@ -16,6 +16,7 @@ dist-ssr
 /demoData
 TODO
 nginx.conf
+docker-compose.yml
 
 # Editor directories and files
 .vscode/*

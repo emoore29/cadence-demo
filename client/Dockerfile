@@ -15,7 +15,7 @@ RUN npm run build
 FROM nginx:latest
 # Copy nginx.conf
 COPY ./nginx.conf /etc/nginx/nginx.conf
-# Copy built frontend files from frontend service
+# Copy built frontend files into nginx container
 COPY --from=builder /app/dist /usr/share/nginx/html
 # Expose necessary port
 EXPOSE 80
