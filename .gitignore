@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 /myDataBackup
+/demoData
+TODO
+nginx.conf
 
 # Editor directories and files
 .vscode/*
