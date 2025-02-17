@@ -1,11 +1,15 @@
+require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const client_id = process.env.SPOTIFY_CLIENT_ID;
-const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 
 const stateKey = "spotify_auth_state";
-const redirect_uri = "http://localhost:3000/api/spotify/callback";
+
+const redirect_uri =
+  process.env.NODE_ENV === "production"
+    ? process.env.PRODUCTION_SPOTIFY_REDIRECT_URI
+    : process.env.DEVELOPMENT_SPOTIFY_REDIRECT_URI;
 
 const generateRandomString = (length) => {
   return crypto.randomBytes(60).toString("hex").slice(0, length);

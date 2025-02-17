@@ -5,7 +5,7 @@ var cookieParser = require("cookie-parser");
 const port = 3000;
 const corsOptions = {
   origin: [
-    "https://emoore29.github.io",
+    "https://cadencetracks.com",
     "http://localhost:5173",
     "http://localhost",
   ], // only allow requests from frontend
@@ -20,6 +20,13 @@ const guestTokenRoute = require("./api/spotify/guestToken");
 const searchDeezerRoute = require("./api/deezer/searchDeezer");
 const mbidRoute = require("./api/musicbrainz/mbid");
 const featuresRoute = require("./api/acousticbrainz/features");
+
+const redirect_uri =
+  process.env.NODE_ENV === "production"
+    ? process.env.PRODUCTION_SPOTIFY_REDIRECT_URI
+    : process.env.DEVELOPMENT_SPOTIFY_REDIRECT_URI;
+
+console.log(redirect_uri);
 
 app.use(cors(corsOptions)).use(cookieParser());
 
