@@ -11,6 +11,11 @@ const redirect_uri =
     ? process.env.PRODUCTION_SPOTIFY_REDIRECT_URI
     : process.env.DEVELOPMENT_SPOTIFY_REDIRECT_URI;
 
+const homepage =
+  process.env.NODE_ENV === "production"
+    ? "https://cadencetracks.com"
+    : "http://localhost:5173";
+
 // Exchanges authorization code for access token and refresh token
 router.get("/callback", async function (req, res) {
   var code = req.query.code || null;
