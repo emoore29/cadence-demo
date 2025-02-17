@@ -17,6 +17,8 @@ dist-ssr
 TODO
 nginx.conf
 docker-compose.yml
+.env.production
+.env.development
 
 # Editor directories and files
 .vscode/*
