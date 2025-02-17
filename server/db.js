@@ -25,7 +25,6 @@ class DatabaseConnection {
    * @returns {Promise<Client>} PostgreSQL client instance
    */
   async connect() {
-    console.log("Connect method called");
     if (!this.connected) {
       try {
         console.log("Attempting database connection...");
