@@ -110,10 +110,9 @@ export async function fetchMbData(
       `${API_URL}/musicbrainz/mbid?isrcs=${encodeURIComponent(isrcs)}`
     );
     const data = await res.json();
-    console.log(data);
     return data.mbData;
   } catch (error) {
-    showErrorNotif("Error", `Could not retrieve MusicBrainz data`);
+    console.warn(`Could not retrieve mbids for track isrcs: ${isrcs}`);
     return null;
   }
 }
@@ -129,16 +128,14 @@ export async function fetchFeatures(
     );
     const data = await response.json();
     const features: AcousticBrainzData = data.features;
-    console.log("features:", features);
     if (features) {
-      console.log("returning features", features);
       return features;
     } else {
       console.warn("No features response from server");
       return null;
     }
   } catch (error) {
-    showErrorNotif("Network error", `Could not retrieve features`);
+    console.warn(`Could not retrieve features`);
     return null;
   }
 }

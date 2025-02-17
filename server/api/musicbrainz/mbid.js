@@ -15,7 +15,6 @@ router.get("/mbid", async function (req, res) {
 
   for (const isrc of isrcArr) {
     const mbTrackData = await getMbidAndTags(isrc);
-
     mbData[isrc] = mbTrackData;
   }
 

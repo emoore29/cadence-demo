@@ -147,7 +147,6 @@ function App() {
     setLoadingDataProgress((prev) => prev + (1 / estimatedActions) * 100);
   }
 
-  // ↓ Pre-deprecation to retrieve actual Spotify data (track features reqs will return 400 errors) ↓
   async function storeSpotifyData(): Promise<void> {
     const start: number = Date.now();
     setLoadingData(true);

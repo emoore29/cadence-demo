@@ -321,7 +321,6 @@ export default function Form({
             id: id,
             tracks: tracksToStore,
           });
-          console.log("Added playlist to IDB!!!");
           setStoredPlaylists((prev) => {
             const filteredPlaylists = prev.filter(
               (playlist) => playlist.id !== id

@@ -53,7 +53,7 @@ async function fetchFeatures(mbids) {
   // Convervative pause to ensure no rate limits are hit
   if (lowLevelRemaining < 50) {
     console.log("Awaiting AcousticBrainz rate limit reset");
-    await delay(lowLevelResetIn * 1000);
+    await delay(lowLevelResetIn * 1000 + 1000); // +1s buffer to ensure reset occurs
   }
 
   try {
@@ -93,7 +93,7 @@ async function fetchFeatures(mbids) {
   // Convervative pause to ensure no rate limits are hit
   if (highLevelRemaining < 50) {
     console.log("Awaiting AcousticBrainz rate limit reset");
-    await delay(highLevelResetIn * 1000);
+    await delay(highLevelResetIn * 1000 + 1000); // +1s buffer to ensure reset occurs
   }
 
   console.log(

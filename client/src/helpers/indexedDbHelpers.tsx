@@ -53,23 +53,23 @@ export async function storeTopArtists(
 
 async function storeTracks(
   tracks: TrackObject[],
-  updateProgressBar: () => void
+  updateProgressBar: () => void,
+  storeName: "topTracks" | "savedTracks"
 ): Promise<number> {
   let count: number = 0;
   for (const [index, track] of tracks.entries()) {
     try {
-      await setInStore("savedTracks", {
+      await setInStore(storeName, {
         track: track.track,
         features: track.features,
-        saved: true,
+        ...(storeName === "savedTracks" && { saved: true }),
         order: index,
       });
       updateProgressBar();
       count++;
     } catch (error) {
-      showErrorNotif(
-        "Error",
-        `Failed to store track in IDB (${track.track.id})`
+      console.warn(
+        `Failed to store track in ${storeName} store: (${track.track.id})`
       );
     }
   }
@@ -94,20 +94,17 @@ export async function storeSavedTracksData(
   let count: number = 0; // To track number of successes
 
   // Chunk tracks to fetch features 25 at a time
-  const tracksToStore: TrackObject[] = [];
   const chunks: Track[][] = chunk(savedTracksArray, 25);
 
   for (const chunk of chunks) {
     // Get each track's features from MetaBrainz
     const results: TrackObject[] | null = await getTrackFeatures(chunk);
     if (results) {
-      tracksToStore.push(...results);
+      // Add tracks to store 25 at a time
+      count += await storeTracks(results, updateProgressBar, "savedTracks");
     }
   }
 
-  if (tracksToStore) {
-    count = await storeTracks(tracksToStore, updateProgressBar);
-  }
   showSuccessNotif(
     "Stored saved tracks",
     `Features for ${count} out of ${libSize} were successfully retrieved.`
@@ -127,19 +124,15 @@ export async function storeTopTracksData(
   let count = 0;
 
   // Chunk tracks to fetch features 25 at a time
-  const tracksToStore: TrackObject[] = [];
   const chunks: Track[][] = chunk(topTracks, 25);
 
   for (const chunk of chunks) {
     // Get each track's features from MetaBrainz
     const results: TrackObject[] | null = await getTrackFeatures(chunk);
     if (results) {
-      tracksToStore.push(...results);
+      // Add tracks to store 25 at a time
+      count += await storeTracks(results, updateProgressBar, "topTracks");
     }
-  }
-
-  if (tracksToStore) {
-    count = await storeTracks(tracksToStore, updateProgressBar);
   }
 
   showSuccessNotif(
@@ -178,7 +171,6 @@ export async function getTrackFeatures(
   const mbids: string[] = Object.values(mbData)
     .filter((data) => data != null)
     .map((data) => data.mbid);
-  console.log(mbids);
 
   // Fetch AcousticBrainz data
   const abData: AcousticBrainzData | null = await fetchFeatures(mbids);

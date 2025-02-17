@@ -12,6 +12,7 @@ export function showSuccessNotif(title: string, message: string) {
     color: "green",
     title: title,
     message: message,
+    autoClose: 10000,
   });
 }
 
