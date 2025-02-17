@@ -41,8 +41,11 @@ async function fetchFeatures(mbids) {
     }
   } catch (error) {
     console.warn(`Could not fetch low level features`);
-    if (error.response.data.message) {
-      console.log(error.response.data.message);
+    if (error.response?.status === 429) {
+      console.log(
+        "Rate limit hit. Awaiting AcousticBrainz rate limit reset..."
+      );
+      await delay(lowLevelResetIn * 1000 + 500); // +0.5s buffer to ensure reset occurs
     }
     return null;
   }
@@ -53,7 +56,7 @@ async function fetchFeatures(mbids) {
   // Convervative pause to ensure no rate limits are hit
   if (lowLevelRemaining < 50) {
     console.log("Awaiting AcousticBrainz rate limit reset");
-    await delay(lowLevelResetIn * 1000 + 1000); // +1s buffer to ensure reset occurs
+    await delay(lowLevelResetIn * 1000 + 500); // +0.5s buffer to ensure reset occurs
   }
 
   try {
@@ -87,6 +90,12 @@ async function fetchFeatures(mbids) {
     }
   } catch (error) {
     console.warn(`Could not fetch high level features`, error);
+    if (error.response?.status === 429) {
+      console.log(
+        "Rate limit hit. Awaiting AcousticBrainz rate limit reset..."
+      );
+      await delay(highLevelResetIn * 1000 + 500); // +0.5s buffer to ensure reset occurs
+    }
     return null;
   }
 
