@@ -102,8 +102,6 @@ export async function storeSavedTracksData(
     const results: TrackObject[] | null = await getTrackFeatures(chunk);
     if (results) {
       tracksToStore.push(...results);
-    } else {
-      return null;
     }
   }
 
@@ -137,8 +135,6 @@ export async function storeTopTracksData(
     const results: TrackObject[] | null = await getTrackFeatures(chunk);
     if (results) {
       tracksToStore.push(...results);
-    } else {
-      return null;
     }
   }
 
@@ -174,7 +170,7 @@ export async function getTrackFeatures(
   // Fetch MusicBrainz data for valid ISRCs
   const mbData: MusicBrainzData | null = await fetchMbData(isrcs);
   if (!mbData) {
-    console.log("No data returned fetching musicbrainz id");
+    console.warn("Could not fetch mbids for isrcs:", isrcs);
     return null;
   }
 
@@ -187,7 +183,7 @@ export async function getTrackFeatures(
   // Fetch AcousticBrainz data
   const abData: AcousticBrainzData | null = await fetchFeatures(mbids);
   if (!abData) {
-    console.log("no ab data returned from gettrackfeatures");
+    console.warn("Could not fetch acousticbrainz features for tracks:", mbids);
     return null;
   }
 

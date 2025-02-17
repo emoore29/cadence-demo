@@ -310,8 +310,6 @@ export default function Form({
         const results: TrackObject[] | null = await getTrackFeatures(chunk);
         if (results) {
           tracksToStore.push(...results);
-        } else {
-          return null;
         }
       }
 

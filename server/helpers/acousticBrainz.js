@@ -40,7 +40,10 @@ async function fetchFeatures(mbids) {
       }
     }
   } catch (error) {
-    console.warn(`Could not fetch low level features`, error);
+    console.warn(`Could not fetch low level features`);
+    if (error.response.data.message) {
+      console.log(error.response.data.message);
+    }
     return null;
   }
 
@@ -48,7 +51,7 @@ async function fetchFeatures(mbids) {
   const currentTime = now.toLocaleString();
 
   // Convervative pause to ensure no rate limits are hit
-  if (lowLevelRemaining < 30) {
+  if (lowLevelRemaining < 50) {
     console.log("Awaiting AcousticBrainz rate limit reset");
     await delay(lowLevelResetIn * 1000);
   }
@@ -88,7 +91,7 @@ async function fetchFeatures(mbids) {
   }
 
   // Convervative pause to ensure no rate limits are hit
-  if (highLevelRemaining < 30) {
+  if (highLevelRemaining < 50) {
     console.log("Awaiting AcousticBrainz rate limit reset");
     await delay(highLevelResetIn * 1000);
   }
