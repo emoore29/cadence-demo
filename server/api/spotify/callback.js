@@ -73,7 +73,7 @@ router.get("/callback", async function (req, res) {
 
       // Redirect the user back to client app with tokens
       res.redirect(
-        "http://localhost:5173/#" +
+        `${homepage}#` +
           new URLSearchParams({
             access_token: access_token,
             refresh_token: refresh_token,
