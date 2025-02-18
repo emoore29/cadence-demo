@@ -1,6 +1,10 @@
 import { getAllFromStore, setPlaylistInStore } from "@/helpers/database";
 import { syncTracksSavedStatus } from "@/helpers/fetchers";
-import { showWarnNotif, syncSpotifyAndIdb } from "@/helpers/general";
+import {
+  showErrorNotif,
+  showWarnNotif,
+  syncSpotifyAndIdb,
+} from "@/helpers/general";
 import { getTrackFeatures } from "@/helpers/indexedDbHelpers";
 import { getItemFromLocalStorage } from "@/helpers/localStorage";
 import { startSearch } from "@/helpers/playlist";
@@ -79,9 +83,15 @@ export default function Form({
   const [savedTrackTags, setSavedTrackTags] = useState<string[]>([]);
   const [topTrackTags, setTopTrackTags] = useState<string[]>([]);
   const [source, setSource] = useState<string>("savedTracks");
-  const [playlistId, setPlaylistId] = useState("1qbLWinFLReM3PVXjHAQLz");
+  const [playlistId, setPlaylistId] = useState<string | null>(null);
+  const [userInputPlaylistId, setUserInputPlaylistId] = useState(
+    "https://open.spotify.com/playlist/6uRb2P6XRj5ygnanxpMCfS?si=8d44b0cbc6c0478a"
+  );
   const [loadingSpotifyPlaylist, setLoadingSpotifyPlaylist] =
     useState<boolean>(false);
+  const [verifyingPlaylist, setVerifyingPlaylist] = useState<boolean>(false);
+  const [verifiedName, setVerifiedName] = useState<string | null>(null);
+  const [invalidPlaylist, setInvalidPlaylist] = useState<boolean>(false);
   const [storedPlaylists, setStoredPlaylists] = useState<
     { name: string; id: string }[]
   >([]);
@@ -280,21 +290,68 @@ export default function Form({
     }
   }
 
-  async function loadPlaylistData() {
-    setLoadingSpotifyPlaylist(true);
-
-    // Fetch playlist data from Spotify
+  async function getPlaylistMetadata(id: string) {
+    setVerifyingPlaylist(true);
+    setVerifiedName(null);
+    setInvalidPlaylist(false);
     const token: string | null = getItemFromLocalStorage("guest_token");
-    if (!token) return null;
+    if (!token) {
+      setVerifyingPlaylist(false);
+      return null;
+    }
+
     try {
       const response = await fetch(
         `${API_URL}/spotify/playlist?playlistId=${encodeURIComponent(
+          id
+        )}&accessToken=${token}`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch playlist data");
+      }
+      const data = await response.json();
+      const name = data.name;
+      name && setVerifiedName(name);
+      setInvalidPlaylist(false);
+    } catch (error: any) {
+      showErrorNotif("Getting playlist data failed", error.message);
+      setVerifiedName(null);
+      setInvalidPlaylist(true);
+    }
+    setVerifyingPlaylist(false);
+  }
+
+  async function loadPlaylistData() {
+    setLoadingSpotifyPlaylist(true);
+    // Fetch playlist items from Spotify
+    const token: string | null = getItemFromLocalStorage("guest_token");
+    if (!token) {
+      setLoadingSpotifyPlaylist(false);
+      showErrorNotif("Error", "Could not find token. Try refreshing page.");
+      return null;
+    }
+
+    if (!verifiedName) {
+      setLoadingPlaylist(false);
+      showErrorNotif("Error", "Playlist not verified. Can't load tracks.");
+      return null;
+    }
+
+    if (!playlistId) {
+      setVerifyingPlaylist(false);
+      showErrorNotif("Error", "Invalid playlist id");
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/spotify/playlistItems?playlistId=${encodeURIComponent(
           playlistId
         )}&accessToken=${token}`
       );
       const data = await response.json();
-      const name = data.name;
-      const id = data.id;
       const tracks: Track[] = [];
 
       for (const item of data.items) {
@@ -317,15 +374,18 @@ export default function Form({
         // Store playlist name, tracks, and features
         try {
           await setPlaylistInStore({
-            name: name,
-            id: id,
+            name: verifiedName,
+            id: playlistId,
             tracks: tracksToStore,
           });
           setStoredPlaylists((prev) => {
             const filteredPlaylists = prev.filter(
-              (playlist) => playlist.id !== id
+              (playlist) => playlist.id !== playlistId
             );
-            return [...filteredPlaylists, { name: name, id: id }];
+            return [
+              ...filteredPlaylists,
+              { name: verifiedName, id: playlistId },
+            ];
           });
           setPlaylistId("");
         } catch (error) {
@@ -359,6 +419,18 @@ export default function Form({
       onCancel: () => console.log("Cancel"),
       onConfirm: () => loadPlaylistData(),
     });
+
+  function extractPlaylistId() {
+    // Extract id from link to spotify playlist: https://open.spotify.com/playlist/6uRb2P6XRj5ygnanxpMCfS?si=8d44b0cbc6c0478a --> 6uRb2P6XRj5ygnanxpMCfS
+    const match = userInputPlaylistId.match(/\/playlist\/([^/?]+)/);
+    if (match) {
+      setPlaylistId(match[1]);
+    } else {
+      setPlaylistId("");
+      return;
+    }
+    getPlaylistMetadata(match[1]);
+  }
 
   return (
     <form
@@ -459,15 +531,31 @@ export default function Form({
                   </Group>
                 </Radio.Group>
                 <TextInput
-                  label="Playlist id"
-                  value={playlistId}
-                  onChange={(event) => setPlaylistId(event.currentTarget.value)}
+                  label="Playlist id (link to public user-created Spotify playlist)"
+                  value={userInputPlaylistId}
+                  onChange={(event) => {
+                    setUserInputPlaylistId(event.currentTarget.value); // Update user input as they type
+                  }}
                 />
-                <Button onClick={() => checkPlaylistExists()}>
-                  {!loadingSpotifyPlaylist
-                    ? "Load playlist data"
-                    : "Loading playlist data"}
+                <Button onClick={() => extractPlaylistId()}>
+                  {verifyingPlaylist ? "Verifying playlist" : "Verify playlist"}
                 </Button>
+                {invalidPlaylist && (
+                  <Text>
+                    Invalid playlist. Please check your playlist is a public
+                    playlist owned by a Spotify user.
+                  </Text>
+                )}
+                {verifiedName && (
+                  <>
+                    <Text>You submitted playlist: {verifiedName}.</Text>
+                    <Button onClick={() => checkPlaylistExists()}>
+                      {!loadingSpotifyPlaylist
+                        ? "Load playlist data"
+                        : "Loading playlist data"}
+                    </Button>
+                  </>
+                )}
               </Tabs.Panel>
             </Tabs>
           </Accordion.Panel>

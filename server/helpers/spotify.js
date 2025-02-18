@@ -9,10 +9,17 @@ async function fetchPlaylist(playlistId, accessToken) {
       }
     );
 
-    return res.data;
+    return { data: res.data };
   } catch (error) {
-    console.error(`Error searching for Spotify playlist.`, error);
-    return null;
+    console.error(`Error searching for Spotify playlist:`, {
+      status: error.response?.status,
+      message: error.response?.data?.error?.message || error.message,
+    });
+    return {
+      error: true,
+      status: error.response?.status || 500,
+      message: error.response?.data?.error.message || error.message,
+    };
   }
 }
 
