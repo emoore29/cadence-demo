@@ -19,7 +19,7 @@ router.get("/playlistItems", async function (req, res) {
   const { playlistId, accessToken } = req.query;
   const tracks = await fetchPlaylistItems(playlistId, accessToken);
   if (tracks) {
-    res.json({ items });
+    res.json({ items: tracks });
   } else {
     res.status(500).json({ error: "Could not fetch playlist tracks" });
   }
