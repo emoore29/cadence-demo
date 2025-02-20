@@ -15,7 +15,7 @@ dist-ssr
 /myDataBackup
 /demoData
 TODO
-nginx.conf
+/nginx
 docker-compose.yml
 client/.env.production
 client/.env.development
