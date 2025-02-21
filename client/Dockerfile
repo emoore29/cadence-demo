@@ -29,7 +29,7 @@ COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 # Copy built frontend files into nginx container
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Switch to non-root user
+# Switch to non-root user to ensure github actions runner (non-root) has permissions to update files
 USER appuser
 
 # Expose necessary port
