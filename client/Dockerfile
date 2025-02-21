@@ -15,16 +15,15 @@ RUN npm run build
 FROM nginx:latest
 
 # Create non-root user and group
-RUN useradd -m appuser
+RUN chown -R emma:emma /_work
+
+USER emma
 
 # Copy nginx.conf
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Copy built frontend files into nginx container
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Switch to non-root user
-USER appuser
 
 # Expose necessary port
 EXPOSE 80
