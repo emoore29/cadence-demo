@@ -1,21 +1,35 @@
+require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const db = require("../../db");
+const { default: axios } = require("axios");
 
 router.get("/mbid", async function (req, res) {
   const { isrcs } = req.query;
-
-  const isrcArr = isrcs.split(",");
-
-  if (isrcArr.length > 25) {
-    res.status(400).json({ message: "Too many ids requested." });
-  }
-
   let mbData = {};
 
-  for (const isrc of isrcArr) {
-    const mbTrackData = await getMbidAndTags(isrc);
-    mbData[isrc] = mbTrackData;
+  if (process.env.NODE_ENV != "production") {
+    // Development - fetch from production API endpoint
+    try {
+      console.log("Dev mode fetching mbids from server machine");
+      const res = await getMbidAndTagsFromProduction(isrcs);
+      mbData = res.mbData;
+    } catch (error) {
+      console.error("Error fetching mbids from production API endpoint");
+    }
+  } else {
+    console.log("Prod mode fetching mbids directly");
+
+    // Production - fetch directly from database
+    const isrcArr = isrcs.split(",");
+
+    if (isrcArr.length > 25) {
+      res.status(400).json({ message: "Too many ids requested." });
+    }
+    for (const isrc of isrcArr) {
+      const mbTrackData = await getMbidAndTags(isrc);
+      mbData[isrc] = mbTrackData;
+    }
   }
 
   if (mbData) {
@@ -24,6 +38,18 @@ router.get("/mbid", async function (req, res) {
     res.status(500).json({ error: `Unable to fetch MusicBrainz data` });
   }
 });
+
+// Gets mbid and tags using production API endpoint
+async function getMbidAndTagsFromProduction(isrc) {
+  try {
+    const res = await axios.get(
+      `https://cadencetracks.com/api/musicbrainz/mbid?isrcs=${isrc}`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Could not get result from server for MBID");
+  }
+}
 
 async function getMbidAndTags(isrc) {
   const client = await db.connect();

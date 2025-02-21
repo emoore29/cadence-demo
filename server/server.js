@@ -21,19 +21,7 @@ const searchDeezerRoute = require("./api/deezer/searchDeezer");
 const mbidRoute = require("./api/musicbrainz/mbid");
 const featuresRoute = require("./api/acousticbrainz/features");
 
-const redirect_uri =
-  process.env.NODE_ENV === "production"
-    ? process.env.PRODUCTION_SPOTIFY_REDIRECT_URI
-    : process.env.DEVELOPMENT_SPOTIFY_REDIRECT_URI;
-
-console.log(redirect_uri);
-
 app.use(cors(corsOptions)).use(cookieParser());
-
-// Routes
-app.get("/test", async function (req, res) {
-  res.json({ message: "Hello World" });
-});
 
 // Spotify
 app.use("/api/spotify", loginRoute);
