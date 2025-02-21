@@ -1,0 +1,32 @@
+name: Deploy Cadence
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: self-hosted # Run on my server, not GitHub's servers, using GitHub Actions runner
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Official GitHub action to clone repo
+      
+      - name: Pull latest changes
+        run: git pull origin main
+
+      - name: Stop existing containers
+        run: docker compose down
+
+      - name: Build and start containers
+        run: docker compose up -d --build # Build fresh images and start containers
+
+      - name: Health check
+        run: | 
+          echo "Waiting for services to start..."
+          sleep 10
+          if ! docker compose ps | grep -q "Up"; then
+            echo "Deployment failed - containers not running"
+            docker compose logs
+            exit 1
+          fi
