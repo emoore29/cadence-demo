@@ -464,8 +464,7 @@ export default function Form({
                       icon={icon}
                       className={styles.alert}
                     >
-                      Due to Spotify API deprecation, all track features may not
-                      be available. Read more{" "}
+                      Some tracks may not be able to be loaded. Read more{" "}
                       <a href="https://github.com/emoore29/cadence-demo">
                         here
                       </a>
