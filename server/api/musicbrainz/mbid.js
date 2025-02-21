@@ -11,15 +11,12 @@ router.get("/mbid", async function (req, res) {
   if (process.env.NODE_ENV != "production") {
     // Development - fetch from production API endpoint
     try {
-      console.log("Dev mode fetching mbids from server machine");
       const res = await getMbidAndTagsFromProduction(isrcs);
       mbData = res.mbData;
     } catch (error) {
       console.error("Error fetching mbids from production API endpoint");
     }
   } else {
-    console.log("Prod mode fetching mbids directly");
-
     // Production - fetch directly from database
     const isrcArr = isrcs.split(",");
 
