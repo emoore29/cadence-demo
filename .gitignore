@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# App files
 node_modules
 dist
 dist-ssr
@@ -15,10 +16,7 @@ dist-ssr
 /myDataBackup
 /demoData
 TODO
-/nginx
-docker-compose.yml
-client/.env.production
-client/.env.development
+client/nginx/ssl
 
 # Editor directories and files
 .vscode/*

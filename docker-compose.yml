@@ -1,0 +1,49 @@
+services:
+  nginx:
+    build: ./client
+    restart: unless-stopped
+    ports:
+      - 80:80 # host port : container port
+      - 443:443
+      # Containers can communicate on cadence_net using container port
+      # Nginx service accessible outside docker environment via host port
+    depends_on:
+      - server
+    networks:
+      - cadence_net
+    volumes:
+      # - ./certbot/conf/live/cadencetracks.com/fullchain.pem:/etc/letsencrypt/live/cadencetracks.com/fullchain.pem:ro
+      # - ./certbot/conf/live/cadencetracks.com/privkey.pem:/etc/letsencrypt/live/cadencetracks.com/privkey.pem:ro
+      - ./client/nginx/ssl:/etc/nginx/ssl
+      - ./logs:/var/log/nginx
+  server:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://musicbrainz:musicbrainz@db:5432/musicbrainz_db
+    networks:
+      - cadence_net
+    healthcheck: # Check server is running before running nginx container
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  # certbot: # https://phoenixnap.com/kb/letsencrypt-docker
+  #   image: certbot/certbot:latest
+  #   container_name: certbot
+  #   volumes:
+  #     - ./certbot/www:/var/www/certbot:rw # Webroot directory for http challenge
+  #     - ./certbot/conf:/etc/letsencrypt:rw # Certificates stored in /etc/letsencrypt/live/cadencetracks.com/ in certbot container, mounted to ./certbot/conf/live/cadencetracks.com/ on host machine
+  #   command: certonly --webroot -w /var/www/certbot --email emoore5203@gmail.com --dry-run -d cadencetracks.com -d www.cadencetracks.com 
+  #   # command requests certificate using webroot plugin
+  #   # webroot plugin allows certbot to place a challenge file inside /var/www/certbot
+  #   # agree-tos - agrees to letsencrypt terms of service
+
+networks:
+  cadence_net:
+    external: true

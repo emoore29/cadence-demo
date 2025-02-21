@@ -14,7 +14,7 @@ RUN npm run build
 # Run nginx to act as proxy for backend and serve frontend
 FROM nginx:latest
 # Copy nginx.conf
-COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 # Copy built frontend files into nginx container
 COPY --from=builder /app/dist /usr/share/nginx/html
 # Expose necessary port
