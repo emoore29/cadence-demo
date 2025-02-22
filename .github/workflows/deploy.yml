@@ -27,9 +27,9 @@ jobs:
           sleep 10
           if ! docker compose ps | grep -q "Up"; then
             echo "Deployment failed - containers not running"
+            docker compose logs
             exit 1
           fi
-          docker compose logs
 
       - name: Cleanup
         run:  sudo rm -rf ~/actions-runner/_work/cadence/cadence/*
