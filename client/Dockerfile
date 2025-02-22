@@ -15,13 +15,13 @@ RUN npm run build
 FROM nginx:latest
 
 # Create non-root user with same UID and GID as host user
-ARG UID=1000
-ARG GID=1000
-RUN groupadd -g $GID appuser && \
-    useradd -m -u $UID -g $GID appuser
+#ARG UID=1000
+#ARG GID=1000
+#RUN groupadd -g $GID appuser && \
+#    useradd -m -u $UID -g $GID appuser
 
 # Change ownership of nginx html directory
-RUN chown -R appuser:appuser /usr/share/nginx/html
+#RUN chown -R appuser:appuser /usr/share/nginx/html
 
 # Copy nginx.conf
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
@@ -30,7 +30,7 @@ COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Switch to non-root user to ensure github actions runner (non-root) has permissions to update files
-USER appuser
+#USER appuser
 
 # Expose necessary port
 EXPOSE 80

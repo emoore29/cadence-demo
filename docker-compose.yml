@@ -1,6 +1,7 @@
 services:
   nginx:
     build: ./client
+    user: "1000:1000"
     restart: unless-stopped
     ports:
       - 80:80 # host port : container port

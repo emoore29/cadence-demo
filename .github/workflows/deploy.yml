@@ -19,7 +19,7 @@ jobs:
         run: docker compose down
 
       - name: Build and start containers
-        run: docker compose up -d --build # Build fresh images and start containers
+        run: sudo docker compose up -d --build # Build fresh images and start containers
 
       - name: Health check
         run: |
