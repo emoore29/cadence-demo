@@ -12,7 +12,7 @@ services:
     networks:
       - cadence_net
     volumes:
-      - ./client/nginx/ssl:/etc/nginx/ssl
+      - ./client/nginx/ssl:/etc/nginx/ssl # Bind mounts ./client/nginx/ssl to container /etc/nginx/ssl
       - ./logs:/var/log/nginx
   server:
     build: ./server
