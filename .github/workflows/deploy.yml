@@ -32,4 +32,4 @@ jobs:
           fi
 
       - name: Cleanup
-        run:  sudo rm -rf ~/actions-runner/_work/cadence/cadence/*
+        run:  sudo chmod -R 777 ~/actions-runner/_work/cadence/cadence/*
