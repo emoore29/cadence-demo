@@ -35,3 +35,4 @@ jobs:
         run:  |
               sudo chown -R emma:emma ~/actions-runner/_work/cadence/cadence/*
               sudo chmod -R u+rwx ~/actions-runner/_work/cadence/cadence/*
+              sudo chmod -R o-rwx ~/actions-runner/_work/cadence/cadence/*
