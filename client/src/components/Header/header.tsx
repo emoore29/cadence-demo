@@ -6,7 +6,6 @@ import { modals } from "@mantine/modals";
 import { IconMetronome } from "@tabler/icons-react";
 import { TrackObject, User } from "../../types/types";
 import styles from "./header.module.css";
-import { API_URL } from "@/helpers/fetchers";
 
 interface HeaderProps {
   user: User | null;
@@ -100,10 +99,7 @@ export default function Header({
           </Menu.Dropdown>
         </Menu>
       ) : (
-        <a
-          href={`${API_URL}/spotify/login`}
-          style={{ color: "rgba(255,255,255,1)" }}
-        >
+        <a href={`/api/spotify/login`} style={{ color: "rgba(255,255,255,1)" }}>
           Sign in
         </a>
       )}
