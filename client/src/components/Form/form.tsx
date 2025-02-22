@@ -197,7 +197,7 @@ export default function Form({
       matches = syncedTracks; // Update matchingTracks to include up-to-date saved status
     } else {
       showWarnNotif(
-        "Sign in to allow syncing with Spotify",
+        "Tracks not synced",
         "Tracks' displayed saved status may not reflect your Spotify library. Read more on GitHub."
       );
     }
