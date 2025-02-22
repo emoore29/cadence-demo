@@ -17,6 +17,8 @@ services:
   server:
     build: ./server
     restart: unless-stopped
+    volumes:
+      - /home/emma/actions-runner/env/.env:/app/.env
     ports:
       - 3000:3000
     environment:
