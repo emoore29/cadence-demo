@@ -31,7 +31,5 @@ jobs:
             exit 1
           fi
 
-#      - name: Cleanup permissions
-#        run:  |
-#              chmod -R 777 ~/actions-runner/_work/
-#              rm -rf ~/actions-runner/_work/cadence/cadence/*
+      - name: Cleanup
+        run:  sudo rm -rf ~/actions-runner/_work/cadence/cadence/*
