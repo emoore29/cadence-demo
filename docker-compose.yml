@@ -17,6 +17,10 @@ services:
   server:
     build: ./server
     restart: unless-stopped
+    env_file:
+      - ~/actions-runner/env/.env
+    volumes:
+      - ~/actions-runner/env/.env:/.env
     ports:
       - 3000:3000
     environment:
