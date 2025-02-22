@@ -31,7 +31,6 @@ import { useEffect, useState } from "react";
 import { SearchableMultiSelect } from "../SearchableMultiSelect/searchableMultiSelect";
 import styles from "./form.module.css";
 import { chunk } from "lodash";
-import { API_URL } from "@/helpers/fetchers";
 
 interface FormProps {
   estimatedLoadTime: string;
@@ -302,7 +301,7 @@ export default function Form({
 
     try {
       const response = await fetch(
-        `${API_URL}/spotify/playlist?playlistId=${encodeURIComponent(
+        `/api/spotify/playlist?playlistId=${encodeURIComponent(
           id
         )}&accessToken=${token}`
       );
@@ -347,7 +346,7 @@ export default function Form({
 
     try {
       const response = await fetch(
-        `${API_URL}/spotify/playlistItems?playlistId=${encodeURIComponent(
+        `/api/spotify/playlistItems?playlistId=${encodeURIComponent(
           playlistId
         )}&accessToken=${token}`
       );

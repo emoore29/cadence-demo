@@ -15,7 +15,6 @@ import {
 import { deleteFromStore, setInStore } from "./database";
 import { showErrorNotif, showWarnNotif } from "./general";
 import { getItemFromLocalStorage } from "./localStorage";
-export const API_URL = import.meta.env.VITE_API_URL;
 
 // Fetches user data, returns User or null on failure
 export async function fetchUserData(): Promise<User | null> {
@@ -107,7 +106,7 @@ export async function fetchMbData(
 
   try {
     const res = await fetch(
-      `${API_URL}/musicbrainz/mbid?isrcs=${encodeURIComponent(isrcs)}`
+      `/api/musicbrainz/mbid?isrcs=${encodeURIComponent(isrcs)}`
     );
     const data = await res.json();
     return data.mbData;
@@ -124,7 +123,7 @@ export async function fetchFeatures(
 
   try {
     const response = await fetch(
-      `${API_URL}/acousticbrainz/features?mbids=${encodeURIComponent(mbids)}`
+      `/api/acousticbrainz/features?mbids=${encodeURIComponent(mbids)}`
     );
     const data = await response.json();
     const features: AcousticBrainzData = data.features;
