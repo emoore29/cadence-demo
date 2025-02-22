@@ -12,7 +12,7 @@ services:
     networks:
       - cadence_net
     volumes:
-      - /home/actions-runner/ssl:/etc/nginx/ssl # Bind mounts actions runner ssl to container /etc/nginx/ssl
+      - /home/emma/actions-runner/ssl:/etc/nginx/ssl # Bind mounts actions runner ssl to container /etc/nginx/ssl
       - ./logs:/var/log/nginx
   server:
     build: ./server
